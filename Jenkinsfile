@@ -1,3 +1,19 @@
+/*******************************************************************************
+ * Copyright (c) 2021, 2024 Red Hat Inc. and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
+ * which accompanies this distribution, and is available at
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *     Mickael Istria (Red Hat Inc.) - initial API and implementation
+ *     Hannes Wellmann - Build SWT-natives as part of master- and verification-builds
+ *     Hannes Wellmann - Move SWT native binaries in this repository using Git-LFS
+  *******************************************************************************/
+
 def nativeBuildAgent(String platform, Closure body) {
 	def final nativeBuildStageName = 'Build SWT-native binaries'
 	if(platform == 'gtk.linux.x86_64') {
@@ -59,7 +75,14 @@ pipeline {
 	stages {
 		stage('Checkout swt git repos') {
 			steps {
-				dir ('eclipse.platform.swt') {
+				dir('tools') { // download git-lfs until it is available by default
+					sh '''
+						curl -L https://github.com/git-lfs/git-lfs/releases/download/v3.4.1/git-lfs-linux-amd64-v3.4.1.tar.gz | tar -xzf -
+						mv git-lfs-* git-lfs
+					'''
+				}
+				withEnv(["PATH=${WORKSPACE}/tools/git-lfs:" + env.PATH]) {
+				dir('eclipse.platform.swt') {
 					checkout scm
 					script {
 						def authorMail = sh(script: 'git log -1 --pretty=format:"%ce" HEAD', returnStdout: true)
@@ -71,16 +94,15 @@ pipeline {
 						}
 					}
 					sh '''
+						echo $PATH
+						git version
+						git lfs version
+						git lfs install --local # install Git LFS only locally for the repository
+						git lfs pull
 						git fetch --all --tags --quiet
 						git remote set-url --push origin git@github.com:eclipse-platform/eclipse.platform.swt.git
 					'''
 				}
-				dir ('eclipse.platform.swt.binaries') {
-					checkout([$class: 'GitSCM', branches: [[name: 'refs/heads/master']],
-						extensions: [[$class: 'CloneOption', timeout: 120, noTags: false ]],
-						userRemoteConfigs: [[url: 'https://github.com/eclipse-platform/eclipse.platform.swt.binaries.git']]
-					])
-					sh 'git remote set-url --push origin git@github.com:eclipse-platform/eclipse.platform.swt.binaries.git'
 				}
 			}
 		}
@@ -115,7 +137,7 @@ pipeline {
 				stages {
 					stage("Collect SWT-native's sources") {
 						steps {
-							dir('eclipse.platform.swt.binaries/bundles'){
+							dir('eclipse.platform.swt/binaries'){
 								withAnt(installation: 'apache-ant-latest', jdk: 'openjdk-jdk11-latest') { // nashorn javascript-engine required in ant-scripts
 									sh '''
 										pfSpec=(${PLATFORM//"."/ })
@@ -205,7 +227,7 @@ pipeline {
 										fi
 									}
 									
-									binaryFragmentsRoot=${WORKSPACE}/eclipse.platform.swt.binaries/bundles
+									binaryFragmentsRoot=${WORKSPACE}/eclipse.platform.swt/binaries
 									
 									if [[ ${PLATFORM} == cocoa.macosx.* ]]; then
 										#TODO: Instead use (with adjusted URL): https://github.com/eclipse-cbi/org.eclipse.cbi/tree/main/maven-plugins/eclipse-winsigner-plugin
@@ -245,7 +267,7 @@ pipeline {
 				withAnt(installation: 'apache-ant-latest', jdk: 'openjdk-jdk11-latest') { // nashorn javascript-engine required in ant-scripts
 					//The maven build reads the git-history so we should have to commit the native-binaries before building
 					sh '''
-						pushd eclipse.platform.swt.binaries
+						pushd eclipse.platform.swt
 						git add --all *
 						echo "git status after add"
 						git status
@@ -259,11 +281,6 @@ pipeline {
 						git status
 						git log -p -2
 						popd
-						
-						pushd eclipse.platform.swt.binaries
-						git status
-						git log -p -1
-						popd
 					'''
 				}
 			}	
@@ -276,17 +293,11 @@ pipeline {
 			}
 			steps {
 				xvnc(useXauthority: true) {
-					dir ('eclipse.platform.swt.binaries') {
-						sh '''
-							mvn install \
-								--batch-mode -Pbuild-individual-bundles -DforceContextQualifier=zzz \
-								-Dcompare-version-with-baselines.skip=true -Dmaven.compiler.failOnWarning=true
-						'''
-					}
 					dir ('eclipse.platform.swt') {
 						sh '''
 							mvn clean verify \
 								--batch-mode -DforkCount=0 \
+								-DforceContextQualifier=zzz
 								-Dcompare-version-with-baselines.skip=false -Dmaven.compiler.failOnWarning=true \
 								-Dmaven.test.failure.ignore=true -Dmaven.test.error.ignore=true
 						'''
@@ -310,10 +321,11 @@ pipeline {
 				sshagent(['github-bot-ssh']) {
 					script {
 						def newSWTNativesTag = null;
-						dir ('eclipse.platform.swt.binaries') {
+						dir ('eclipse.platform.swt') {
 							newSWTNativesTag = sh(script: 'git describe --abbrev=0 --tags --match v[0-9][0-9][0-9][0-9]*', returnStdout: true).strip()
 						}
 						echo "newSWTNativesTag: ${newSWTNativesTag}"
+						withEnv(["PATH=${WORKSPACE}/tools/git-lfs:" + env.PATH]) { //TODO: remove this once GIT-LFS is installed by default
 						sh """
 							# Check for the master-branch as late as possible to have as much of the same behaviour as possible
 							if [[ '${BRANCH_NAME}' == master ]] || [[ '${BRANCH_NAME}' =~ R[0-9]+_[0-9]+(_[0-9]+)?_maintenance ]]; then
@@ -322,11 +334,6 @@ pipeline {
 									#Don't rebase and just fail in case another commit has been pushed to the master/maintanance branch in the meantime
 									
 									pushd eclipse.platform.swt
-									git push origin HEAD:refs/heads/${BRANCH_NAME}
-									git push origin refs/tags/${newSWTNativesTag}
-									popd
-									
-									pushd eclipse.platform.swt.binaries
 									git push origin HEAD:refs/heads/${BRANCH_NAME}
 									git push origin refs/tags/${newSWTNativesTag}
 									popd
@@ -342,10 +349,8 @@ pipeline {
 							pushd eclipse.platform.swt
 							git log -n 2
 							popd
-							pushd eclipse.platform.swt.binaries
-							git log -n 2
-							popd
 						"""
+						}
 					}
 				}
 			}
