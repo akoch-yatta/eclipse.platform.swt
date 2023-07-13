@@ -1087,6 +1087,25 @@ public void setToolTipText (String toolTip) {
 	itemToolTip.setVisible (false);
 }
 
+@Override
+public boolean setZoom (int zoom) {
+	boolean refreshed = (this.currentDeviceZoom == zoom);
+	this.currentDeviceZoom = zoom;
+	// Refresh the image
+	if (image != null) {
+		refreshed = image.setZoom (zoom);
+		setImage (image);
+	}
+
+	// Refresh the sub menu
+	if (menu != null) {
+		for (MenuItem item : menu.getItems()) {
+			refreshed |= item.setZoom (zoom);
+		}
+	}
+	return refreshed;
+}
+
 void showTooltip (int x, int y) {
 	if (itemToolTip == null || itemToolTip.isDisposed()) return;
 	itemToolTip.setLocationInPixels (x, y);

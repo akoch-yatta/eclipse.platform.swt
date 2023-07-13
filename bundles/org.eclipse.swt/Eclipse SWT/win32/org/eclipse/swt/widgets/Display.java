@@ -2131,6 +2131,18 @@ Dialog getModalDialog () {
 	return modalDialog;
 }
 
+/**
+ * @since 3.108
+ */
+@Override
+protected int getDeviceZoom() {
+	/* Win8.1 and above we pick zoom for the primary monitor zoom. */
+	if (OS.WIN32_VERSION >= OS.VERSION (6, 3)) {
+		return getPrimaryMonitor().getZoom();
+	}
+	return super.getDeviceZoom();
+}
+
 Monitor getMonitor (long hmonitor) {
 	MONITORINFO lpmi = new MONITORINFO ();
 	lpmi.cbSize = MONITORINFO.sizeof;

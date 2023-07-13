@@ -23,6 +23,7 @@ import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.internal.*;
 import org.eclipse.swt.internal.gdip.*;
+import org.eclipse.swt.internal.ole.win32.*;
 import org.eclipse.swt.internal.win32.*;
 
 /**
@@ -1455,6 +1456,19 @@ public Monitor getMonitor () {
 	long hmonitor = OS.MonitorFromWindow (handle, OS.MONITOR_DEFAULTTONEAREST);
 	return display.getMonitor (hmonitor);
 }
+
+/**
+ * Returns zoom value for the monitor
+ *
+ * @return the monitor's zoom value
+ */
+//public int getMonitorZoom() {
+//	int [] dpiX = new int [1];
+//	int [] dpiY = new int [1];
+//	Monitor monitor = getMonitor();
+//	OS.GetDpiForMonitor (monitor.handle, 0, dpiX, dpiY);
+//	return (dpiX[0] * 100)/96;
+//}
 
 /**
  * Returns the orientation of the receiver, which will be one of the
@@ -5724,6 +5738,16 @@ LRESULT WM_XBUTTONDOWN (long wParam, long lParam) {
 
 LRESULT WM_XBUTTONUP (long wParam, long lParam) {
 	return wmXButtonUp (handle, wParam, lParam);
+}
+
+LRESULT WM_DPICHANGED (long /*int*/ wParam, long /*int*/ lParam) {
+	System.out.println("Control:WM_DPICHANGED: " + this.getClass());
+	this.currentDeviceZoom = DPIUtil.mapDPIToZoom (OS.HIWORD (wParam));
+	DPIUtil.setDeviceZoom (currentDeviceZoom);
+	RECT rect = new RECT ();
+	COM.MoveMemory(rect, lParam, RECT.sizeof);
+	this.setBoundsInPixels(rect.left, rect.top, rect.right - rect.left, rect.bottom-rect.top);
+	return setZoom (currentDeviceZoom) ? LRESULT.ZERO : LRESULT.ONE;
 }
 
 LRESULT wmColorChild (long wParam, long lParam) {

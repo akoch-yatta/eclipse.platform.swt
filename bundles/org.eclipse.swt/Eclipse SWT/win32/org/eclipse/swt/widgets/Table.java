@@ -5221,6 +5221,33 @@ public void setTopIndex (int index) {
 	OS.SendMessage (handle, OS.LVM_SCROLL, 0, dy);
 }
 
+@Override
+public boolean setZoom (int zoom) {
+	boolean refreshed = (this.currentDeviceZoom == zoom);
+	// Reset ImageList
+	if (headerImageList != null) {
+		headerImageList.dispose();
+		headerImageList = null;
+	}
+	if (imageList != null) {
+		imageList.dispose();
+		imageList = null;
+	}
+
+	// Refresh columns
+	for (TableColumn tableColumn : getColumns()) {
+		refreshed |= tableColumn.setZoom (zoom);
+	}
+
+	// Refresh items
+	for (TableItem item : getItems()) {
+		refreshed |= item.setZoom (zoom);
+	}
+
+	this.currentDeviceZoom = zoom;
+	return refreshed;
+}
+
 /**
  * Shows the column.  If the column is already showing in the receiver,
  * this method simply returns.  Otherwise, the columns are scrolled until

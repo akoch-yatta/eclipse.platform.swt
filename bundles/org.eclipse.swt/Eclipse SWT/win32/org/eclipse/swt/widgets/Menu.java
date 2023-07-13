@@ -1289,6 +1289,16 @@ public void setVisible (boolean visible) {
 	}
 }
 
+@Override
+public boolean setZoom (int zoom) {
+	boolean refreshed = (this.currentDeviceZoom == zoom);
+	this.currentDeviceZoom = zoom;
+	for (MenuItem item : getItems()) {
+		refreshed |= item.setZoom (zoom);
+	}
+	return refreshed;
+}
+
 void update () {
 	if ((style & SWT.BAR) != 0) {
 		if (this == parent.menuBar) OS.DrawMenuBar (parent.handle);

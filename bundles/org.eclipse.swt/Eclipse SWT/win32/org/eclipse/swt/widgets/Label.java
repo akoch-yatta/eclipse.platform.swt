@@ -130,6 +130,18 @@ static int checkStyle (int style) {
 	return checkBits (style, SWT.LEFT, SWT.CENTER, SWT.RIGHT, 0, 0, 0);
 }
 
+@Override
+public boolean setZoom (int zoom) {
+	boolean refreshed = false;
+	this.currentDeviceZoom = zoom;
+	// Refresh image on DPI change
+	if(image != null) {
+		refreshed = image.setZoom (this.currentDeviceZoom);
+		setImage  (image);
+	}
+	return refreshed;
+}
+
 @Override Point computeSizeInPixels (int wHint, int hHint, boolean changed) {
 	checkWidget ();
 	int width = 0, height = 0, border = getBorderWidthInPixels ();
@@ -146,10 +158,10 @@ static int checkStyle (int style) {
 		return new Point (width, height);
 	}
 	if (isImageMode) {
-		Rectangle rect = image.getBoundsInPixels();
-		width += rect.width;
-		height += rect.height;
-	} else {
+		Rectangle rect = image.getBounds(currentDeviceZoom);
+			width += rect.width;
+			height += rect.height;
+			} else {
 		long hDC = OS.GetDC (handle);
 		long newFont = OS.SendMessage (handle, OS.WM_GETFONT, 0, 0);
 		long oldFont = OS.SelectObject (hDC, newFont);
@@ -552,7 +564,7 @@ void wmDrawChildImage(DRAWITEMSTRUCT struct) {
 	int height = struct.bottom - struct.top;
 	if (width == 0 || height == 0) return;
 
-	Rectangle imageRect = image.getBoundsInPixels ();
+	Rectangle imageRect = image.getBounds(currentDeviceZoom);
 
 	int x = 0;
 	if ((style & SWT.CENTER) != 0) {

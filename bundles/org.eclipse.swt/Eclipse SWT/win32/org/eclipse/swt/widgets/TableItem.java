@@ -1266,4 +1266,16 @@ public void setText (String string) {
 	setText (0, string);
 }
 
+@Override
+public boolean setZoom (int zoom) {
+	boolean refreshed = (this.currentDeviceZoom == zoom);
+	// Refresh the image
+	if (image != null) {
+		refreshed = image.setZoom (zoom);
+		setImage (image);
+	}
+	this.currentDeviceZoom = zoom;
+	return refreshed;
+}
+
 }

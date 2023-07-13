@@ -3694,6 +3694,17 @@ public void setUnselectedImageVisible(boolean visible) {
 	showUnselectedImage = visible;
 	updateFolder(REDRAW);
 }
+
+@Override
+public boolean setZoom (int zoom) {
+	boolean refreshed = (this.currentDeviceZoom == zoom);
+	this.currentDeviceZoom = zoom;
+	for (CTabItem item: getItems()) {
+		refreshed |= item.setZoom(zoom);
+	};
+	return refreshed;
+}
+
 /**
  * Shows the item.  If the item is already showing in the receiver,
  * this method simply returns.  Otherwise, the items are scrolled until

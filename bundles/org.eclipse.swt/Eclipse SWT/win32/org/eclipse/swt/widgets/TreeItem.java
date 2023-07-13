@@ -1803,6 +1803,22 @@ public void setText (String string) {
 	setText (0, string);
 }
 
+@Override
+public boolean setZoom (int zoom) {
+	boolean refreshed = (this.currentDeviceZoom == zoom);
+	// Refresh the image
+	if (image != null) {
+		refreshed = image.setZoom (zoom);
+		setImage (image);
+	}
+	// Refresh the child item
+	for (TreeItem item : getItems()) {
+		refreshed |= item.setZoom (zoom);
+	}
+	this.currentDeviceZoom = zoom;
+	return refreshed;
+}
+
 /*public*/ void sort () {
 	checkWidget ();
 	if ((parent.style & SWT.VIRTUAL) != 0) return;

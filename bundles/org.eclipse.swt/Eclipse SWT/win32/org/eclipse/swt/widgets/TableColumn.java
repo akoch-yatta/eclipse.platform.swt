@@ -872,6 +872,18 @@ void setWidthInPixels (int width) {
 	}
 }
 
+@Override
+public boolean setZoom (int zoom) {
+	boolean refreshed = (this.currentDeviceZoom == zoom);
+	// Refresh the image
+	if (image != null) {
+		refreshed = image.setZoom (zoom);
+		setImage (image);
+	}
+	this.currentDeviceZoom = zoom;
+	return refreshed;
+}
+
 void updateToolTip (int index) {
 	long hwndHeaderToolTip = parent.headerToolTipHandle;
 	if (hwndHeaderToolTip != 0) {
