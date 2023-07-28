@@ -298,6 +298,13 @@ Shell (Display display, Shell parent, int style, long handle, boolean embedded) 
 	if (handle != 0 && !embedded) {
 		state |= FOREIGN_HANDLE;
 	}
+
+	int [] dpiX = new int [1];
+	int [] dpiY = new int [1];
+	Monitor monitor = getMonitor();
+	OS.GetDpiForMonitor (monitor.handle, 0, dpiX, dpiY);
+	this.currentDeviceZoom = DPIUtil.mapDPIToZoom(dpiX[0]);
+
 	reskinWidget();
 	createWidget ();
 }
@@ -2110,18 +2117,20 @@ public void setVisible (boolean visible) {
 }
 
 @Override
-public boolean setZoom (int zoom) {
-	boolean refreshed = super.setZoom (zoom);
+public boolean setZoom (DPIChangeEvent event) {
+	System.out.println("Resizing Shell " + event);
+	boolean resized = super.setZoom (event);
 	// Refresh the image
 	if (image != null) {
-		refreshed = image.setZoom (zoom);
+		resized = image.setZoom (event);
 		setImage (image);
 	}
 	if (menuBar != null) {
-		refreshed |= menuBar.setZoom (zoom);
+		resized |= menuBar.setZoom (event);
 	}
-	this.requestLayout();
-	return refreshed;
+
+	this.layout (null, SWT.DEFER | SWT.ALL);
+	return resized;
 }
 
 @Override

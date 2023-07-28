@@ -114,6 +114,7 @@ Control () {
 public Control (Composite parent, int style) {
 	super (parent, style);
 	this.parent = parent;
+	this.currentDeviceZoom = getShell().currentDeviceZoom;
 	createWidget ();
 }
 
@@ -4942,11 +4943,26 @@ LRESULT WM_DPICHANGED (long wParam, long lParam) {
 		event.detail = newSWTZoom;
 		event.doit = true;
 		notifyListeners(SWT.ZoomChanged, event);
-		return LRESULT.ZERO;
+
+		System.out.println("Control:WM_DPICHANGED: " + this.getClass() + " " + oldSWTZoom + " -> " + newSWTZoom );
+		this.currentDeviceZoom = nativeZoom;
+		DPIUtil.setDeviceZoom (nativeZoom);
+		RECT rect = new RECT ();
+		COM.MoveMemory(rect, lParam, RECT.sizeof);
+		this.setBoundsInPixels(rect.left, rect.top, rect.right - rect.left, rect.bottom-rect.top);
+		return setZoom (new DPIChangeEvent(oldSWTZoom, nativeZoom)) ? LRESULT.ZERO : LRESULT.ONE;
 	}
 	return LRESULT.ONE;
 }
 
+@Override
+public boolean setZoom(DPIChangeEvent event) {
+	boolean resized = super.setZoom(event);
+	if(resized) {
+		//resizeFont(event);
+	}
+	return resized;
+}
 LRESULT WM_DRAWITEM (long wParam, long lParam) {
 	DRAWITEMSTRUCT struct = new DRAWITEMSTRUCT ();
 	OS.MoveMemory (struct, lParam, DRAWITEMSTRUCT.sizeof);
@@ -5740,16 +5756,6 @@ LRESULT WM_XBUTTONUP (long wParam, long lParam) {
 	return wmXButtonUp (handle, wParam, lParam);
 }
 
-LRESULT WM_DPICHANGED (long /*int*/ wParam, long /*int*/ lParam) {
-	System.out.println("Control:WM_DPICHANGED: " + this.getClass());
-	this.currentDeviceZoom = DPIUtil.mapDPIToZoom (OS.HIWORD (wParam));
-	DPIUtil.setDeviceZoom (currentDeviceZoom);
-	RECT rect = new RECT ();
-	COM.MoveMemory(rect, lParam, RECT.sizeof);
-	this.setBoundsInPixels(rect.left, rect.top, rect.right - rect.left, rect.bottom-rect.top);
-	return setZoom (currentDeviceZoom) ? LRESULT.ZERO : LRESULT.ONE;
-}
-
 LRESULT wmColorChild (long wParam, long lParam) {
 	Control control = findBackgroundControl ();
 	if (control == null) {
@@ -5828,6 +5834,14 @@ LRESULT wmNotifyChild (NMHDR hdr, long wParam, long lParam) {
 
 LRESULT wmScrollChild (long wParam, long lParam) {
 	return null;
+}
+
+@Override
+public int getCurrentDeviceZoom() {
+	if (currentDeviceZoom == 0) {
+		currentDeviceZoom = parent.getCurrentDeviceZoom();
+	}
+	return currentDeviceZoom;
 }
 
 }

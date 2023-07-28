@@ -21,6 +21,7 @@ import org.eclipse.swt.*;
 import org.eclipse.swt.internal.*;
 import org.eclipse.swt.internal.gdip.*;
 import org.eclipse.swt.internal.win32.*;
+import org.eclipse.swt.widgets.*;
 
 /**
  * Instances of this class are graphics which have been prepared
@@ -136,7 +137,7 @@ public final class Image extends Resource implements Drawable {
 
 	/**
 	 * Attribute to cache current device zoom level
-	 * @since 3.108
+	 * @since 3.125
 	 */
 	public int currentDeviceZoom = 100;
 
@@ -352,7 +353,7 @@ public Image(Device device, Image srcImage, int flag) {
 			break;
 		}
 		case SWT.IMAGE_GRAY: {
-			ImageData data = srcImage.getImageDataAtCurrentZoom();
+			ImageData data = srcImage.getImageData(srcImage.currentDeviceZoom);
 			PaletteData palette = data.palette;
 			ImageData newData = data;
 			if (!palette.isDirect) {
@@ -742,20 +743,18 @@ public Image(Device device, ImageDataProvider imageDataProvider) {
 
 /**
  * Set zoom and refresh the Image based on the zoom level, if required.
- * @param zoom
+ * @param event
  *
  * @return true if image is refreshed
  * @noreference This method is not intended to be referenced by clients.
  */
-public boolean setZoom (int zoom) {
-	boolean refreshed = false;
-	StringBuilder sb = new StringBuilder();
-	sb.append("Image:setZoom() From[" + currentDeviceZoom + "] To[");
+public boolean setZoom (DPIChangeEvent event) {
+	boolean resized = false;
 
 	if (imageFileNameProvider != null) {
-		if (zoom != currentDeviceZoom) {
+		if (event.isDPIChange()) {
 			boolean[] found = new boolean[1];
-			String filename = DPIUtil.validateAndGetImagePathAtZoom (imageFileNameProvider, zoom, found);
+			String filename = DPIUtil.validateAndGetImagePathAtZoom (imageFileNameProvider, event.newZoom(), found);
 			/* Avoid re-creating the fall-back image, when current zoom is already 100% */
 			if (found[0] || currentDeviceZoom != 100) {
 				/* Release current native resources */
@@ -763,7 +762,7 @@ public boolean setZoom (int zoom) {
 				initNative(filename);
 				if (this.handle == 0) init(new ImageData (filename));
 				init();
-				refreshed = true;
+				resized = true;
 			}
 			if (!found[0]) {
 				/* Release current native resources */
@@ -771,21 +770,21 @@ public boolean setZoom (int zoom) {
 				ImageData resizedData = DPIUtil.autoScaleUp (device, new ImageData (filename));
 				init(resizedData);
 				init ();
-				refreshed = true;
+				resized = true;
 			}
-			currentDeviceZoom = zoom;
+			currentDeviceZoom = event.newZoom();
 		}
 	} else if (imageDataProvider != null) {
-		if (zoom != currentDeviceZoom) {
+		if (event.isDPIChange()) {
 			boolean[] found = new boolean[1];
-			ImageData data = DPIUtil.validateAndGetImageDataAtZoom (imageDataProvider, zoom, found);
+			ImageData data = DPIUtil.validateAndGetImageDataAtZoom (imageDataProvider, event.newZoom(), found);
 			/* Avoid re-creating the fall-back image, when current zoom is already 100% */
 			if (found[0] || currentDeviceZoom != 100) {
 				/* Release current native resources */
 				destroy ();
 				init(data);
 				init();
-				refreshed = true;
+				resized = true;
 			}
 			if (!found[0]) {
 				/* Release current native resources */
@@ -793,9 +792,9 @@ public boolean setZoom (int zoom) {
 				ImageData resizedData = DPIUtil.autoScaleUp (device, data);
 				init(resizedData);
 				init();
-				refreshed = true;
+				resized = true;
 			}
-			currentDeviceZoom = zoom;
+			currentDeviceZoom = event.newZoom();
 		}
 	} else {
 		// Cache data at 100% zoom before refresh.
@@ -803,30 +802,28 @@ public boolean setZoom (int zoom) {
 			dataAt100 = getImageDataAtCurrentZoom();
 			System.out.println("Cached dataAt100: " + dataAt100);
 		}
-		if (zoom != currentDeviceZoom) {
+		if (event.isDPIChange()) {
 			ImageData resizedData = null;
 			if (dataAt100 != null) {
-				System.out.println("Using cached Imagedata At100... going from[" + currentDeviceZoom + "] to target zoom[" + zoom + "]");
-				resizedData = DPIUtil.autoScaleImageData(device, dataAt100, zoom, 100);
+				//System.out.println("Using cached Imagedata At100... going from[" + currentDeviceZoom + "] to target zoom[" + event.newZoom() + "]");
+				resizedData = DPIUtil.autoScaleImageData(device, dataAt100, event.newZoom(), 100);
 			}
 			else {
-				System.out.println("currentDeviceZoom: " + currentDeviceZoom);
-				resizedData = DPIUtil.autoScaleImageData(device, getImageDataAtCurrentZoom(), zoom, currentDeviceZoom);
+			//	System.out.println("currentDeviceZoom: " + currentDeviceZoom);
+				resizedData = DPIUtil.autoScaleImageData(device, getImageDataAtCurrentZoom(), event.newZoom(), currentDeviceZoom);
 			}
 			destroy ();
 			init(resizedData);
 			init();
-			refreshed = true;
-			currentDeviceZoom = zoom;
+			resized = true;
+			currentDeviceZoom = event.newZoom();
 		}
 	}
-	sb.append(currentDeviceZoom + "] >> " + refreshed);
-	if (refreshed) {
+	if (resized) {
 		// Reset width and height to -1, which invokes getBoundsInPixelsFromNative
 		width = height = -1;
-		System.out.println(sb.toString());
 	}
-	return refreshed;
+	return resized;
 }
 
 void initNative(String filename) {
@@ -1281,7 +1278,7 @@ public Color getBackground() {
  */
 public Rectangle getBounds() {
 	if (isDisposed()) SWT.error(SWT.ERROR_GRAPHIC_DISPOSED);
-	return getBounds (100);
+	return getBounds (currentDeviceZoom);
 }
 
 /**

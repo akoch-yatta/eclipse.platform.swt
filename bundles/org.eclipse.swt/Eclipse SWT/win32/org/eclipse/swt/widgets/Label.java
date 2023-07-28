@@ -131,15 +131,15 @@ static int checkStyle (int style) {
 }
 
 @Override
-public boolean setZoom (int zoom) {
-	boolean refreshed = false;
-	this.currentDeviceZoom = zoom;
+public boolean setZoom (DPIChangeEvent event) {
+	boolean resized = super.setZoom(event);
+
 	// Refresh image on DPI change
 	if(image != null) {
-		refreshed = image.setZoom (this.currentDeviceZoom);
+		resized = image.setZoom (event);
 		setImage  (image);
 	}
-	return refreshed;
+	return resized;
 }
 
 @Override Point computeSizeInPixels (int wHint, int hHint, boolean changed) {

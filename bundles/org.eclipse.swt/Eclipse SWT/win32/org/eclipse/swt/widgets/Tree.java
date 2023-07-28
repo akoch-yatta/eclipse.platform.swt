@@ -5369,8 +5369,9 @@ public void setTopItem (TreeItem item) {
 }
 
 @Override
-public boolean setZoom (int zoom) {
-	boolean refreshed = (this.currentDeviceZoom == zoom);
+public boolean setZoom (DPIChangeEvent event) {
+	boolean refreshed = super.setZoom(event);
+
 	// Reset ImageList
 	if (headerImageList != null) {
 		headerImageList.dispose();
@@ -5383,14 +5384,14 @@ public boolean setZoom (int zoom) {
 
 	// Refresh columns
 	for (TreeColumn treeColumn : getColumns()) {
-		refreshed |= treeColumn.setZoom (zoom);
+		refreshed |= treeColumn.setZoom (event);
 	}
 
 	// Refresh items
 	for (TreeItem item : getItems()) {
-		refreshed |= item.setZoom (zoom);
+		refreshed |= item.setZoom (event);
 	}
-	this.currentDeviceZoom = zoom;
+
 	return refreshed;
 }
 

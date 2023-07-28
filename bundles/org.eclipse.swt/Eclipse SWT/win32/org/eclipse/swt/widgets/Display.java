@@ -378,8 +378,12 @@ public class Display extends Device implements Executor {
 	long hwndMessage, messageProc;
 
 	/* System Resources */
+	@Deprecated(since = "3.125.0")
 	LOGFONT lfSystemFont;
+	Map<Integer, LOGFONT> lfSystemFonts;
+	@Deprecated(since = "3.125.0")
 	Font systemFont;
+	Map<Integer, Font> systemFonts;
 	Image errorImage, infoImage, questionImage, warningIcon;
 	Cursor [] cursors = new Cursor [SWT.CURSOR_HAND + 1];
 	Resource [] resources;
@@ -2131,18 +2135,6 @@ Dialog getModalDialog () {
 	return modalDialog;
 }
 
-/**
- * @since 3.108
- */
-@Override
-protected int getDeviceZoom() {
-	/* Win8.1 and above we pick zoom for the primary monitor zoom. */
-	if (OS.WIN32_VERSION >= OS.VERSION (6, 3)) {
-		return getPrimaryMonitor().getZoom();
-	}
-	return super.getDeviceZoom();
-}
-
 Monitor getMonitor (long hmonitor) {
 	MONITORINFO lpmi = new MONITORINFO ();
 	lpmi.cbSize = MONITORINFO.sizeof;
@@ -2456,19 +2448,38 @@ public Cursor getSystemCursor (int id) {
  */
 @Override
 public Font getSystemFont () {
+	return getSystemFont(100);
+}
+
+/**
+ * @since 3.125
+ */
+public Font getSystemFont (int dpiZoom) {
 	checkDevice ();
+	Font systemFont = this.systemFonts.get(dpiZoom);
 	if (systemFont != null) return systemFont;
 	long hFont = 0;
 	NONCLIENTMETRICS info = new NONCLIENTMETRICS ();
 	info.cbSize = NONCLIENTMETRICS.sizeof;
 	if (OS.SystemParametersInfo (OS.SPI_GETNONCLIENTMETRICS, 0, info, 0)) {
 		LOGFONT logFont = info.lfMessageFont;
+		logFont.lfHeight = Math.round(logFont.lfHeight * (dpiZoom/100f));
 		hFont = OS.CreateFontIndirect (logFont);
 		lfSystemFont = hFont != 0 ? logFont : null;
+		if (dpiZoom == 100) {
+			this.lfSystemFont = lfSystemFont;
+		}
+		lfSystemFonts.put(dpiZoom, logFont);
 	}
 	if (hFont == 0) hFont = OS.GetStockObject (OS.DEFAULT_GUI_FONT);
 	if (hFont == 0) hFont = OS.GetStockObject (OS.SYSTEM_FONT);
-	return systemFont = Font.win32_new (this, hFont);
+	 systemFont = Font.win32_new (this, hFont);
+	 if (dpiZoom == 100) {
+		 this.systemFont = systemFont;
+	 }
+	 systemFonts.put(dpiZoom, systemFont);
+	 System.out.println("Created System Font: " + systemFont.getFontData()[0]);
+	 return systemFont;
 }
 
 /**
@@ -2765,6 +2776,8 @@ public long internal_new_GC (GCData data) {
 protected void init () {
 	// Field initialization happens after super constructor
 	controlByHandle = new HashMap<>();
+	systemFonts = new HashMap<>();
+	lfSystemFonts = new HashMap<>();
 	this.synchronizer = new Synchronizer (this);
 	super.init ();
 	DPIUtil.setDeviceZoom (getDeviceZoom ());
@@ -3829,9 +3842,13 @@ void releaseDisplay () {
 	windowProc = 0;
 
 	/* Release the System fonts */
-	if (systemFont != null) systemFont.dispose ();
+	systemFonts.values().forEach(systemFont -> {
+		systemFont.dispose ();
+	});
 	systemFont = null;
+	systemFonts.clear();
 	lfSystemFont = null;
+	lfSystemFonts.clear();
 
 	/* Release the System Images */
 	if (errorImage != null) errorImage.dispose ();

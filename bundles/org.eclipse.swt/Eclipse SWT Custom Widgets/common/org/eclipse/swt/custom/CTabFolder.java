@@ -738,7 +738,7 @@ Image createButtonImage(Display display, int button) {
 	renderer.draw(button, SWT.NONE, new Rectangle(trim.x, trim.y, size.x, size.y), gc);
 	gc.dispose ();
 
-	final ImageData imageData = image.getImageData (DPIUtil.getDeviceZoom ());
+	final ImageData imageData = image.getImageData (currentDeviceZoom);
 	imageData.transparentPixel = imageData.palette.getPixel(transColor.getRGB());
 	image.dispose();
 	image = new Image(display, new AutoScaleImageDataProvider(display, imageData, DPIUtil.getDeviceZoom()));
@@ -3696,13 +3696,16 @@ public void setUnselectedImageVisible(boolean visible) {
 }
 
 @Override
-public boolean setZoom (int zoom) {
-	boolean refreshed = (this.currentDeviceZoom == zoom);
-	this.currentDeviceZoom = zoom;
-	for (CTabItem item: getItems()) {
-		refreshed |= item.setZoom(zoom);
-	};
-	return refreshed;
+public boolean setZoom(DPIChangeEvent zoom) {
+	System.out.println("Resizing CTabFolder to " + zoom);
+	boolean resized = super.setZoom(zoom);
+
+	if(resized) {
+		for (CTabItem item : getItems()) {
+			resized |= item.setZoom(zoom);
+		}
+	}
+	return resized;
 }
 
 /**

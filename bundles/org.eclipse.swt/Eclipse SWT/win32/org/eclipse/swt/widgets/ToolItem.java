@@ -859,13 +859,13 @@ public void setImage (Image image) {
 }
 
 @Override
-public boolean setZoom (int zoom) {
-	boolean refreshed = (this.currentDeviceZoom == zoom);
-	this.currentDeviceZoom = zoom;
+public boolean setZoom (DPIChangeEvent event) {
+	boolean resized = super.setZoom(event);
+
 	int listStyle = parent.style & SWT.RIGHT_TO_LEFT;
 	// Refresh the image
 	if (image != null) {
-		Rectangle bounds = image.getBounds(zoom);
+		Rectangle bounds = image.getBounds(event.newZoom());
 		if (parent.getImageList() == null) {
 			parent.setImageList (display.getImageListToolBar (listStyle, bounds.width, bounds.height));
 		}
@@ -875,11 +875,11 @@ public boolean setZoom (int zoom) {
 		if (parent.getHotImageList() == null) {
 			parent.setHotImageList (display.getImageListToolBarHot (listStyle, bounds.width, bounds.height));
 		}
-		refreshed = image.setZoom (zoom);
+		resized |= image.setZoom (event);
 		parent.getImageList().add(image);
 
 		if (disabledImage != null) {
-			refreshed = disabledImage.setZoom (zoom);
+			resized |= disabledImage.setZoom (event);
 		}
 		else {
 			disabledImage2 = new Image (display, image, SWT.IMAGE_DISABLE);
@@ -887,13 +887,13 @@ public boolean setZoom (int zoom) {
 		parent.getDisabledImageList().add(disabledImage != null ? disabledImage : disabledImage2);
 
 		if (hotImage != null) {
-			refreshed = hotImage.setZoom (zoom);
+			resized |= hotImage.setZoom (event);
 		}
 		parent.getHotImageList().add(hotImage != null ? hotImage : image);
 		setImage (image);
 	}
 
-	return refreshed;
+	return resized;
 }
 
 boolean isImageSizeChanged(Image oldImage, Image image) {

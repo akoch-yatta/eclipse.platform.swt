@@ -747,14 +747,15 @@ void setWidthInPixels (int width) {
 }
 
 @Override
-public boolean setZoom (int zoom) {
-	boolean refreshed = (this.currentDeviceZoom == zoom);
+public boolean setZoom (DPIChangeEvent event) {
+	boolean refreshed = super.setZoom(event);
+
 	// Refresh the image
 	if (image != null) {
-		refreshed = image.setZoom (zoom);
+		refreshed = image.setZoom (event);
 		setImage (image);
 	}
-	this.currentDeviceZoom = zoom;
+
 	return refreshed;
 }
 

@@ -995,7 +995,6 @@ public void drawImage (Image image, int srcX, int srcY, int srcWidth, int srcHei
 
 void drawImage(Image srcImage, int srcX, int srcY, int srcWidth, int srcHeight, int destX, int destY, int destWidth, int destHeight, boolean simple) {
 	/* Refresh Image as per zoom level, if required. */
-	boolean refreshed = srcImage.setZoom (DPIUtil.getDeviceZoom());
 	if (data.gdipGraphics != 0) {
 		//TODO - cache bitmap
 		long [] gdipImage = srcImage.createGdipImage();

@@ -1088,22 +1088,22 @@ public void setToolTipText (String toolTip) {
 }
 
 @Override
-public boolean setZoom (int zoom) {
-	boolean refreshed = (this.currentDeviceZoom == zoom);
-	this.currentDeviceZoom = zoom;
+public boolean setZoom (DPIChangeEvent event) {
+	boolean resized = super.setZoom(event);
+
 	// Refresh the image
 	if (image != null) {
-		refreshed = image.setZoom (zoom);
+		resized = image.setZoom (event);
 		setImage (image);
 	}
 
 	// Refresh the sub menu
 	if (menu != null) {
 		for (MenuItem item : menu.getItems()) {
-			refreshed |= item.setZoom (zoom);
+			resized |= item.setZoom (event);
 		}
 	}
-	return refreshed;
+	return resized;
 }
 
 void showTooltip (int x, int y) {

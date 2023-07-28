@@ -193,9 +193,10 @@ protected void checkSubclass () {
 }
 
 @Override
-public boolean setZoom(int zoom) {
-	boolean refreshed = (this.currentDeviceZoom == zoom);
-	this.currentDeviceZoom = zoom;
+public boolean setZoom(DPIChangeEvent zoom) {
+	boolean resized = super.setZoom(zoom);
+
+	/*
 	// Reset ImageList
 	if (imageList != null) {
 		imageList.dispose();
@@ -209,19 +210,21 @@ public boolean setZoom(int zoom) {
 		disabledImageList.dispose();
 		disabledImageList = null;
 	}
-
+*/
 	// Refresh image on DPI change
 	for (ToolItem item : _getItems ()) {
-		refreshed |=item.setZoom (zoom);
+		resized |= item.setZoom (zoom);
 	}
+	/*
 	setImageList (imageList);
 	setDisabledImageList (disabledImageList);
 	setHotImageList (hotImageList);
-
+*/
 	layoutItems ();
-	return refreshed;
+	return resized;
 }
 
+@Override
 public void layout (boolean changed) {
 	checkWidget ();
 	clearSizeCache(changed);

@@ -1198,4 +1198,13 @@ LRESULT wmNotifyChild (NMHDR hdr, long wParam, long lParam) {
 	}
 	return super.wmNotifyChild (hdr, wParam, lParam);
 }
+
+@Override
+public boolean setZoom(DPIChangeEvent event) {
+	boolean refreshed = super.setZoom(event);
+	for (CoolItem item: getItems()) {
+		refreshed |= item.setZoom(event);
+	}
+	return refreshed;
+}
 }

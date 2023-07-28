@@ -1290,13 +1290,12 @@ public void setVisible (boolean visible) {
 }
 
 @Override
-public boolean setZoom (int zoom) {
-	boolean refreshed = (this.currentDeviceZoom == zoom);
-	this.currentDeviceZoom = zoom;
+public boolean setZoom (DPIChangeEvent event) {
+	boolean resized = super.setZoom(event);
 	for (MenuItem item : getItems()) {
-		refreshed |= item.setZoom (zoom);
+		resized |= item.setZoom (event);
 	}
-	return refreshed;
+	return resized;
 }
 
 void update () {

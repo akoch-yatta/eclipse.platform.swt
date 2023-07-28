@@ -996,16 +996,17 @@ public void setText (String string) {
 }
 
 @Override
-public boolean setZoom (int zoom) {
-	boolean refreshed = super.setZoom (zoom);
-	this.currentDeviceZoom = zoom;
+public boolean setZoom (DPIChangeEvent event) {
+	boolean resized = super.setZoom (event);
+
 	// Refresh the image
-	if(image != null) {
-		refreshed = image.setZoom (zoom);
+	if (image != null) {
+		resized = image.setZoom (event);
 		_setImage  (image);
 		updateImageList();
 	}
-	return refreshed;
+
+	return resized;
 }
 
 @Override

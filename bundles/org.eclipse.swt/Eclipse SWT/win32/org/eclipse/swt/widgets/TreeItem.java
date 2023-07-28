@@ -1804,18 +1804,19 @@ public void setText (String string) {
 }
 
 @Override
-public boolean setZoom (int zoom) {
-	boolean refreshed = (this.currentDeviceZoom == zoom);
+public boolean setZoom (DPIChangeEvent event) {
+	boolean refreshed = super.setZoom(event);
+
 	// Refresh the image
 	if (image != null) {
-		refreshed = image.setZoom (zoom);
+		refreshed = image.setZoom (event);
 		setImage (image);
 	}
 	// Refresh the child item
 	for (TreeItem item : getItems()) {
-		refreshed |= item.setZoom (zoom);
+		refreshed |= item.setZoom (event);
 	}
-	this.currentDeviceZoom = zoom;
+
 	return refreshed;
 }
 

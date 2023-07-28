@@ -5222,8 +5222,9 @@ public void setTopIndex (int index) {
 }
 
 @Override
-public boolean setZoom (int zoom) {
-	boolean refreshed = (this.currentDeviceZoom == zoom);
+public boolean setZoom (DPIChangeEvent event) {
+	boolean refreshed = super.setZoom(event);
+
 	// Reset ImageList
 	if (headerImageList != null) {
 		headerImageList.dispose();
@@ -5236,15 +5237,14 @@ public boolean setZoom (int zoom) {
 
 	// Refresh columns
 	for (TableColumn tableColumn : getColumns()) {
-		refreshed |= tableColumn.setZoom (zoom);
+		refreshed |= tableColumn.setZoom (event);
 	}
 
 	// Refresh items
 	for (TableItem item : getItems()) {
-		refreshed |= item.setZoom (zoom);
+		refreshed |= item.setZoom (event);
 	}
 
-	this.currentDeviceZoom = zoom;
 	return refreshed;
 }
 

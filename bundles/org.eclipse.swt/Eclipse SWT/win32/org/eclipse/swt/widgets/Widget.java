@@ -52,9 +52,9 @@ public abstract class Widget {
 	/**
 	 * Specify current zoom level for the widget.
 	 *
-	 * @since 3.108
+	 * @since 3.124
 	 */
-	protected int currentDeviceZoom = DPIUtil.getDeviceZoom();
+	protected int currentDeviceZoom;
 	int style, state;
 	Display display;
 	EventTable eventTable;
@@ -1572,15 +1572,15 @@ boolean showMenu (int x, int y, int detail) {
 
 /**
  * Set zoom and refresh the Widget based on the zoom level, if required.
- * @param zoom
+ * @param event
  *
- * @return true if Widget is refreshed
- * @since 3.108
+ * @return true if Widget is resized
+ * @since 3.124
  */
-public boolean setZoom (int zoom) {
-	boolean refreshed = (this.currentDeviceZoom == zoom);
-	this.currentDeviceZoom = zoom;
-	return refreshed;
+public boolean setZoom (DPIChangeEvent event) {
+	boolean resized = event.isDPIChange();
+	this.currentDeviceZoom = event.newZoom();
+	return resized;
 }
 
 /**
@@ -2558,6 +2558,16 @@ void notifyDisposalTracker() {
 	if (WidgetSpy.isEnabled) {
 		WidgetSpy.getInstance().widgetDisposed(this);
 	}
+}
+
+/**
+ * @since 3.125
+ */
+public int getCurrentDeviceZoom() {
+	if(currentDeviceZoom == 0) {
+		currentDeviceZoom = DPIUtil.getDeviceZoom();
+	}
+	return currentDeviceZoom;
 }
 
 }

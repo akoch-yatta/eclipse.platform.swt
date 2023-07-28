@@ -224,4 +224,19 @@ boolean updateTextDirection(int textDirection) {
 	return textDirection == AUTO_TEXT_DIRECTION;
 }
 
+@Override
+public boolean setZoom(DPIChangeEvent zoom) {
+	boolean resized = super.setZoom(zoom);
+
+	if (resized) {
+		// Refresh the image
+		Image image = getImage();
+		if (image != null) {
+			resized |= image.setZoom(zoom);
+			setImage(image);
+		}
+	}
+
+	return resized;
+}
 }

@@ -1267,15 +1267,16 @@ public void setText (String string) {
 }
 
 @Override
-public boolean setZoom (int zoom) {
-	boolean refreshed = (this.currentDeviceZoom == zoom);
+public boolean setZoom (DPIChangeEvent event) {
+	boolean resized = super.setZoom(event);
+
 	// Refresh the image
 	if (image != null) {
-		refreshed = image.setZoom (zoom);
+		resized = image.setZoom (event);
 		setImage (image);
 	}
-	this.currentDeviceZoom = zoom;
-	return refreshed;
+
+	return resized;
 }
 
 }
