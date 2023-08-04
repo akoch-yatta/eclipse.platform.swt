@@ -749,7 +749,7 @@ void setWidthInPixels (int width) {
 @Override
 public boolean setZoom (DPIChangeEvent event) {
 	boolean refreshed = super.setZoom(event);
-
+	setWidth(Math.round(getWidth() * event.getScalingFactor()));
 	// Refresh the image
 	if (image != null) {
 		refreshed = image.setZoom (event);
