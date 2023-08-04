@@ -2034,4 +2034,19 @@ public boolean traverse(int event){
 	}
 	return super.traverse(event);
 }
+
+@Override
+public boolean setZoom(DPIChangeEvent event) {
+	boolean refreshed = super.setZoom(event);
+	if (text != null) {
+		text.setZoom(event);
+	}
+	if (list != null) {
+		list.setZoom(event);
+	}
+	if (arrow != null) {
+		arrow.setZoom(event);
+	}
+	return refreshed;
+}
 }
