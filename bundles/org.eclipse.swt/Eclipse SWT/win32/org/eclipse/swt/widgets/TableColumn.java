@@ -875,13 +875,12 @@ void setWidthInPixels (int width) {
 @Override
 public boolean setZoom (DPIChangeEvent event) {
 	boolean resized = super.setZoom(event);
-
+	setWidth(Math.round(getWidth() * event.getScalingFactor()));
 	// Refresh the image
 	if (image != null) {
 		resized = image.setZoom (event);
 		setImage (image);
 	}
-
 	return resized;
 }
 
