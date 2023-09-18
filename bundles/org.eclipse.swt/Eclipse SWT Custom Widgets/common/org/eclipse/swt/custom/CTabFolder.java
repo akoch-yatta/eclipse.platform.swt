@@ -3696,14 +3696,14 @@ public void setUnselectedImageVisible(boolean visible) {
 }
 
 @Override
-public boolean setZoom(DPIChangeEvent zoom) {
-	System.out.println("Resizing CTabFolder to " + zoom);
-	boolean resized = super.setZoom(zoom);
+public boolean setZoom(DPIChangeEvent event) {
+	boolean resized = super.setZoom(event);
 
 	if(resized) {
 		for (CTabItem item : getItems()) {
-			resized |= item.setZoom(zoom);
+			resized |= item.setZoom(event);
 		}
+
 	}
 	return resized;
 }

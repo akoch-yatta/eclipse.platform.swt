@@ -537,19 +537,23 @@ public void setToolTipText (String string) {
 }
 
 @Override
-public boolean setZoom(DPIChangeEvent zoom) {
-	boolean resized = super.setZoom(zoom);
+public boolean setZoom(DPIChangeEvent event) {
+	boolean resized = super.setZoom(event);
 	if (resized) {
 		//this.width = DPIUtil.autoScaleUp(this.width);
 		//this.height = DPIUtil.autoScaleUp(this.height);
 
+		if (font == null) {
+			//FontUtils.resizeFont(handle, event.newZoom());
+		}
+
 		Image image = getImage();
 		if (image != null) {
-			resized |= image.setZoom(zoom);
+			resized |= image.setZoom(event);
 
 		}
 		if (disabledImage != null) {
-			resized |= disabledImage.setZoom(zoom);
+			resized |= disabledImage.setZoom(event);
 		}
 	}
 	return resized;

@@ -4948,13 +4948,18 @@ LRESULT WM_DPICHANGED (long wParam, long lParam) {
 		event.doit = true;
 		notifyListeners(SWT.ZoomChanged, event);
 
-		System.out.println("Control:WM_DPICHANGED: " + this.getClass() + " " + oldSWTZoom + " -> " + newSWTZoom );
 		this.currentDeviceZoom = nativeZoom;
 		DPIUtil.setDeviceZoom (nativeZoom);
 		RECT rect = new RECT ();
 		COM.MoveMemory(rect, lParam, RECT.sizeof);
+
+		LRESULT result = setZoom (new DPIChangeEvent(oldSWTZoom, nativeZoom)) ? LRESULT.ZERO : LRESULT.ONE;
+
 		this.setBoundsInPixels(rect.left, rect.top, rect.right - rect.left, rect.bottom-rect.top);
-		return setZoom (new DPIChangeEvent(oldSWTZoom, nativeZoom)) ? LRESULT.ZERO : LRESULT.ONE;
+		System.out.println("Control:WM_DPICHANGED: " + this.getClass() + " " + oldSWTZoom + " -> " + newSWTZoom );
+		System.out.println(String.format("Resize to: %s/%s", getBoundsInPixels().width, getBoundsInPixels().height));
+
+		return result;
 	}
 	return LRESULT.ONE;
 }

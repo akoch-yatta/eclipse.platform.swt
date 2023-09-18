@@ -2129,7 +2129,7 @@ public boolean setZoom (DPIChangeEvent event) {
 		resized |= menuBar.setZoom (event);
 	}
 
-	this.layout (null, SWT.DEFER | SWT.ALL);
+	this.layout (null, SWT.DEFER | SWT.ALL | SWT.CHANGED);
 	return resized;
 }
 

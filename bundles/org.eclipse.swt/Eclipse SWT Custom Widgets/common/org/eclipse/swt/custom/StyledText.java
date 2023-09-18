@@ -10845,4 +10845,15 @@ void updateSelection(int startOffset, int replacedLength, int newLength) {
 	setCaretLocations();
 }
 
+@Override
+public boolean setZoom(DPIChangeEvent event) {
+	boolean refreshed = super.setZoom(event);
+
+	renderer.setFont(getFont(), tabLength);
+	redraw();
+
+	getCaret().setZoom(event);
+
+	return refreshed;
+}
 }

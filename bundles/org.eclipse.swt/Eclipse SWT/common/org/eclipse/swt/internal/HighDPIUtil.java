@@ -35,63 +35,9 @@ import org.eclipse.swt.widgets.*;
  */
 public class HighDPIUtil {
 
-	private static final int DPI_ZOOM_100 = 96;
-
 	private static enum AutoScaleMethod { AUTO, NEAREST, SMOOTH }
-	private static AutoScaleMethod autoScaleMethodSetting = AutoScaleMethod.AUTO;
 	private static AutoScaleMethod autoScaleMethod = AutoScaleMethod.NEAREST;
-
-	private static String autoScaleValue;
 	private static boolean useCairoAutoScale = false;
-
-	/**
-	 * System property that controls the autoScale functionality.
-	 * <ul>
-	 * <li><b>false</b>: deviceZoom is set to 100%</li>
-	 * <li><b>integer</b>: deviceZoom depends on the current display resolution,
-	 *     but only uses integer multiples of 100%. The detected native zoom is
-	 *     generally rounded down (e.g. at 150%, will use 100%), unless close to
-	 *     the next integer multiple (currently at 175%, will use 200%).</li>
-	 * <li><b>integer200</b>: like <b>integer</b>, but the maximal zoom level is 200%.</li>
-	 * <li><b>half</b>: deviceZoom depends on the current display resolution,
-	 *     but only uses integer multiples of 50%. The detected native zoom is
-	 *     rounded to the closest permissible value, with tie-breaker towards even.</li>
-	 * <li><b>quarter</b>: deviceZoom depends on the current display resolution,
-	 *     but only uses integer multiples of 25%. The detected native zoom is
-	 *     rounded to the closest permissible value.</li>
-	 * <li><b>exact</b>: deviceZoom uses the native zoom (with 1% as minimal
-	 *     step).</li>
-	 * <li><i>&lt;value&gt;</i>: deviceZoom uses the given integer value in
-	 *     percent as zoom level.</li>
-	 * </ul>
-	 * The current default is "integer200".
-	 */
-	private static final String SWT_AUTOSCALE = "swt.autoScale";
-
-	/**
-	 * System property that controls the method for scaling images:
-	 * <ul>
-	 * <li>"nearest": nearest-neighbor interpolation, may look jagged</li>
-	 * <li>"smooth": smooth edges, may look blurry</li>
-	 * </ul>
-	 * The current default is to use "nearest", except on
-	 * GTK when the deviceZoom is not an integer multiple of 100%.
-	 * The smooth strategy currently doesn't work on Win32 and Cocoa, see
-	 * <a href="https://bugs.eclipse.org/493455">bug 493455</a>.
-	 */
-	private static final String SWT_AUTOSCALE_METHOD = "swt.autoScale.method";
-	static {
-		autoScaleValue = System.getProperty (SWT_AUTOSCALE);
-
-		String value = System.getProperty (SWT_AUTOSCALE_METHOD);
-		if (value != null) {
-			if (AutoScaleMethod.NEAREST.name().equalsIgnoreCase(value)) {
-				autoScaleMethod = autoScaleMethodSetting = AutoScaleMethod.NEAREST;
-			} else if (AutoScaleMethod.SMOOTH.name().equalsIgnoreCase(value)) {
-				autoScaleMethod = autoScaleMethodSetting = AutoScaleMethod.SMOOTH;
-			}
-		}
-	}
 
 /**
  * Auto-scale down ImageData

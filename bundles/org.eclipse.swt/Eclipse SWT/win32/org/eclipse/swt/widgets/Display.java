@@ -2458,19 +2458,23 @@ public Font getSystemFont (int dpiZoom) {
 	checkDevice ();
 	Font systemFont = this.systemFonts.get(dpiZoom);
 	if (systemFont != null) return systemFont;
+	System.out.println("Creating new System Font for zoom " + dpiZoom);
 	long hFont = 0;
 	NONCLIENTMETRICS info = new NONCLIENTMETRICS ();
 	info.cbSize = NONCLIENTMETRICS.sizeof;
+
 	if (OS.SystemParametersInfo (OS.SPI_GETNONCLIENTMETRICS, 0, info, 0)) {
+		System.out.println("System Font Non-DPI: " + info.lfMessageFont.lfHeight);
+	}
+
+	if (OS.SystemParametersInfoForDpi (OS.SPI_GETNONCLIENTMETRICS, NONCLIENTMETRICS.sizeof, info, 0, DPIUtil.mapZoomToDPI(dpiZoom))) {
 		LOGFONT logFont = info.lfMessageFont;
-		logFont.lfHeight = Math.round(logFont.lfHeight * (dpiZoom/100f));
 		hFont = OS.CreateFontIndirect (logFont);
 		lfSystemFont = hFont != 0 ? logFont : null;
-		if (dpiZoom == 100) {
-			this.lfSystemFont = lfSystemFont;
-		}
 		lfSystemFonts.put(dpiZoom, logFont);
+		System.out.println(String.format("System Font DPI:  height %s -> %s", info.lfMessageFont.lfHeight, hFont));
 	}
+
 	if (hFont == 0) hFont = OS.GetStockObject (OS.DEFAULT_GUI_FONT);
 	if (hFont == 0) hFont = OS.GetStockObject (OS.SYSTEM_FONT);
 	 systemFont = Font.win32_new (this, hFont);
