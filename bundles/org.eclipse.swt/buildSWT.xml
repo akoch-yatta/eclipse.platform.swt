@@ -716,7 +716,9 @@
 			<param name="port" value="${port}"/>
 			<param name="keyfile" value="${keyfile}"/>
 		</antcall>
-		<delete dir="${build_dir}" quiet="true"/>
+		<!--
+			<delete dir="${build_dir}" quiet="true"/>
+		-->
 		<antcall target="refresh_fragment"/>
 	</target>
 

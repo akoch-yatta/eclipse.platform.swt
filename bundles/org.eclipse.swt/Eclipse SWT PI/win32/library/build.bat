@@ -54,11 +54,6 @@ IF NOT EXIST "%SWT_JAVA_HOME%" (
     CALL :ECHO "WARNING: x64 Java JDK not found. Please set SWT_JAVA_HOME to the JDK directory containing the intended JDK native headers."
 )
 
-@rem -----------------------
-IF NOT "x.%1"=="x.x86_64" (
-	CALL :ECHO "ERROR: 32-bit builds are no longer supported."
-	EXIT /B 1
-)
 
 set PROCESSOR_ARCHITECTURE=AMD64
 IF "x.%OUTPUT_DIR%"=="x." set OUTPUT_DIR=..\..\..\org.eclipse.swt.win32.win32.x86_64
