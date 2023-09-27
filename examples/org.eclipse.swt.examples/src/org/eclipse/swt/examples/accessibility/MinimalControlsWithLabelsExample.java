@@ -19,6 +19,9 @@ import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
+import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Canvas;
@@ -38,6 +41,7 @@ import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swt.widgets.Tree;
 
 public class MinimalControlsWithLabelsExample {
@@ -58,12 +62,12 @@ public class MinimalControlsWithLabelsExample {
 	static Table table;
 	static Tree tree;
 	static Tree treeTable;
-	static ToolBar toolBar;
-	static CoolBar coolBar;
+	static ToolBar toolBar, overrideToolBar;
+	static CoolBar coolBar, overrideCoolBar;
 	static Canvas canvas;
 	static Group group;
 	static TabFolder tabFolder;
-	static CTabFolder cTabFolder;
+	static CTabFolder cTabFolder, cTabFolder2;
 	static CLabel cLabel;
 	static Scale scale;
 	static Slider slider;
@@ -73,10 +77,22 @@ public class MinimalControlsWithLabelsExample {
 	public static void main(String[] args) {
 		display = new Display();
 		shell = new Shell(display);
-		shell.setLayout(new GridLayout(1, true));
+		shell.setLayout(new GridLayout(2, true));
+		shell.setMinimumSize(200, 200);
 		shell.setText("All Controls Test");
 
+
+//		ToolBar toolBar, overrideToolBar;
+		toolBar = new ToolBar(shell, SWT.FLAT);
+		for (int i = 0; i < 3; i++) {
+			ToolItem item = new ToolItem(toolBar, SWT.PUSH);
+			item.setText("Item" + i);
+			item.setToolTipText("ToolItem ToolTip" + i);
+		}
+
+		new Label(shell, SWT.NONE).setText("Label for CTabFolder");
 		cTabFolder = new CTabFolder(shell, SWT.BORDER);
+		cTabFolder.setFont(new Font(display, "Times New Roman", 12, SWT.NORMAL));
 		for (int i = 0; i < 3; i++) {
 			CTabItem item = new CTabItem(cTabFolder, SWT.NONE);
 			item.setText("CTabItem &" + i);
@@ -86,6 +102,85 @@ public class MinimalControlsWithLabelsExample {
 			item.setControl(itemText);
 		}
 		cTabFolder.setSelection(cTabFolder.getItem(0));
+
+/*
+		overrideToolBar = new ToolBar(shell, SWT.FLAT);
+		for (int i = 0; i < 3; i++) {
+			ToolItem item = new ToolItem(overrideToolBar, SWT.PUSH);
+			item.setText("Item" + i);
+			item.setToolTipText("ToolItem ToolTip" + i);
+		}
+		overrideToolBar.setData("name", "ToolBar");
+		overrideToolBar.setData("child", "ToolBar Item");
+
+//		CoolBar coolBar, overrideCoolBar;
+		coolBar = new CoolBar(shell, SWT.FLAT);
+		for (int i = 0; i < 2; i++) {
+			CoolItem coolItem = new CoolItem(coolBar, SWT.PUSH);
+			ToolBar coolItemToolBar = new ToolBar(coolBar, SWT.FLAT);
+			int toolItemWidth = 0;
+			for (int j = 0; j < 2; j++) {
+				ToolItem item = new ToolItem(coolItemToolBar, SWT.PUSH);
+				item.setText("I" + i + j);
+				item.setToolTipText("ToolItem ToolTip" + i + j);
+				if (item.getWidth() > toolItemWidth) toolItemWidth = item.getWidth();
+			}
+			coolItem.setControl(coolItemToolBar);
+			Point size = coolItemToolBar.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+			Point coolSize = coolItem.computeSize (size.x, size.y);
+			coolItem.setMinimumSize(toolItemWidth, coolSize.y);
+			coolItem.setPreferredSize(coolSize);
+			coolItem.setSize(coolSize);
+		}
+
+		overrideCoolBar = new CoolBar(shell, SWT.FLAT);
+		for (int i = 0; i < 2; i++) {
+			CoolItem coolItem = new CoolItem(overrideCoolBar, SWT.PUSH);
+			ToolBar coolItemToolBar = new ToolBar(overrideCoolBar, SWT.FLAT);
+			int toolItemWidth = 0;
+			for (int j = 0; j < 2; j++) {
+				ToolItem item = new ToolItem(coolItemToolBar, SWT.PUSH);
+				item.setText("I" + i + j);
+				item.setToolTipText("ToolItem ToolTip" + i + j);
+				if (item.getWidth() > toolItemWidth) toolItemWidth = item.getWidth();
+			}
+			coolItem.setControl(coolItemToolBar);
+			Point size = coolItemToolBar.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+			Point coolSize = coolItem.computeSize (size.x, size.y);
+			coolItem.setMinimumSize(toolItemWidth, coolSize.y);
+			coolItem.setPreferredSize(coolSize);
+			coolItem.setSize(coolSize);
+		}
+		overrideCoolBar.setData("name", "CoolBar");
+		overrideCoolBar.setData("child", "CoolBar Item");
+		*/
+/*
+		styledText = new StyledText(shell, SWT.SINGLE | SWT.BORDER);
+		styledText.setText("Contents of single-line StyledText");
+		*/
+
+		Button button = new Button(shell, SWT.NONE);
+		button.setText("Refresh");
+		button.addMouseListener(new MouseListener() {
+
+			@Override
+			public void mouseUp(MouseEvent e) {
+				//ToolItem item = new ToolItem(toolBar, SWT.PUSH);
+				//item.setText("Item " + e.time);
+				toolBar.requestLayout();
+				System.out.println("T " + toolBar.getItemCount());
+			}
+
+			@Override
+			public void mouseDown(MouseEvent e) {
+
+			}
+
+			@Override
+			public void mouseDoubleClick(MouseEvent e) {
+
+			}
+		});
 
 		shell.pack();
 		shell.open();
