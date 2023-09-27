@@ -4934,6 +4934,9 @@ LRESULT WM_DESTROY (long wParam, long lParam) {
 }
 
 LRESULT WM_DPICHANGED (long wParam, long lParam) {
+	if (!DPIUtil.autoScaleOnRuntime) {
+		return LRESULT.ONE;
+	}
 	// Map DPI to Zoom and compare
 	int nativeZoom = DPIUtil.mapDPIToZoom (OS.HIWORD (wParam));
 	int newSWTZoom = DPIUtil.getZoomForAutoscaleProperty (nativeZoom);
