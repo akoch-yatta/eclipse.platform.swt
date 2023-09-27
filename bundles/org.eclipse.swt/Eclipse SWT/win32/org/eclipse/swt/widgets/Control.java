@@ -1583,7 +1583,7 @@ public Point getSize (){
 	return DPIUtil.autoScaleDown(getSizeInPixels ());
 }
 
-Point getSizeInPixels () {
+protected Point getSizeInPixels () {
 	forceResize ();
 	RECT rect = new RECT ();
 	OS.GetWindowRect (topHandle (), rect);
@@ -4970,8 +4970,8 @@ LRESULT WM_DPICHANGED (long wParam, long lParam) {
 @Override
 public boolean setZoom(DPIChangeEvent event) {
 	boolean resized = super.setZoom(event);
-	if(resized) {
-		//resizeFont(event);
+	if (resized) {
+		resizeFont(event);
 	}
 	return resized;
 }

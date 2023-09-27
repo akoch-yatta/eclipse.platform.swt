@@ -220,7 +220,59 @@ public boolean setZoom(DPIChangeEvent zoom) {
 	setDisabledImageList (disabledImageList);
 	setHotImageList (hotImageList);
 */
-	layoutItems ();
+
+    // Remove all of the existing buttons, starting with the last one.
+	int count = (int)OS.SendMessage (handle, OS.TB_BUTTONCOUNT, 0, 0);
+
+	/*
+	ToolItem[] items = getItems();
+	for (int i = count - 1; i >= 0; i--){
+		ToolItem item = items[i];
+		destroyItem(item);
+    	System.out.println("Destroy " + i + " -> " + item.getText());
+	}
+
+	for (int i = 0; i < count ; i++){
+		ToolItem item = items[i];
+		createItem(item, i);
+    	System.out.println("Create " + i + " -> " + item.getText());
+	}
+	*/
+
+	OS.SendMessage(handle, OS.WM_SETREDRAW, 0, 0); // Stop redraw
+
+// Perform your operations here...
+
+
+	    TBBUTTON[] buttons = new TBBUTTON[count];
+	    for (int i = 0; i < count ; i++){
+			TBBUTTON lpButton = new TBBUTTON ();
+			OS.SendMessage (handle, OS.TB_GETBUTTON, i, lpButton);
+			buttons[i] = lpButton;
+	    //	System.out.println("Fetch " + i + " -> " + lpButton.iString);
+		}
+
+	    for (int i = count - 1; i >= 0; i--){
+	   // 	System.out.println("Delete " + i);
+	    	//OS.SendMessage(handle, OS.TB_DELETEBUTTON, i, 0);
+	    	OS.SendMessage(handle, OS.TB_HIDEBUTTON, i, 1);
+    	}
+
+	    for(int i = 0; i < buttons.length ; i++){
+	    //	System.out.println("Create " + i+ " -> " + buttons[i].iString);
+		    //if (OS.SendMessage (handle, OS.TB_INSERTBUTTON, i, buttons[i]) == 0) {
+	    //		error (SWT.ERROR_ITEM_NOT_ADDED);
+	    //	}
+	    	OS.SendMessage(handle, OS.TB_HIDEBUTTON, i, 0);
+	    }
+	    layoutItems();
+	  //  */
+		OS.SendMessage(handle, OS.WM_SETREDRAW, 1, 0);  // Enable redraw
+		OS.InvalidateRect (handle, null, true);
+	//OS.SendMessage (handle, OS.TB_AUTOSIZE, 0, 0);
+	//OS.InvalidateRect (handle, null, true);
+	//computeSize(SWT.DEFAULT, SWT.DEFAULT);
+
 	return resized;
 }
 
