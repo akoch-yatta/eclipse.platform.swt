@@ -249,6 +249,7 @@ Rectangle getBoundsInPixels () {
 	OS.SendMessage (hwnd, OS.TB_GETITEMRECT, index, rect);
 	int width = rect.right - rect.left;
 	int height = rect.bottom - rect.top;
+//	System.out.println(String.format("Tool item: %s/%s", width, height));
 	return new Rectangle (rect.left, rect.top, width, height);
 }
 
@@ -862,9 +863,12 @@ public void setImage (Image image) {
 public boolean setZoom (DPIChangeEvent event) {
 	boolean resized = super.setZoom(event);
 
-	int listStyle = parent.style & SWT.RIGHT_TO_LEFT;
+	System.out.println(String.format("Item %s: %s", text, getBoundsInPixels()));
+
 	// Refresh the image
 	if (image != null) {
+		int listStyle = parent.style & SWT.RIGHT_TO_LEFT;
+
 		Rectangle bounds = image.getBounds(event.newZoom());
 		if (parent.getImageList() == null) {
 			parent.setImageList (display.getImageListToolBar (listStyle, bounds.width, bounds.height));
@@ -892,6 +896,9 @@ public boolean setZoom (DPIChangeEvent event) {
 		parent.getHotImageList().add(hotImage != null ? hotImage : image);
 		setImage (image);
 	}
+
+
+	setWidthInPixels(0);
 
 	return resized;
 }

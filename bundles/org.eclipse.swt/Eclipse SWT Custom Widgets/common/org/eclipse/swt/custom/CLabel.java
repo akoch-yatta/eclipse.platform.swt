@@ -17,8 +17,6 @@ import org.eclipse.swt.*;
 import org.eclipse.swt.accessibility.*;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.internal.*;
-import org.eclipse.swt.internal.win32.*;
 import org.eclipse.swt.widgets.*;
 
 /**
@@ -1031,14 +1029,7 @@ private String[] splitString(String text) {
 
 @Override
 public boolean setZoom(DPIChangeEvent zoom) {
-	long fontHandle = OS.SendMessage (handle, OS.WM_GETFONT, 0, 0);
-	System.out.println("Font handle before " + fontHandle);
-
 	boolean resized = super.setZoom(zoom);
-
-	fontHandle = OS.SendMessage (handle, OS.WM_GETFONT, 0, 0);
-	System.out.println("Font handle after " + fontHandle);
-
 	return resized;
 }
 }
