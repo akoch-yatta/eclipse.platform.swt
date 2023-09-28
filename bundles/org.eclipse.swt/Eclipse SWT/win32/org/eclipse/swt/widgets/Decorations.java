@@ -16,7 +16,6 @@ package org.eclipse.swt.widgets;
 
 import org.eclipse.swt.*;
 import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.internal.*;
 import org.eclipse.swt.internal.win32.*;
 
 /**
@@ -895,7 +894,7 @@ void setImages (Image image, Image [] images) {
 				System.arraycopy (images, 0, bestImages, 0, images.length);
 				datas = new ImageData [images.length];
 				for (int i=0; i<datas.length; i++) {
-					datas [i] = images [i].getImageData (DPIUtil.getDeviceZoom ());
+					datas [i] = images [i].getImageData (getCurrentDeviceZoom());
 				}
 				images = bestImages;
 				sort (images, datas, OS.GetSystemMetrics (OS.SM_CXSMICON), OS.GetSystemMetrics (OS.SM_CYSMICON), depth);
@@ -1476,6 +1475,31 @@ long windowProc (long hwnd, int msg, long wParam, long lParam) {
 			return msg == Display.SWT_GETACCELCOUNT ? nAccel : hAccel;
 	}
 	return super.windowProc (hwnd, msg, wParam, lParam);
+}
+
+@Override
+public boolean updateZoom(DPIChangeEvent zoom) {
+	var resized = super.updateZoom(zoom);
+
+	if (image != null) {
+		resized |= image.updateZoom (zoom);
+		setImage(image);
+	}
+
+	if (images != null) {
+		for(Image image : images) {
+			if(image != null) {
+				resized |= image.updateZoom(zoom);
+			}
+		}
+		setImages(images);
+	}
+
+	if(menuBar != null) {
+		resized |= menuBar.updateZoom(zoom);
+	}
+
+	return resized;
 }
 
 @Override

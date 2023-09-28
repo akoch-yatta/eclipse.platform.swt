@@ -300,8 +300,23 @@ Shell (Display display, Shell parent, int style, long handle, boolean embedded) 
 	if (handle != 0 && !embedded) {
 		state |= FOREIGN_HANDLE;
 	}
+
+	int [] dpiX = new int [1];
+	int [] dpiY = new int [1];
+	int shellDeviceZoom;
+	if (parent!= null) {
+		shellDeviceZoom = parent.getCurrentDeviceZoom();
+	} else {
+		Monitor monitor = getMonitor();
+		OS.GetDpiForMonitor (monitor.handle, 0, dpiX, dpiY);
+		shellDeviceZoom = DPIUtil.mapDPIToZoom(dpiX[0]);
+	}
+	this.setCurrentDeviceZoom(shellDeviceZoom);
+
 	reskinWidget();
 	createWidget ();
+
+	addListener(SWT.ZoomChanged, this::handleZoomEvent);
 }
 
 /**
@@ -2109,6 +2124,22 @@ public void setVisible (boolean visible) {
 			}
 		}
 	}
+}
+
+private void handleZoomEvent(Event event) {
+	if (DPIUtil.autoScaleOnRuntime) {
+		this.updateZoom(new DPIChangeEvent(getCurrentDeviceZoom(), event.detail));
+	}
+}
+
+@Override
+public boolean updateZoom (DPIChangeEvent event) {
+	System.out.println("Resizing Shell " + event);
+	destroyTextIcons();
+	boolean resized = super.updateZoom (event);
+
+	this.layout (null, SWT.DEFER | SWT.ALL | SWT.CHANGED);
+	return resized;
 }
 
 

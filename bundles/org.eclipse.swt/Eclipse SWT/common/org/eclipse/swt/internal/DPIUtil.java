@@ -449,6 +449,11 @@ public static int mapDPIToZoom (int dpi) {
 	int roundedZoom = (int) Math.round (zoom);
 	return roundedZoom;
 }
+public static int mapZoomToDPI (int dpi) {
+	double zoom = (double) dpi / 100 * DPI_ZOOM_100;
+	int roundedZoom = (int) Math.round (zoom);
+	return roundedZoom;
+}
 /**
  * Gets Image data at specified zoom level, if image is missing then
  * fall-back to 100% image. If provider or fall-back image is not available,
