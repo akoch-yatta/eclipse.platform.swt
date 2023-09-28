@@ -130,15 +130,26 @@ static int checkStyle (int style) {
 	return checkBits (style, SWT.LEFT, SWT.CENTER, SWT.RIGHT, 0, 0, 0);
 }
 
+@Override
+public boolean updateZoom (DPIChangeEvent event) {
+	boolean resized = super.updateZoom(event);
+
+	if (image != null) {
+		resized = image.updateZoom (event);
+		setImage  (image);
+	}
+	return resized;
+}
+
 @Override Point computeSizeInPixels (int wHint, int hHint, boolean changed) {
 	checkWidget ();
 	int width = 0, height = 0, border = getBorderWidthInPixels ();
 	if ((style & SWT.SEPARATOR) != 0) {
 		int lineWidth = OS.GetSystemMetrics (OS.SM_CXBORDER);
 		if ((style & SWT.HORIZONTAL) != 0) {
-			width = DEFAULT_WIDTH;  height = lineWidth * 2;
+			width = DPIUtil.autoScaleUp(DEFAULT_WIDTH);  height = lineWidth * 2;
 		} else {
-			width = lineWidth * 2; height = DEFAULT_HEIGHT;
+			width = lineWidth * 2; height = DPIUtil.autoScaleUp(DEFAULT_HEIGHT);
 		}
 		if (wHint != SWT.DEFAULT) width = wHint;
 		if (hHint != SWT.DEFAULT) height = hHint;
@@ -146,7 +157,7 @@ static int checkStyle (int style) {
 		return new Point (width, height);
 	}
 	if (isImageMode) {
-		Rectangle rect = image.getBoundsInPixels();
+		Rectangle rect = image.getBounds(getCurrentDeviceZoom());
 		width += rect.width;
 		height += rect.height;
 	} else {
@@ -552,7 +563,7 @@ void wmDrawChildImage(DRAWITEMSTRUCT struct) {
 	int height = struct.bottom - struct.top;
 	if (width == 0 || height == 0) return;
 
-	Rectangle imageRect = image.getBoundsInPixels ();
+	Rectangle imageRect = image.getBounds(getCurrentDeviceZoom());
 
 	int x = 0;
 	if ((style & SWT.CENTER) != 0) {
