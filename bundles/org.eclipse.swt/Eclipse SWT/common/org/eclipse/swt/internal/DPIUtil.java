@@ -16,6 +16,7 @@ package org.eclipse.swt.internal;
 
 import org.eclipse.swt.*;
 import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.widgets.*;
 
 /**
  * This class hold common constants and utility functions w.r.t. to SWT high DPI
@@ -323,6 +324,13 @@ public static int autoScaleUp (int size) {
 	return Math.round (size * scaleFactor);
 }
 
+public static int autoScaleUp (int size, Monitor monitor) {
+	int deviceZoom = monitor.getZoom();
+	if (deviceZoom == 100 || size == SWT.DEFAULT) return size;
+	float scaleFactor = getScalingFactor (deviceZoom);
+	return Math.round (size * scaleFactor);
+}
+
 /**
  * Auto-scale up int dimensions using Native DPI
  */
@@ -404,6 +412,17 @@ private static float getScalingFactor () {
 		return 1;
 	}
 	return deviceZoom / 100f;
+}
+
+/**
+ * Returns Scaling factor from the display
+ * @return float scaling factor
+ */
+private static float getScalingFactor (int zoom) {
+	if (useCairoAutoScale) {
+		return 1;
+	}
+	return zoom / 100f;
 }
 
 /**
