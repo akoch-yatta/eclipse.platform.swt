@@ -18,6 +18,7 @@ import org.eclipse.swt.*;
 import org.eclipse.swt.internal.*;
 import org.eclipse.swt.internal.gdip.*;
 import org.eclipse.swt.internal.win32.*;
+import org.eclipse.swt.widgets.*;
 
 /**
  * Class <code>GC</code> is where all of the drawing capabilities that are
@@ -974,6 +975,8 @@ public void drawImage (Image image, int srcX, int srcY, int srcWidth, int srcHei
 	}
 	if (image == null) SWT.error (SWT.ERROR_NULL_ARGUMENT);
 	if (image.isDisposed()) SWT.error(SWT.ERROR_INVALID_ARGUMENT);
+	// TODO: This will not work with multiple Shells with different Zoom Levels (on different Monitors)
+	image.updateZoom(new DPIChangeEvent(image.currentDeviceZoom, DPIUtil.getDeviceZoom()));
 
 	Rectangle src = DPIUtil.autoScaleUp(drawable, new Rectangle(srcX, srcY, srcWidth, srcHeight));
 	Rectangle dest = DPIUtil.autoScaleUp(drawable, new Rectangle(destX, destY, destWidth, destHeight));
@@ -1000,8 +1003,6 @@ public void drawImage (Image image, int srcX, int srcY, int srcWidth, int srcHei
 
 void drawImage(Image srcImage, int srcX, int srcY, int srcWidth, int srcHeight, int destX, int destY, int destWidth, int destHeight, boolean simple) {
 	/* Refresh Image as per zoom level, if required. */
-	srcImage.refreshImageForZoom ();
-
 	if (data.gdipGraphics != 0) {
 		//TODO - cache bitmap
 		long [] gdipImage = srcImage.createGdipImage();
