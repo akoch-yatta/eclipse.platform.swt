@@ -114,7 +114,7 @@ Control () {
 public Control (Composite parent, int style) {
 	super (parent, style);
 	this.parent = parent;
-	this.currentDeviceZoom = getShell().currentDeviceZoom;
+	this.setCurrentDeviceZoom(getShell().getCurrentDeviceZoom());
 	createWidget ();
 }
 
@@ -762,12 +762,8 @@ int defaultBackground () {
 	return OS.GetSysColor (OS.COLOR_BTNFACE);
 }
 
-long defaultFont(int dpiZoom) {
-	return display.getSystemFont(dpiZoom).handle;
-}
-
-long defaultFont () {
-	return defaultFont(currentDeviceZoom);
+long defaultFont() {
+	return display.getSystemFont(getShell()).handle;
 }
 
 int defaultForeground () {
@@ -1358,8 +1354,8 @@ public Font getFont () {
 	checkWidget ();
 	if (font != null) return font;
 	long hFont = OS.SendMessage (handle, OS.WM_GETFONT, 0, 0);
-	if (hFont == 0) hFont = defaultFont (currentDeviceZoom);
-	return Font.win32_new (display, hFont);
+	if (hFont == 0) hFont = defaultFont ();
+	return Font.win32_new (getShell(), hFont);
 }
 
 /**
@@ -3364,7 +3360,7 @@ public void setCursor (Cursor cursor) {
 }
 
 void setDefaultFont () {
-	long hFont = display.getSystemFont (currentDeviceZoom).handle;
+	long hFont = display.getSystemFont (getShell()).handle;
 	OS.SendMessage (handle, OS.WM_SETFONT, hFont, 0);
 }
 
@@ -3462,6 +3458,21 @@ public boolean setFocus () {
  * </ul>
  */
 public void setFont (Font font) {
+	checkWidget ();
+	if (font != null) {
+		if (font.isDisposed()) error(SWT.ERROR_INVALID_ARGUMENT);
+		_setFont(display.getFont(font.getFontData()[0], getShell()));
+	} else {
+		_setFont(font);
+	}
+}
+
+@Override
+public void dispose() {
+  super.dispose();
+}
+
+private void _setFont (Font font) {
 	checkWidget ();
 	long hFont = 0;
 	if (font != null) {
@@ -4924,7 +4935,7 @@ LRESULT WM_DPICHANGED (long wParam, long lParam) {
 	// Map DPI to Zoom and compare
 	int nativeZoom = DPIUtil.mapDPIToZoom (OS.HIWORD (wParam));
 	int newSWTZoom = DPIUtil.getZoomForAutoscaleProperty (nativeZoom);
-	int oldSWTZoom = DPIUtil.getDeviceZoom();
+	int oldSWTZoom = getShell().getCurrentDeviceZoom();
 
 	// Throw the DPI change event if zoom value changes
 	if (newSWTZoom != oldSWTZoom) {
@@ -4933,17 +4944,17 @@ LRESULT WM_DPICHANGED (long wParam, long lParam) {
 		event.widget = this;
 		event.detail = newSWTZoom;
 		event.doit = true;
+
+		if (DPIUtil.autoScaleOnRuntime) {
+			DPIUtil.setDeviceZoom (nativeZoom);
+		}
+
 		notifyListeners(SWT.ZoomChanged, event);
 
 		if (DPIUtil.autoScaleOnRuntime) {
-			// update it
-			DPIUtil.setDeviceZoom (nativeZoom);
 			RECT rect = new RECT ();
 			COM.MoveMemory(rect, lParam, RECT.sizeof);
-
-			LRESULT result = updateZoom (new DPIChangeEvent(oldSWTZoom, nativeZoom)) ? LRESULT.ZERO : LRESULT.ONE;
 			this.setBoundsInPixels(rect.left, rect.top, rect.right - rect.left, rect.bottom-rect.top);
-			return result;
 		}
 	}
 	return LRESULT.ONE;
@@ -4954,20 +4965,27 @@ public boolean updateZoom(DPIChangeEvent event) {
 	boolean resized = super.updateZoom(event);
 	if(resized) {
 		resizeFont(event);
+
+		// resize background image if set
+		Image image = getBackgroundImage();
+		if (image != null) {
+			resized |= image.updateZoom(event);
+			setBackgroundImage(image);
+		}
 	}
 	return resized;
 }
 
 private void resizeFont(DPIChangeEvent event) {
 	if (font == null) {
-		int zoom = event.newZoom();
 		long currentFontHandle = OS.SendMessage (handle, OS.WM_GETFONT, 0, 0);
 		if (currentFontHandle != 0) {
-			Font newFont  = Display.getDefault().getSystemFont(zoom);
+			Font newFont  = getDisplay().getSystemFont(getShell());
 			long newFontHandle = newFont.handle;
 			OS.SendMessage(handle, OS.WM_SETFONT, newFontHandle, 1);
 		}
 	} else {
+		setFont(display.getFont(font.getFontData()[0], getShell()));
 	}
 }
 
