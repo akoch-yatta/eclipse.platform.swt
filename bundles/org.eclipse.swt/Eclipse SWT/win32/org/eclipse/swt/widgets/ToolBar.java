@@ -193,6 +193,85 @@ protected void checkSubclass () {
 }
 
 @Override
+public boolean updateZoom(DPIChangeEvent zoom) {
+	boolean resized = super.updateZoom(zoom);
+
+	ToolItem[] toolItems = _getItems ();
+	// Only Items with SWT.Sepreator Style have an own width assigned to them
+	var seperatorWidth  =  new int[toolItems.length];
+	var enabledState = new boolean[toolItems.length];
+	var selectedState = new boolean[toolItems.length];
+	for (int i = 0; i < toolItems.length; i++) {
+		ToolItem item = toolItems[i];
+		if((item.style & SWT.SEPARATOR) != 0) {
+			// Take note of widths, so we can re-apply them later
+			seperatorWidth[i] = item.getWidth();
+		}
+		// Remember States of ToolItem to apply them later
+		enabledState[i] = item.getEnabled();
+		selectedState[i] = item.getSelection();
+
+	}
+	for (ToolItem item : toolItems) {
+		destroyItem(item);
+		// Resize after, as zoomupdate changes references to imageLists
+		resized |= item.updateZoom (zoom);
+	}
+
+	for (int i = 0; i < toolItems.length; i++) {
+		ToolItem toolItem = toolItems[i];
+
+		createItem(toolItem, i);
+		String currentText =  toolItem.getText();
+		toolItem.setText(" ");
+		toolItem.setText(currentText);
+
+		// Refresh images (upscaling performed by toolItem)
+		Image image = toolItem.getImage();
+		toolItem.setImage(null);
+		toolItem.setImage(image);
+
+		Image hotImage = toolItem.getHotImage();
+		toolItem.setHotImage(null);
+		toolItem.setHotImage(hotImage);
+
+		Image disabledImage = toolItem.getDisabledImage();
+		toolItem.setDisabledImage(null);
+		toolItem.setDisabledImage(disabledImage);
+
+		var content = toolItem.getControl();
+		toolItem.setControl(null);
+		toolItem.setControl(content);
+
+		// In SWT, Width can only be set for Separators
+		if((toolItem.style & SWT.SEPARATOR) != 0) {
+			var width = (int)((float)(seperatorWidth[i])*zoom.getScalingFactor());
+			toolItem.setWidth(width);
+			toolItem.resizeControl();
+		}
+
+		toolItem.setEnabled(enabledState[i]);
+		toolItem.setSelection(selectedState[i]);
+	}
+
+	// Force a refresh of the Toolbar by resetting the Font
+	setDropDownItems(false);
+	long hFont = OS.SendMessage(handle, OS.WM_GETFONT, 0, 0);
+	OS.SendMessage(handle, OS.WM_SETFONT, hFont, 0);
+	if((style & SWT.VERTICAL) != 0) {
+		// Reset Row count to prevent wrapping of Buttons
+		setRowCount((int)OS.SendMessage (handle, OS.TB_BUTTONCOUNT, 0, 0));
+	}
+	setDropDownItems(true);
+
+	this.layout(true);
+	sendResize();
+	this.redraw();
+
+	return resized;
+}
+
+@Override
 public void layout (boolean changed) {
 	checkWidget ();
 	clearSizeCache(changed);
@@ -251,6 +330,12 @@ void clearSizeCache(boolean changed) {
 			OS.SendMessage (handle, OS.TB_GETITEMRECT, count - 1, rect);
 			width = Math.max (width, rect.right);
 			height = Math.max (height, rect.bottom);
+			// If a Separator has a control, its height might exceed the height of the Items
+			for (ToolItem item: items) {
+				if (item != null && item.getControl() != null) {
+					height = Math.max (height, item.getControl().getBoundsInPixels().height);
+				}
+			}
 		}
 		OS.SetWindowPos (handle, 0, 0, 0, oldWidth, oldHeight, flags);
 		if (redraw) OS.ValidateRect (handle, null);

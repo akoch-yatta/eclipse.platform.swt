@@ -858,6 +858,40 @@ public void setImage (Image image) {
 	updateImages (getEnabled () && parent.getEnabled ());
 }
 
+@Override
+public boolean updateZoom (DPIChangeEvent event) {
+	boolean resized = super.updateZoom(event);
+
+	// Refresh the image
+	if (image != null) {
+		int listStyle = parent.style & SWT.RIGHT_TO_LEFT;
+
+		Rectangle bounds = image.getBounds(event.newZoom());
+		if (parent.getImageList() == null) {
+			parent.setImageList (display.getImageListToolBar (listStyle, bounds.width, bounds.height));
+		}
+		if (parent.getDisabledImageList() == null) {
+			parent.setDisabledImageList (display.getImageListToolBarDisabled (listStyle, bounds.width, bounds.height));
+		}
+		if (parent.getHotImageList() == null) {
+			parent.setHotImageList (display.getImageListToolBarHot (listStyle, bounds.width, bounds.height));
+		}
+		resized |= image.updateZoom (event);
+
+		if (disabledImage != null && !disabledImage.isDisposed()) {
+			resized |= disabledImage.updateZoom (event);
+		}
+
+		if (hotImage != null) {
+			resized |= hotImage.updateZoom (event);
+		}
+	}
+
+	setWidthInPixels(0);
+
+	return resized;
+}
+
 boolean isImageSizeChanged(Image oldImage, Image image) {
 	boolean changed = true;
 	// check if image size really changed for old and new images
@@ -1107,7 +1141,7 @@ void updateImages (boolean enabled) {
 	ImageList hotImageList = parent.getHotImageList ();
 	ImageList disabledImageList = parent.getDisabledImageList();
 	if (info.iImage == OS.I_IMAGENONE) {
-		Rectangle bounds = image.getBoundsInPixels ();
+		Rectangle bounds = image.getBounds(getParent().getShell().getCurrentDeviceZoom());
 		int listStyle = parent.style & SWT.RIGHT_TO_LEFT;
 		if (imageList == null) {
 			imageList = display.getImageListToolBar (listStyle, bounds.width, bounds.height);
@@ -1145,6 +1179,7 @@ void updateImages (boolean enabled) {
 		parent.setDisabledImageList (disabledImageList);
 		parent.setHotImageList (hotImageList);
 	} else {
+		System.out.println("IIMAGE" + info.iImage);
 		Image disabled = null;
 		if (disabledImageList != null) {
 			if (image != null) {
@@ -1171,7 +1206,9 @@ void updateImages (boolean enabled) {
 		if ((style & (SWT.CHECK | SWT.RADIO)) != 0) {
 			if (!enabled) image2 = hot = disabled;
 		}
-		if (imageList != null) imageList.put (info.iImage, image2);
+		if (imageList != null) {
+			imageList.put (info.iImage, image2);
+		}
 		if (hotImageList != null) {
 			hotImageList.put (info.iImage, hot != null ? hot : image2);
 		}
