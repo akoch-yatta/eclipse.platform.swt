@@ -4949,6 +4949,28 @@ LRESULT WM_DPICHANGED (long wParam, long lParam) {
 	return LRESULT.ONE;
 }
 
+@Override
+public boolean updateZoom(DPIChangeEvent event) {
+	boolean resized = super.updateZoom(event);
+	if(resized) {
+		resizeFont(event);
+	}
+	return resized;
+}
+
+private void resizeFont(DPIChangeEvent event) {
+	if (font == null) {
+		int zoom = event.newZoom();
+		long currentFontHandle = OS.SendMessage (handle, OS.WM_GETFONT, 0, 0);
+		if (currentFontHandle != 0) {
+			Font newFont  = Display.getDefault().getSystemFont(zoom);
+			long newFontHandle = newFont.handle;
+			OS.SendMessage(handle, OS.WM_SETFONT, newFontHandle, 1);
+		}
+	} else {
+	}
+}
+
 LRESULT WM_DRAWITEM (long wParam, long lParam) {
 	DRAWITEMSTRUCT struct = new DRAWITEMSTRUCT ();
 	OS.MoveMemory (struct, lParam, DRAWITEMSTRUCT.sizeof);
