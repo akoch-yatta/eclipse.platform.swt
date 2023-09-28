@@ -1797,6 +1797,39 @@ public void setText (String string) {
 	setText (0, string);
 }
 
+@Override
+public boolean updateZoom (DPIChangeEvent event) {
+	boolean refreshed = super.updateZoom(event);
+
+	// Refresh the image
+	if (image != null) {
+		refreshed = image.updateZoom (event);
+		setImage (image);
+	}
+
+	if (images != null) {
+		for(Image innerImage : images) {
+			if(innerImage != null) {
+				refreshed |= innerImage.updateZoom (event);
+			}
+		}
+	}
+
+	// Refresh the Font
+	if (font != null) {
+		setFont(display.getFont(font.getFontData()[0], getParent().getShell()));
+	}
+
+	// Refresh the child item
+	for (TreeItem item : getItems()) {
+		if(item != null) {
+			refreshed |= item.updateZoom (event);
+		}
+	}
+
+	return refreshed;
+}
+
 /*public*/ void sort () {
 	checkWidget ();
 	if ((parent.style & SWT.VIRTUAL) != 0) return;

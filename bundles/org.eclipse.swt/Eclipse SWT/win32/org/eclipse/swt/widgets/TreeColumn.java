@@ -745,6 +745,19 @@ void setWidthInPixels (int width) {
 	parent.setScrollWidth ();
 }
 
+@Override
+public boolean updateZoom (DPIChangeEvent event) {
+	boolean refreshed = super.updateZoom(event);
+	setWidth(Math.round(getWidth() * event.getScalingFactor()));
+	// Refresh the image
+	if (image != null) {
+		refreshed = image.updateZoom (event);
+		setImage (image);
+	}
+
+	return refreshed;
+}
+
 void updateToolTip (int index) {
 	long hwndHeaderToolTip = parent.headerToolTipHandle;
 	if (hwndHeaderToolTip != 0) {

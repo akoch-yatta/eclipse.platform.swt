@@ -120,6 +120,8 @@ public class Tree extends Composite {
 	static final int INCREMENT = 5;
 	static final int EXPLORER_EXTRA = 2;
 	static final int DRAG_IMAGE_SIZE = 301;
+	// The default Indent at 100 dpi
+	static final int DEFAULT_INDENT = 16;
 	static final long TreeProc;
 	static final TCHAR TreeClass = new TCHAR (0, OS.WC_TREEVIEW, true);
 	static final long HeaderProc;
@@ -314,7 +316,11 @@ void _setBackgroundPixel (int newPixel) {
 		}
 
 		/* Set the checkbox image list */
-		if ((style & SWT.CHECK) != 0) setCheckboxImageList ();
+		if ((style & SWT.CHECK) != 0) {
+			setCheckboxImageList ();
+
+		}
+		updateImageList();
 	}
 }
 
@@ -524,15 +530,16 @@ LRESULT CDDS_ITEMPOSTPAINT (NMTVCUSTOMDRAW nmcd, long wParam, long lParam) {
 								if (images != null) image = images [index];
 							}
 							if (image != null) {
-								Rectangle bounds = image.getBounds (); // Points
-								if (size == null) size = DPIUtil.autoScaleDown (getImageSize ()); // To Points
+								Rectangle bounds = image.getBounds (); // Upscaled Image
+
+								if (size == null) size = getImageSize (); // Points
 								if (!ignoreDrawForeground) {
 									GCData data = new GCData();
 									data.device = display;
 									GC gc = GC.win32_new (hDC, data);
 									RECT iconRect = item.getBounds (index, false, true, false, false, true, hDC); // Pixels
 									gc.setClipping (DPIUtil.autoScaleDown(new Rectangle(iconRect.left, iconRect.top, iconRect.right - iconRect.left, iconRect.bottom - iconRect.top)));
-									gc.drawImage (image, 0, 0, bounds.width, bounds.height, DPIUtil.autoScaleDown(iconRect.left), DPIUtil.autoScaleDown(iconRect.top), size.x, size.y);
+									gc.drawImage (image, 0, 0, bounds.width, bounds.height, iconRect.left, iconRect.top, size.x, size.y);
 									OS.SelectClipRgn (hDC, 0);
 									gc.dispose ();
 								}
@@ -615,7 +622,7 @@ LRESULT CDDS_ITEMPOSTPAINT (NMTVCUSTOMDRAW nmcd, long wParam, long lParam) {
 						if (isDisposed () || item.isDisposed ()) break;
 					}
 					if (hooks (SWT.EraseItem)) {
-						RECT cellRect = item.getBounds (index, true, true, true, true, true, hDC);
+						RECT cellRect = item.getBounds (index, true, true, true, true, true, hDC); // Pixels
 						int nSavedDC = OS.SaveDC (hDC);
 						GCData data = new GCData ();
 						data.device = display;
@@ -711,7 +718,7 @@ LRESULT CDDS_ITEMPOSTPAINT (NMTVCUSTOMDRAW nmcd, long wParam, long lParam) {
 												backgroundRect = selectionRect;
 											}
 										}
-										long hTheme = OS.OpenThemeData (handle, Display.TREEVIEW);
+										long hTheme = OS.OpenThemeDataForDpi(handle, Display.TREEVIEW, getCurrentDeviceZoom());
 										int iStateId = selected ? OS.TREIS_SELECTED : OS.TREIS_HOT;
 										if (OS.GetFocus () != handle && selected && !hot) iStateId = OS.TREIS_SELECTEDNOTFOCUS;
 										OS.DrawThemeBackground (hTheme, hDC, OS.TVP_TREEITEM, iStateId, pRect, backgroundRect);
@@ -750,7 +757,7 @@ LRESULT CDDS_ITEMPOSTPAINT (NMTVCUSTOMDRAW nmcd, long wParam, long lParam) {
 						}
 					}
 				}
-				rect.left += INSET - 1;
+				rect.left += DPIUtil.autoScaleUp(INSET - 1);
 				if (drawImage) {
 					Image image = null;
 					if (index == 0) {
@@ -761,22 +768,26 @@ LRESULT CDDS_ITEMPOSTPAINT (NMTVCUSTOMDRAW nmcd, long wParam, long lParam) {
 					}
 					int inset = i != 0 ? INSET : 0;
 					int offset = i != 0 ? INSET : INSET + 2;
+					inset = DPIUtil.autoScaleUp(inset);
+					offset = DPIUtil.autoScaleUp(offset);
 					if (image != null) {
-						Rectangle bounds = image.getBounds (); // Points
-						if (size == null) size = DPIUtil.autoScaleDown (getImageSize ()); // To Points
+						Rectangle bounds = image.getBounds (); // Bounds of Scaled Image
+						if (size == null) size = getImageSize ();
 						if (!ignoreDrawForeground) {
 							//int y1 = rect.top + (index == 0 ? (getItemHeight () - size.y) / 2 : 0);
-							int y1 = rect.top + DPIUtil.autoScaleUp((getItemHeight () - size.y) / 2);
-							int x1 = Math.max (rect.left, rect.left - inset + 1);
+							int y1 = rect.top + (getItemHeightInPixels() - size.y) / 2;
+							int x1 = Math.max (rect.left, rect.left - DPIUtil.autoScaleUp(inset + 1));
 							GCData data = new GCData();
 							data.device = display;
 							GC gc = GC.win32_new (hDC, data);
-							gc.setClipping (DPIUtil.autoScaleDown(new Rectangle(x1, rect.top, rect.right - x1, rect.bottom - rect.top)));
-							gc.drawImage (image, 0, 0, bounds.width, bounds.height, DPIUtil.autoScaleDown(x1), DPIUtil.autoScaleDown(y1), size.x, size.y);
+							var clippingRect = new Rectangle(x1, rect.top, rect.right - x1, rect.bottom - rect.top);
+							// Set Clipping autoScales the Rectangle up. As we are on pixel-basis here, we need to scale it down.
+							gc.setClipping (DPIUtil.autoScaleDown(clippingRect));
+							gc.drawImage (image, 0, 0, bounds.width, bounds.height, x1, y1, size.x, size.y);
 							OS.SelectClipRgn (hDC, 0);
 							gc.dispose ();
 						}
-						OS.SetRect (rect, rect.left + DPIUtil.autoScaleUp(size.x) + offset, rect.top, rect.right - inset, rect.bottom);
+						OS.SetRect (rect, rect.left + size.x + offset, rect.top, rect.right - inset, rect.bottom);
 					} else {
 						if (i == 0) {
 							if (OS.SendMessage (handle, OS.TVM_GETIMAGELIST, OS.TVSIL_NORMAL, 0) != 0) {
@@ -1914,8 +1925,7 @@ void createHandle () {
 	 * scale with DPI resulting in distorted glyph image
 	 * at higher DPI settings.
 	 */
-	int indent = DPIUtil.autoScaleUpUsingNativeDPI(16);
-	OS.SendMessage(handle, OS.TVM_SETINDENT, indent, 0);
+	calculateAndApplyIndentSize();
 
 	createdAsRTL = (style & SWT.RIGHT_TO_LEFT) != 0;
 }
@@ -2139,6 +2149,11 @@ void createItem (TreeItem item, long hParent, long hInsertAfter, long hItem) {
 	if (item != null) {
 		item.handle = hNewItem;
 		items [id] = item;
+		// The first item SHOULD be visible and be able to calculate a valid RECT.
+		// TODO: Are there any special cases where this is not the case?
+		if(id == 0) {
+			setItemHeight(item.getBoundsInPixels().height);
+		}
 	}
 
 	// Adjust cached variables
@@ -3742,7 +3757,7 @@ boolean hitTestSelection (long hItem, int x, int y) {
 int imageIndex (Image image, int index) {
 	if (image == null) return OS.I_IMAGENONE;
 	if (imageList == null) {
-		Rectangle bounds = image.getBoundsInPixels ();
+		Rectangle bounds = image.getBounds ();
 		imageList = display.getImageList (style & SWT.RIGHT_TO_LEFT, bounds.width, bounds.height);
 	}
 	int imageIndex = imageList.indexOf (image);
@@ -3758,6 +3773,7 @@ int imageIndex (Image image, int index) {
 		if (hOldImageList != hImageList) {
 			OS.SendMessage (handle, OS.TVM_SETIMAGELIST, OS.TVSIL_NORMAL, hImageList);
 			updateScrollBar ();
+
 		}
 	}
 	return imageIndex;
@@ -3766,7 +3782,7 @@ int imageIndex (Image image, int index) {
 int imageIndexHeader (Image image) {
 	if (image == null) return OS.I_IMAGENONE;
 	if (headerImageList == null) {
-		Rectangle bounds = image.getBoundsInPixels ();
+		Rectangle bounds = image.getBounds ();
 		headerImageList = display.getImageList (style & SWT.RIGHT_TO_LEFT, bounds.width, bounds.height);
 		int index = headerImageList.indexOf (image);
 		if (index == -1) index = headerImageList.add (image);
@@ -4783,14 +4799,14 @@ void setCheckboxImageList () {
 		 * artifacts, limit the rectangle to actual checkbox bitmap size.
 		 */
 		SIZE size = new SIZE();
-		OS.GetThemePartSize(display.hButtonTheme(), memDC, OS.BP_CHECKBOX, 0, null, OS.TS_TRUE, size);
+		OS.GetThemePartSize(display.hButtonThemeDPI(getCurrentDeviceZoom()), memDC, OS.BP_CHECKBOX, 0, null, OS.TS_TRUE, size);
 		itemWidth = Math.min (size.cx, itemWidth);
 		itemHeight = Math.min (size.cy, itemHeight);
 	}
 	int left = (width - itemWidth) / 2, top = (height - itemHeight) / 2 + 1;
 	OS.SetRect (rect, left + width, top, left + width + itemWidth, top + itemHeight);
 	if (OS.IsAppThemed ()) {
-		long hTheme = display.hButtonTheme ();
+		long hTheme = display.hButtonThemeDPI(getCurrentDeviceZoom());
 		OS.DrawThemeBackground (hTheme, memDC, OS.BP_CHECKBOX, OS.CBS_UNCHECKEDNORMAL, rect, null);
 		rect.left += width;  rect.right += width;
 		OS.DrawThemeBackground (hTheme, memDC, OS.BP_CHECKBOX, OS.CBS_CHECKEDNORMAL, rect, null);
@@ -5366,6 +5382,64 @@ public void setTopItem (TreeItem item) {
 		}
 	}
 	updateScrollBar ();
+}
+
+boolean first = true;
+
+@Override
+public boolean updateZoom (DPIChangeEvent event) {
+	boolean refreshed = super.updateZoom(event);
+
+	// Reset ImageList
+	if (headerImageList != null) {
+		display.releaseImageList(headerImageList);
+		headerImageList = null;
+	}
+	if (imageList != null) {
+		display.releaseImageList(imageList);
+		// Reset the Imagelist of the OS as well; Will be recalculated when updating items
+		OS.SendMessage (handle, OS.TVM_SETIMAGELIST, 0, 0);
+		imageList = null;
+	}
+
+	// Reset of Indent required
+	calculateAndApplyIndentSize();
+
+	// Refresh items
+	for (TreeItem item : getItems()) {
+		if(item != null) {
+			refreshed |= item.updateZoom (event);
+		}
+	}
+
+	// Refresh columns
+	for (TreeColumn treeColumn : getColumns()) {
+		if(treeColumn != null) {
+			refreshed |= treeColumn.updateZoom (event);
+		}
+	}
+
+	var itemHeight = getItemHeightInPixels();
+
+	setItemHeight(Math.round(itemHeight * event.getScalingFactor()));
+
+	updateOrientation();
+
+	setScrollWidth();
+
+	// Reset of CheckBox Size required (if SWT.Check is not set, this is a no-op)
+	setCheckboxImageList();
+
+	return refreshed;
+}
+
+/**
+ * Set indent for Tree;
+ * In a Tree without imageList, the indent also controls the chevron (glyph) size.
+ */
+private void calculateAndApplyIndentSize() {
+	int indent = DPIUtil.autoScaleUpUsingNativeDPI(DEFAULT_INDENT);
+	OS.SendMessage(handle, OS.TVM_SETINDENT, indent, 0);
 }
 
 void showItem (long hItem) {
@@ -7534,7 +7608,7 @@ LRESULT wmNotifyChild (NMHDR hdr, long wParam, long lParam) {
 		}
 		case OS.NM_CUSTOMDRAW: {
 			if (hdr.hwndFrom == hwndHeader) break;
-			if (hooks (SWT.MeasureItem)) {
+			if  (hooks (SWT.MeasureItem)) {
 				if (hwndHeader == 0) createParent ();
 			}
 			if (!customDraw && findImageControl () == null) {
@@ -7920,9 +7994,10 @@ LRESULT wmNotifyHeader (NMHDR hdr, long wParam, long lParam) {
 							GCData data = new GCData();
 							data.device = display;
 							GC gc = GC.win32_new (nmcd.hdc, data);
-							int y = Math.max (0, (nmcd.bottom - columns[i].image.getBoundsInPixels().height) / 2);
+							int y = Math.max (0, (nmcd.bottom - columns[i].image.getBounds().height) / 2);
 							gc.drawImage (columns[i].image, DPIUtil.autoScaleDown(x), DPIUtil.autoScaleDown(y));
-							x += columns[i].image.getBoundsInPixels().width + 12;
+							System.out.println("COL BOUNDS" + columns[i].image.getBounds());
+							x += columns[i].image.getBounds().width + DPIUtil.autoScaleUp(12);
 							gc.dispose ();
 						}
 
