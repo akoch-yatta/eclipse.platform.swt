@@ -1289,6 +1289,15 @@ public void setVisible (boolean visible) {
 	}
 }
 
+@Override
+public boolean updateZoom (DPIChangeEvent event) {
+	boolean resized = super.updateZoom(event);
+	for (MenuItem item : getItems()) {
+		resized |= item.updateZoom (event);
+	}
+	return resized;
+}
+
 void update () {
 	if ((style & SWT.BAR) != 0) {
 		if (this == parent.menuBar) OS.DrawMenuBar (parent.handle);
