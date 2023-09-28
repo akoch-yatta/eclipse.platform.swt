@@ -1201,6 +1201,20 @@ boolean setTabGroupFocus () {
 }
 
 @Override
+public boolean updateZoom (DPIChangeEvent event) {
+	boolean refreshed = super.updateZoom (event);
+
+	for (Control control : getChildren()) {
+		if (DPIZoomChangeRegistry.isDPIZoomChangeApplicable(control)) {
+			control.updateZoom(event);
+		}
+	}
+
+	this.redrawInPixels (null, true);
+	return refreshed;
+}
+
+@Override
 boolean updateTextDirection(int textDirection) {
 	super.updateTextDirection (textDirection);
 	/*
@@ -1414,7 +1428,7 @@ LRESULT WM_GETFONT (long wParam, long lParam) {
 	if (result != null) return result;
 	long code = callWindowProc (handle, OS.WM_GETFONT, wParam, lParam);
 	if (code != 0) return new LRESULT (code);
-	return new LRESULT (font != null ? font.handle : defaultFont (currentDeviceZoom));
+	return new LRESULT (font != null ? font.handle : defaultFont ());
 }
 
 @Override
