@@ -1373,6 +1373,7 @@ public class OS extends C {
 	public static final int TB_GETROWS = 0x428;
 	public static final int TB_GETSTATE = 0x412;
 	public static final int TB_GETTOOLTIPS = 0x423;
+	public static final int TB_HIDEBUTTON = 0x404;
 	public static final int TB_INSERTBUTTON = 0x443;
 	public static final int TB_LOADIMAGES = 0x432;
 	public static final int TB_MAPACCELERATOR = 0x0400 + 90;
