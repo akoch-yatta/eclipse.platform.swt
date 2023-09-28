@@ -49,6 +49,12 @@ import org.eclipse.swt.internal.win32.*;
  * @see <a href="http://www.eclipse.org/swt/">Sample code and further information</a>
  */
 public abstract class Widget {
+	/**
+	 * Specify current zoom level for the widget.
+	 *
+	 * @since 3.125
+	 */
+	private int currentDeviceZoom;
 	int style, state;
 	Display display;
 	EventTable eventTable;
@@ -164,6 +170,7 @@ public Widget (Widget parent, int style) {
 	checkSubclass ();
 	checkParent (parent);
 	this.style = style;
+	this.currentDeviceZoom = DPIUtil.getDeviceZoom();
 	display = parent.display;
 	reskinWidget ();
 	notifyCreationTracker();
@@ -1565,6 +1572,19 @@ boolean showMenu (int x, int y, int detail) {
 }
 
 /**
+ * Set zoom and refresh the Widget based on the zoom level, if required.
+ * @param event
+ *
+ * @return true if Widget is resized
+ * @since 3.125
+ */
+public boolean updateZoom (DPIChangeEvent event) {
+	boolean resized = event.isDPIChange();
+	this.currentDeviceZoom = event.newZoom();
+	return resized;
+}
+
+/**
  * Returns a string containing a concise, human-readable
  * description of the receiver.
  *
@@ -2541,4 +2561,19 @@ void notifyDisposalTracker() {
 	}
 }
 
+static int getSystemMetrics(int nIndex) {
+	if (OS.WIN32_BUILD >= OS.WIN32_BUILD_WIN10_1809) {
+		return OS.GetSystemMetricsForDpi(nIndex, DPIUtil.mapZoomToDPI(DPIUtil.getDeviceZoom()));
+	} else {
+		return OS.GetSystemMetrics(nIndex);
+	}
+}
+
+public int getCurrentDeviceZoom() {
+	return currentDeviceZoom;
+}
+
+public void setCurrentDeviceZoom(int currentDeviceZoom) {
+	this.currentDeviceZoom = currentDeviceZoom;
+}
 }

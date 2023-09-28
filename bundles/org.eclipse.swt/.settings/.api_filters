@@ -464,4 +464,12 @@
             </message_arguments>
         </filter>
     </resource>
+    <resource path="Eclipse SWT/win32/org/eclipse/swt/widgets/Widget.java" type="org.eclipse.swt.widgets.Widget">
+        <filter id="336658481">
+            <message_arguments>
+                <message_argument value="org.eclipse.swt.widgets.Widget"/>
+                <message_argument value="currentDeviceZoom"/>
+            </message_arguments>
+        </filter>
+    </resource>
 </component>

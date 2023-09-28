@@ -23,6 +23,7 @@ import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.internal.*;
 import org.eclipse.swt.internal.gdip.*;
+import org.eclipse.swt.internal.ole.win32.*;
 import org.eclipse.swt.internal.win32.*;
 
 /**
@@ -113,6 +114,7 @@ Control () {
 public Control (Composite parent, int style) {
 	super (parent, style);
 	this.parent = parent;
+	this.currentDeviceZoom = getShell().currentDeviceZoom;
 	createWidget ();
 }
 
@@ -4928,7 +4930,17 @@ LRESULT WM_DPICHANGED (long wParam, long lParam) {
 		event.detail = newSWTZoom;
 		event.doit = true;
 		notifyListeners(SWT.ZoomChanged, event);
-		return LRESULT.ZERO;
+
+		if (DPIUtil.autoScaleOnRuntime) {
+			// update it
+			DPIUtil.setDeviceZoom (nativeZoom);
+			RECT rect = new RECT ();
+			COM.MoveMemory(rect, lParam, RECT.sizeof);
+
+			LRESULT result = updateZoom (new DPIChangeEvent(oldSWTZoom, nativeZoom)) ? LRESULT.ZERO : LRESULT.ONE;
+			this.setBoundsInPixels(rect.left, rect.top, rect.right - rect.left, rect.bottom-rect.top);
+			return result;
+		}
 	}
 	return LRESULT.ONE;
 }
