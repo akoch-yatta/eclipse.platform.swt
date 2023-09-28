@@ -46,7 +46,7 @@ public int add (Image image) {
 		index++;
 	}
 	if (count == 0) {
-		Rectangle rect = image.getBoundsInPixels ();
+		Rectangle rect = image.getBounds (image.currentDeviceZoom);
 		OS.ImageList_SetIconSize (handle, rect.width, rect.height);
 	}
 	set (index, image, count);
@@ -369,7 +369,8 @@ void set (int index, Image image, int count) {
 			* Note that the image size has to match the image list icon size.
 			*/
 			long hBitmap = 0, hMask = 0;
-			ImageData data = image.getImageData (DPIUtil.getDeviceZoom ());
+			// TODO provide Zoom Level
+			ImageData data = image.getImageData();
 			switch (data.getTransparencyType ()) {
 				case SWT.TRANSPARENCY_ALPHA:
 					/*
