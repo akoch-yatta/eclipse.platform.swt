@@ -230,6 +230,10 @@ public Rectangle getBounds () {
 }
 
 Rectangle getBoundsInPixels () {
+ return getBoundsInPixels(getCurrentDeviceZoom());
+}
+
+Rectangle getBoundsInPixels (int zoomLevel) {
 	int index = parent.indexOf (this);
 	if (index == -1) return new Rectangle (0, 0, 0, 0);
 	long hwnd = parent.handle;
@@ -240,7 +244,7 @@ Rectangle getBoundsInPixels () {
 	rect.left -= margins.cxLeftWidth;
 	rect.right += margins.cxRightWidth;
 	if (!parent.isLastItemOfRow (index)) {
-		rect.right += (parent.style & SWT.FLAT) == 0 ? CoolBar.SEPARATOR_WIDTH : 0;
+		rect.right += (parent.style & SWT.FLAT) == 0 ? DPIUtil.scaleToZoomLevel(CoolBar.SEPARATOR_WIDTH, zoomLevel) : 0;
 	}
 	int width = rect.right - rect.left;
 	int height = rect.bottom - rect.top;
@@ -489,6 +493,10 @@ public Point getSize () {
 }
 
 Point getSizeInPixels() {
+	return getSizeInPixels(getCurrentDeviceZoom());
+}
+
+Point getSizeInPixels(int zoomLevel) {
 	int index = parent.indexOf (this);
 	if (index == -1) return new Point (0, 0);
 	long hwnd = parent.handle;
@@ -499,7 +507,7 @@ Point getSizeInPixels() {
 	rect.left -= margins.cxLeftWidth;
 	rect.right += margins.cxRightWidth;
 	if (!parent.isLastItemOfRow (index)) {
-		rect.right += (parent.style & SWT.FLAT) == 0 ? CoolBar.SEPARATOR_WIDTH : 0;
+		rect.right += (parent.style & SWT.FLAT) == 0 ? DPIUtil.scaleToZoomLevel(CoolBar.SEPARATOR_WIDTH, zoomLevel)  : 0;
 	}
 	int width = rect.right - rect.left;
 	int height = rect.bottom - rect.top;
@@ -531,27 +539,38 @@ public void setSize (int width, int height) {
 }
 
 void setSizeInPixels (int width, int height) {
+	setSizeInPixels(width, height, getCurrentDeviceZoom());
+}
+
+
+void setSizeInPixels (int width, int height, int zoomLevel) {
+	System.out.println(new Point(width,height));
 	int index = parent.indexOf (this);
 	if (index == -1) return;
 	width = Math.max (0, width);
 	height = Math.max (0, height);
 	long hwnd = parent.handle;
 	int cx, cyChild, cxIdeal;
-	if ((parent.style & SWT.VERTICAL) != 0) {
-		cx = height;
-		cyChild = width;
-		cxIdeal = Math.max (0, height - parent.getMargin (index));
-	} else {
-		cx = width;
-		cyChild = height;
-		cxIdeal = Math.max (0, width - parent.getMargin (index));
-	}
+
 	REBARBANDINFO rbBand = new REBARBANDINFO ();
 	rbBand.cbSize = REBARBANDINFO.sizeof;
 
 	/* Get the child size fields first so we don't overwrite them. */
 	rbBand.fMask = OS.RBBIM_CHILDSIZE | OS.RBBIM_IDEALSIZE;
 	OS.SendMessage (hwnd, OS.RB_GETBANDINFO, index, rbBand);
+
+	// TODO: cyMaxChild currently does not shrink (should be the case when scaling down)
+	if ((parent.style & SWT.VERTICAL) != 0) {
+		cx = height;
+		cyChild = width;
+		rbBand.cyMaxChild = Math.max(rbBand.cyMaxChild, width);
+		cxIdeal = Math.max (0, height - parent.getMargin (index));
+	} else {
+		cx = width;
+		cyChild = height;
+		rbBand.cyMaxChild = Math.max(rbBand.cyMaxChild, height);
+		cxIdeal = Math.max (0, width - parent.getMargin (index));
+	}
 
 	/* Set the size fields we are currently modifying. */
 	if (!ideal) rbBand.cxIdeal = cxIdeal;
@@ -565,7 +584,7 @@ void setSizeInPixels (int width, int height) {
 		MARGINS margins = new MARGINS ();
 		OS.SendMessage (hwnd, OS.RB_GETBANDMARGINS, 0, margins);
 		cx -= margins.cxLeftWidth + margins.cxRightWidth;
-		int separator = (parent.style & SWT.FLAT) == 0 ? CoolBar.SEPARATOR_WIDTH : 0;
+		int separator = (parent.style & SWT.FLAT) == 0 ? DPIUtil.scaleToZoomLevel(CoolBar.SEPARATOR_WIDTH , zoomLevel) : 0;
 		rbBand.cx = cx - separator;
 		rbBand.fMask |= OS.RBBIM_SIZE;
 	}
@@ -749,6 +768,16 @@ public void removeSelectionListener(SelectionListener listener) {
 	if (eventTable == null) return;
 	eventTable.unhook (SWT.Selection, listener);
 	eventTable.unhook (SWT.DefaultSelection,listener);
+}
+
+@Override
+public boolean updateZoom(DPIChangeEvent zoom) {
+	super.updateZoom(zoom);
+	if(control != null) {
+		control.updateZoom(zoom);
+		this.setControl(control);
+	}
+	return true;
 }
 
 }

@@ -1139,6 +1139,8 @@ public class OS extends C {
 	public static final int RB_GETRECT = 0x409;
 	public static final int RB_GETTEXTCOLOR = 0x416;
 	public static final int RB_IDTOINDEX = 0x410;
+	public static final int RB_SIZETORECT = 0x0417;
+	public static final int RB_MAXIMIZEBAND = 0x041f;
 	public static final int RB_INSERTBAND = 0x40a;
 	public static final int RB_MOVEBAND = 0x427;
 	public static final int RB_SETBANDINFO = 0x40b;

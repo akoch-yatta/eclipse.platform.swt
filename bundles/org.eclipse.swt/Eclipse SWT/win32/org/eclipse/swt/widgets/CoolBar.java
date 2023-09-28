@@ -385,6 +385,10 @@ Control findThemeControl () {
 }
 
 int getMargin (int index) {
+	return getMargin(index, getCurrentDeviceZoom());
+}
+
+int getMargin (int index, int zoomLevel) {
 	int margin = 0;
 	MARGINS margins = new MARGINS ();
 	OS.SendMessage (handle, OS.RB_GETBANDMARGINS, 0, margins);
@@ -411,7 +415,7 @@ int getMargin (int index) {
 	}
 	if ((style & SWT.FLAT) == 0) {
 		if (!isLastItemOfRow (index)) {
-			margin += CoolBar.SEPARATOR_WIDTH;
+			margin += DPIUtil.scaleToZoomLevel(SEPARATOR_WIDTH, zoomLevel);
 		}
 	}
 	return margin;
@@ -555,12 +559,16 @@ public Point [] getItemSizes () {
 }
 
 Point [] getItemSizesInPixels () {
+	return getItemSizesInPixels(getCurrentDeviceZoom());
+}
+
+Point [] getItemSizesInPixels (int zoomLevel) {
 	int count = (int)OS.SendMessage (handle, OS.RB_GETBANDCOUNT, 0, 0);
 	Point [] sizes = new Point [count];
 	REBARBANDINFO rbBand = new REBARBANDINFO ();
 	rbBand.cbSize = REBARBANDINFO.sizeof;
 	rbBand.fMask = OS.RBBIM_CHILDSIZE;
-	int separator = (style & SWT.FLAT) == 0 ? SEPARATOR_WIDTH : 0;
+	int separator = (style & SWT.FLAT) == 0 ? DPIUtil.scaleToZoomLevel(SEPARATOR_WIDTH, zoomLevel) : 0;
 	MARGINS margins = new MARGINS ();
 	for (int i=0; i<count; i++) {
 		RECT rect = new RECT ();
@@ -896,7 +904,12 @@ void setItemOrder (int [] itemOrder) {
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
  */
+
 void setItemSizes (Point [] sizes) {
+	setItemSizes(sizes, getCurrentDeviceZoom());
+}
+
+void setItemSizes (Point [] sizes, int deviceZoom) {
 	if (sizes == null) error (SWT.ERROR_NULL_ARGUMENT);
 	int count = (int)OS.SendMessage (handle, OS.RB_GETBANDCOUNT, 0, 0);
 	if (sizes.length != count) error (SWT.ERROR_INVALID_ARGUMENT);
@@ -905,7 +918,7 @@ void setItemSizes (Point [] sizes) {
 	rbBand.fMask = OS.RBBIM_ID;
 	for (int i=0; i<count; i++) {
 		OS.SendMessage (handle, OS.RB_GETBANDINFO, i, rbBand);
-		items [rbBand.wID].setSizeInPixels (sizes [i].x, sizes [i].y);
+		items [rbBand.wID].setSizeInPixels (sizes [i].x, sizes [i].y, deviceZoom);
 	}
 }
 
@@ -1197,5 +1210,46 @@ LRESULT wmNotifyChild (NMHDR hdr, long wParam, long lParam) {
 		}
 	}
 	return super.wmNotifyChild (hdr, wParam, lParam);
+}
+
+@Override
+public boolean updateZoom(DPIChangeEvent event) {
+	// TODO: This is not exact. In particular there are still issues with margins
+	var sizes = getItemSizesInPixels(100);
+	boolean refreshed = super.updateZoom(event);
+	var scaledSizes = new Point[sizes.length];
+	var prefSizes = new Point[sizes.length];
+	var minSizes = new Point[sizes.length];
+	var indices = getWrapIndices();
+	var itemOrder = getItemOrder();
+	var items = getItems();
+
+	for (int index = 0; index < sizes.length; index++) {
+		minSizes[index] = items[index].getMinimumSizeInPixels();
+		prefSizes[index] = items[index].getPreferredSizeInPixels();
+	}
+
+	for (int index = 0; index < sizes.length; index++) {
+		var item = items[index];
+		refreshed |= item.updateZoom(event);
+		var preferredControlSize =  item.getControl().computeSizeInPixels(SWT.DEFAULT, SWT.DEFAULT, true);
+		var controlWidth = preferredControlSize.x;
+		var controlHeight = preferredControlSize.y;
+		if(((style & SWT.VERTICAL) != 0)) {
+			scaledSizes[index] = new Point(Math.round((sizes[index].x)*event.getScalingFactor()), Math.max(Math.round((sizes[index].y)*event.getScalingFactor()),0));
+			item.setMinimumSizeInPixels(Math.round(minSizes[index].x*event.getScalingFactor()), Math.max(Math.round((minSizes[index].y)*event.getScalingFactor()),controlWidth));
+			item.setPreferredSizeInPixels(Math.round(prefSizes[index].x*event.getScalingFactor()), Math.max(Math.round((prefSizes[index].y)*event.getScalingFactor()),controlWidth));
+		} else {
+			scaledSizes[index] = new Point(Math.round((sizes[index].x)*event.getScalingFactor()),Math.max(Math.round((sizes[index].y)*event.getScalingFactor()),0));
+			item.setMinimumSizeInPixels(Math.round(minSizes[index].x*event.getScalingFactor()), controlHeight);
+			item.setPreferredSizeInPixels(Math.round(prefSizes[index].x*event.getScalingFactor()), controlHeight);
+		}
+	}
+
+	setItemLayoutInPixels(itemOrder, indices, scaledSizes);
+
+	updateLayout(true);
+
+	return refreshed;
 }
 }
