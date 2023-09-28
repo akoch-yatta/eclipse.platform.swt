@@ -458,7 +458,7 @@ int imageIndex (Image image) {
 	 */
 	if (image == null) return -1;
 	if (imageList == null) {
-		Rectangle bounds = image.getBoundsInPixels ();
+		Rectangle bounds = image.getBounds (this.getCurrentDeviceZoom());
 		imageList = display.getImageList (style & SWT.RIGHT_TO_LEFT, bounds.width, bounds.height);
 		int index = imageList.add (image);
 		long hImageList = imageList.getHandle ();
@@ -1130,4 +1130,19 @@ LRESULT wmNotifyChild (NMHDR hdr, long wParam, long lParam) {
 	return super.wmNotifyChild (hdr, wParam, lParam);
 }
 
+@Override
+public boolean updateZoom(DPIChangeEvent zoom) {
+	boolean resized = super.updateZoom(zoom);
+
+	if (imageList != null) {
+		display.releaseImageList (imageList);
+		imageList = null;
+	}
+	for (int i = 0; i < getItemCount(); i++) {
+		items[i].updateZoom(zoom);
+	}
+	layout(true, true);
+
+	return resized;
+}
 }
