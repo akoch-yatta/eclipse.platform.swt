@@ -871,6 +871,18 @@ void setWidthInPixels (int width) {
 	}
 }
 
+@Override
+public boolean updateZoom (DPIChangeEvent event) {
+	boolean resized = super.updateZoom(event);
+	setWidth(Math.round(getWidth() * event.getScalingFactor()));
+	// Refresh the image
+	if (image != null) {
+		resized = image.updateZoom (event);
+		setImage (image);
+	}
+	return resized;
+}
+
 void updateToolTip (int index) {
 	long hwndHeaderToolTip = parent.headerToolTipHandle;
 	if (hwndHeaderToolTip != 0) {

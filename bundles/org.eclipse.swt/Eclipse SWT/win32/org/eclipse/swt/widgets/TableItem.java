@@ -1266,4 +1266,28 @@ public void setText (String string) {
 	setText (0, string);
 }
 
+@Override
+public boolean updateZoom (DPIChangeEvent event) {
+	boolean resized = super.updateZoom(event);
+
+	// Refresh the image
+	if (image != null) {
+		resized = image.updateZoom (event);
+		setImage (image);
+	}
+
+	// Refresh the Font
+	if (font != null) {
+		setFont(display.getFont(font.getFontData()[0], getParent().getShell()));
+	}
+
+	return resized;
+}
+
+@Override
+public void dispose() {
+	if (isDisposed ()) return;
+	super.dispose();
+}
+
 }

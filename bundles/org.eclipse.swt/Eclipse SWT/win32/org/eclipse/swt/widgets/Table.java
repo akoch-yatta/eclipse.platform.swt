@@ -4266,7 +4266,7 @@ void setCheckboxImageList (int width, int height, boolean fixScroll) {
 		 * artifacts, limit the rectangle to actual checkbox bitmap size.
 		 */
 		SIZE size = new SIZE();
-		OS.GetThemePartSize(display.hButtonTheme(), memDC, OS.BP_CHECKBOX, 0, null, OS.TS_TRUE, size);
+		OS.GetThemePartSize(display.hButtonThemeDPI(getCurrentDeviceZoom()), memDC, OS.BP_CHECKBOX, 0, null, OS.TS_TRUE, size);
 		itemWidth = Math.min (size.cx, itemWidth);
 		itemHeight = Math.min (size.cy, itemHeight);
 	}
@@ -5218,6 +5218,50 @@ public void setTopIndex (int index) {
 	ignoreCustomDraw = false;
 	int dy = (index - topIndex) * (rect.bottom - rect.top);
 	OS.SendMessage (handle, OS.LVM_SCROLL, 0, dy);
+}
+
+@Override
+public boolean updateZoom (DPIChangeEvent event) {
+	boolean refreshed = super.updateZoom(event);
+
+	settingItemHeight = true;
+	var scrollWidth = 0;
+	// Request ScrollWidth
+	if(getColumns().length == 0) {
+		 scrollWidth = Math.round(OS.SendMessage (handle, OS.LVM_GETCOLUMNWIDTH, 0, 0)*event.getScalingFactor());
+	}
+
+	// Reset ImageList
+	if (headerImageList != null) {
+		display.releaseImageList(headerImageList);
+		headerImageList = null;
+	}
+	if (imageList != null) {
+		display.releaseImageList(imageList);
+		imageList = null;
+	}
+
+
+	// Refresh items
+	for (TableItem item : getItems()) {
+		refreshed |= item.updateZoom (event);
+	}
+
+	// Refresh columns
+	for (TableColumn tableColumn : getColumns()) {
+		refreshed |= tableColumn.updateZoom (event);
+	}
+
+	if(getColumns().length == 0 && scrollWidth != 0) {
+		// Update scrollbar width if no columns are available
+		setScrollWidth(scrollWidth);
+	}
+
+	fixCheckboxImageListColor (true);
+
+	settingItemHeight = false;
+
+	return refreshed;
 }
 
 /**
