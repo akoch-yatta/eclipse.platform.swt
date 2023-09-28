@@ -1157,7 +1157,8 @@ static long create32bitDIB (long hBitmap, int alpha, byte [] alphaData, int tran
 
 static Image createIcon (Image image) {
 	Device device = image.getDevice ();
-	ImageData data = image.getImageData (DPIUtil.getDeviceZoom ());
+	// TODO: Check if this is correct
+	ImageData data = image.getImageData ();
 	if (data.alpha == -1 && data.alphaData == null) {
 		ImageData mask = data.getTransparencyMask ();
 		return new Image (device, data, mask);
