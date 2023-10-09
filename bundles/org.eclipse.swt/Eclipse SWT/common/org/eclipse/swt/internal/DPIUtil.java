@@ -14,6 +14,8 @@
  *******************************************************************************/
 package org.eclipse.swt.internal;
 
+import java.io.*;
+
 import org.eclipse.swt.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.*;
@@ -458,7 +460,11 @@ public static ImageData validateAndGetImageDataAtZoom (ImageDataProvider provide
 public static String validateAndGetImagePathAtZoom (ImageFileNameProvider provider, int zoom, boolean[] found) {
 	if (provider == null) SWT.error (SWT.ERROR_NULL_ARGUMENT);
 	String filename = provider.getImagePath (zoom);
-	found [0] = (filename != null);
+  /**
+   * The reason for checking the file for existence is that JFace's URLImageDescriptor may return a name for a file of a scaled image that does
+   * actually not exist (such as @1.5x, which does usually not exist). This may be fixed in the provider implementation.
+   */
+	found [0] = (filename != null && new File(filename).exists());
 	/* If image is null when (zoom != 100%), fall-back to image at 100% zoom */
 	if (zoom != 100 && !found [0]) filename = provider.getImagePath (100);
 	if (filename == null) SWT.error (SWT.ERROR_INVALID_ARGUMENT, null, ": ImageFileNameProvider [" + provider + "] returns null filename at 100% zoom.");
