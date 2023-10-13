@@ -3258,6 +3258,18 @@ JNIEXPORT jint JNICALL OS_NATIVE(GetSystemMetrics)
 }
 #endif
 
+#ifndef NO_GetSystemMetricsForDpi
+JNIEXPORT jint JNICALL OS_NATIVE(GetSystemMetricsForDpi)
+	(JNIEnv *env, jclass that, jint arg0, jint arg1)
+{
+	jint rc = 0;
+	OS_NATIVE_ENTER(env, that, GetSystemMetricsForDpi_FUNC);
+	rc = (jint)GetSystemMetricsForDpi(arg0, arg1);
+	OS_NATIVE_EXIT(env, that, GetSystemMetricsForDpi_FUNC);
+	return rc;
+}
+#endif
+
 #ifndef NO_GetTextColor
 JNIEXPORT jint JNICALL OS_NATIVE(GetTextColor)
 	(JNIEnv *env, jclass that, jlong arg0)
