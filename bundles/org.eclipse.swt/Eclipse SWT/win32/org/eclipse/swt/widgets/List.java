@@ -1272,6 +1272,9 @@ public void setItems (String... items) {
 	if (index < items.length) error (SWT.ERROR_ITEM_NOT_ADDED);
 }
 
+/**
+ * Calculates the Scroll Width depending on the item with the highest width
+ */
 void setScrollWidth () {
 	int newWidth = 0;
 	RECT rect = new RECT ();
@@ -1835,6 +1838,16 @@ LRESULT WM_SIZE (long wParam, long lParam) {
 		if (oldIndex != newIndex) OS.InvalidateRect (handle, null, true);
 	}
 	return result;
+}
+
+@Override
+public boolean updateZoom(DPIChangeEvent event) {
+	var resized = super.updateZoom(event);
+	if(resized && (style & SWT.H_SCROLL) != 0) {
+		// Recalculate the Scroll width, as length of items has changed
+		this.setScrollWidth();
+	}
+	return resized;
 }
 
 @Override
