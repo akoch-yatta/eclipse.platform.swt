@@ -3370,4 +3370,14 @@ LRESULT wmSysKeyDown (long hwnd, long wParam, long lParam) {
 	return result;
 }
 
+@Override
+public boolean updateZoom(DPIChangeEvent zoom) {
+	boolean resized = super.updateZoom(zoom);
+	if ((style & SWT.H_SCROLL) != 0) {
+		this.scrollWidth = 0;
+		setScrollWidth ();
+	}
+	return resized;
+}
+
 }
