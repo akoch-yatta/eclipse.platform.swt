@@ -504,6 +504,7 @@ typedef enum {
 	OpenPrinter_FUNC,
 	OpenProcess_FUNC,
 	OpenThemeData_FUNC,
+	OpenThemeDataForDpi_FUNC,
 	PAINTSTRUCT_1sizeof_FUNC,
 	POINT_1sizeof_FUNC,
 	PRINTDLG_1sizeof_FUNC,
