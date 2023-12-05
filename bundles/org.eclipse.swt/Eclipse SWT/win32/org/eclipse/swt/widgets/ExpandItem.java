@@ -220,7 +220,7 @@ void drawItem (GC gc, long hTheme, RECT clipRect, boolean drawFocus) {
 			OS.SetBkMode (hDC, oldBkMode);
 		}
 	}
-	int chevronSize = ExpandItem.CHEVRON_SIZE;
+	int chevronSize = DPIUtil.autoScaleUp(ExpandItem.CHEVRON_SIZE);
 	rect.left = rect.right - chevronSize;
 	rect.top = y + (headerHeight - chevronSize) / 2;
 	rect.bottom = rect.top + chevronSize;
@@ -519,5 +519,18 @@ public void setText (String string) {
 		updateTextDirection (AUTO_TEXT_DIRECTION);
 	}
 	redraw (true);
+}
+
+@Override
+public boolean updateZoom(DPIChangeEvent zoom) {
+	boolean refreshed = super.updateZoom(zoom);
+
+	if(this.height != 0 || this.width != 0) {
+		int newWidth = Math.round(this.width * zoom.getScalingFactor());
+		int newHeight = Math.round(this.height * zoom.getScalingFactor());
+		this.setBoundsInPixels(this.x, this.y, newWidth, newHeight, false, true);
+	}
+
+	return refreshed;
 }
 }

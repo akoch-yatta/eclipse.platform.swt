@@ -138,7 +138,7 @@ static int checkStyle (int style) {
 			long hDC = OS.GetDC (handle);
 			long hTheme = 0;
 			if (isAppThemed ()) {
-				hTheme = display.hExplorerBarTheme ();
+				hTheme = display.hExplorerBarThemeDpi (getCurrentDeviceZoom());
 			}
 			long hCurrentFont = 0, oldFont = 0;
 			if (hTheme == 0) {
@@ -248,13 +248,13 @@ void drawThemeBackground (long hDC, long hwnd, RECT rect) {
 	RECT rect2 = new RECT ();
 	OS.GetClientRect (handle, rect2);
 	OS.MapWindowPoints (handle, hwnd, rect2, 2);
-	OS.DrawThemeBackground (display.hExplorerBarTheme (), hDC, OS.EBP_NORMALGROUPBACKGROUND, 0, rect2, null);
+	OS.DrawThemeBackground (display.hExplorerBarThemeDpi (getCurrentDeviceZoom()), hDC, OS.EBP_NORMALGROUPBACKGROUND, 0, rect2, null);
 }
 
 void drawWidget (GC gc, RECT clipRect) {
 	long hTheme = 0;
 	if (isAppThemed ()) {
-		hTheme = display.hExplorerBarTheme ();
+		hTheme = display.hExplorerBarThemeDpi (getCurrentDeviceZoom());
 	}
 	if (hTheme != 0) {
 		RECT rect = new RECT ();
@@ -318,7 +318,7 @@ int getBandHeight () {
 	OS.GetTextMetrics (hDC, lptm);
 	OS.SelectObject (hDC, oldHFont);
 	OS.ReleaseDC (handle, hDC);
-	return Math.max (ExpandItem.CHEVRON_SIZE, lptm.tmHeight + 4);
+	return Math.max (DPIUtil.autoScaleUp(ExpandItem.CHEVRON_SIZE), lptm.tmHeight + 4);
 }
 
 /**
@@ -870,5 +870,18 @@ LRESULT wmScroll (ScrollBar bar, boolean update, long hwnd, int msg, long wParam
 		}
 	}
 	return result;
+}
+
+@Override
+public boolean updateZoom(DPIChangeEvent event) {
+	boolean refreshed = super.updateZoom(event);
+
+	for (ExpandItem item : getItems()) {
+		item.updateZoom(event);
+	}
+
+	this.redraw();
+
+	return refreshed;
 }
 }
