@@ -2610,15 +2610,23 @@ public boolean getTouchEnabled () {
 }
 
 long hButtonTheme () {
+	return hButtonThemeDPI(getDeviceZoom());
+}
+
+long hButtonThemeDPI (int dpi) {
 	if (hButtonTheme != 0) return hButtonTheme;
 	final char[] themeName = "BUTTON\0".toCharArray();
-	return hButtonTheme = OS.OpenThemeData (hwndMessage, themeName);
+	return hButtonTheme = OS.OpenThemeDataForDpi (hwndMessage, themeName, dpi);
 }
 
 long hButtonThemeDark () {
+	return hButtonThemeDarkDpi(getDeviceZoom());
+}
+
+long hButtonThemeDarkDpi (int dpi) {
 	if (hButtonThemeDark != 0) return hButtonThemeDark;
 	final char[] themeName = "Darkmode_Explorer::BUTTON\0".toCharArray();
-	return hButtonThemeDark = OS.OpenThemeData (hwndMessage, themeName);
+	return hButtonThemeDark = OS.OpenThemeDataForDpi (hwndMessage, themeName, dpi);
 }
 
 long hButtonThemeAuto () {
