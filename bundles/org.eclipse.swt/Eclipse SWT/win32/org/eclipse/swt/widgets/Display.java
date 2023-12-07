@@ -2644,9 +2644,13 @@ long hEditTheme () {
 }
 
 long hExplorerBarTheme () {
+	return hExplorerBarThemeDpi(getDeviceZoom());
+}
+
+long hExplorerBarThemeDpi (int dpi) {
 	if (hExplorerBarTheme != 0) return hExplorerBarTheme;
 	final char[] themeName = "EXPLORERBAR\0".toCharArray();
-	return hExplorerBarTheme = OS.OpenThemeData (hwndMessage, themeName);
+	return hExplorerBarTheme = OS.OpenThemeDataForDpi(hwndMessage, themeName, dpi);
 }
 
 long hScrollBarTheme () {
