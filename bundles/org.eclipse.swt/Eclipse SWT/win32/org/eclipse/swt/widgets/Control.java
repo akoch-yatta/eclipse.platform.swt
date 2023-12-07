@@ -4950,6 +4950,8 @@ LRESULT WM_DPICHANGED (long wParam, long lParam) {
 		}
 
 		notifyListeners(SWT.ZoomChanged, event);
+		// Reset Themes; TODO: Remove: TEMPORARY CODE
+		display.resetThemes();
 
 		if (DPIUtil.autoScaleOnRuntime) {
 			RECT rect = new RECT ();
