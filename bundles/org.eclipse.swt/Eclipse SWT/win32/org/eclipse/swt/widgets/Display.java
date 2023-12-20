@@ -929,6 +929,7 @@ protected void create (DeviceData data) {
 	checkDisplay (thread = Thread.currentThread (), true);
 	createDisplay (data);
 	register (this);
+
 	if (Default == null) Default = this;
 }
 
@@ -2862,6 +2863,18 @@ protected void init () {
 
 	/* Initialize buffered painting */
 	OS.BufferedPaintInit ();
+}
+
+/**
+ * @since 3.125
+ */
+@Override
+protected SWTFontRegistry newFontRegistry() {
+	if (DPIUtil.autoScaleOnRuntime) {
+		return new ScalingFontRegistry();
+	} else {
+		return super.newFontRegistry();
+	}
 }
 
 /**

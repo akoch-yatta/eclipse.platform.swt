@@ -95,10 +95,7 @@ public Font(Device device, FontData fd) {
 	this(device, fd, device.getDeviceZoom());
 }
 
-/**
- * @since 3.125
- */
-public Font(Device device, FontData fd, int deviceZoom) {
+private Font(Device device, FontData fd, int deviceZoom) {
 	super(device);
 	this.zoomLevel = deviceZoom;
 	init(fd);
@@ -320,10 +317,47 @@ public static Font win32_new(Device device, long handle) {
 	return font;
 }
 
+/**
+ * Invokes platform specific functionality to allocate a new font.
+ * <p>
+ * <b>IMPORTANT:</b> This method is <em>not</em> part of the public
+ * API for <code>Font</code>. It is marked public only so that it
+ * can be shared within the packages provided by SWT. It is not
+ * available on all platforms, and should never be called from
+ * application code.
+ * </p>
+ *
+ * @param shell the shell for which to allocate the color
+ * @param handle the handle for the font
+ * @return a new font object containing the specified device and handle
+ *
+ * @noreference This method is not intended to be referenced by clients.
+ * @since 3.125
+ */
 public static Font win32_new(Shell shell, long handle) {
 	Font font = win32_new(shell.getDisplay(), handle);
 	font.zoomLevel = shell.getCurrentDeviceZoom();
 	return font;
 }
 
+/**
+ * Invokes platform specific private constructor to allocate a new font.
+ * <p>
+ * <b>IMPORTANT:</b> This method is <em>not</em> part of the public
+ * API for <code>Font</code>. It is marked public only so that it
+ * can be shared within the packages provided by SWT. It is not
+ * available on all platforms, and should never be called from
+ * application code.
+ * </p>
+ *
+ * @param shell the shell for which to allocate the color
+ * @param handle the handle for the font
+ * @return a new font object containing the specified device and handle
+ *
+ * @noreference This method is not intended to be referenced by clients.
+ * @since 3.125
+ */
+public static Font win32_new(Device device, FontData fd, int deviceZoom) {
+	return new Font(device, fd, deviceZoom);
+}
 }
