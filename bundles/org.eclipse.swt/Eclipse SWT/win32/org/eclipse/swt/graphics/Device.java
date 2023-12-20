@@ -18,6 +18,7 @@ import org.eclipse.swt.*;
 import org.eclipse.swt.internal.*;
 import org.eclipse.swt.internal.gdip.*;
 import org.eclipse.swt.internal.win32.*;
+import org.eclipse.swt.widgets.*;
 
 /**
  * This class is the abstract superclass of all device objects,
@@ -39,6 +40,7 @@ public abstract class Device implements Drawable {
 
 	/* System Font */
 	Font systemFont;
+	protected SWTFontRegistry fontRegistry;
 
 	/* Font Enumeration */
 	int nFonts = 256;
@@ -709,6 +711,7 @@ protected void init () {
 	}
 
 	/* Initialize the system font slot */
+	fontRegistry = newFontRegistry();
 	systemFont = getSystemFont();
 
 	/* Initialize scripts list */
@@ -719,6 +722,14 @@ protected void init () {
 	// TODO do all the movememories here
 	OS.MoveMemory (scripts, ppSp [0], scripts.length * C.PTR_SIZEOF);
 }
+
+/**
+ * @since 3.125
+ */
+protected SWTFontRegistry newFontRegistry() {
+	return new DefaultSWTFontRegistry(this);
+}
+
 /**
  * Invokes platform specific functionality to allocate a new GC handle.
  * <p>
@@ -909,6 +920,7 @@ protected void release () {
 	scripts = null;
 	logFonts = null;
 	nFonts = 0;
+	fontRegistry.dispose();
 }
 
 /**
@@ -947,4 +959,7 @@ protected int getDeviceZoom () {
 	return DPIUtil.mapDPIToZoom ( _getDPIx ());
 }
 
+public Font getFont(FontData fontData, Shell shell) {
+	return fontRegistry.getFont(fontData, shell);
+}
 }
