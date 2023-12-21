@@ -148,7 +148,9 @@ public Font getFont () {
 	checkWidget();
 	if (font == null) {
 		long hFont = defaultFont ();
-		return Font.win32_new (display, hFont);
+		final Font newFont = Font.win32_new (display, hFont);
+		newFont.zoomLevel = getCurrentDeviceZoom();
+		return newFont;
 	}
 	return font;
 }
@@ -647,4 +649,21 @@ public void setVisible (boolean visible) {
 	}
 }
 
+@Override
+public boolean updateZoom (DPIChangeEvent event) {
+	boolean resized = super.updateZoom(event);
+
+	// Refresh the image
+	if (image != null) {
+		resized = image.updateZoom (event);
+		setImage (image);
+	}
+
+	// Refresh the Font
+	if (font != null) {
+		setFont(display.getFont(font.getFontData()[0], parent.getShell()));
+	}
+
+	return resized;
+}
 }
