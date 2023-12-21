@@ -16,6 +16,7 @@ package org.eclipse.swt.graphics;
 
 import org.eclipse.swt.*;
 import org.eclipse.swt.internal.win32.*;
+import org.eclipse.swt.widgets.*;
 
 /**
  * Instances of this class manage operating system resources that
@@ -49,11 +50,25 @@ public final class Font extends Resource {
 	 */
 	public long handle;
 
+	/**
+	 * the zoom level to pixel height the OS font resource is scaled to
+	 * (Warning: This field is platform dependent)
+	 * <p>
+	 * <b>IMPORTANT:</b> This field is <em>not</em> part of the SWT
+	 * public API. It is marked public only so that it can be shared
+	 * within the packages provided by SWT. It is not available on all
+	 * platforms and should never be accessed from application code.
+	 * </p>
+	 *
+	 * @noreference This field is not intended to be referenced by clients.
+	 */
+	public int zoomLevel = -1;
 /**
  * Prevents uninitialized instances from being created outside the package.
  */
 Font(Device device) {
 	super(device);
+	this.zoomLevel = device.getDeviceZoom();
 }
 
 /**
@@ -77,7 +92,15 @@ Font(Device device) {
  * @see #dispose()
  */
 public Font(Device device, FontData fd) {
+	this(device, fd, device.getDeviceZoom());
+}
+
+/**
+ * @since 3.125
+ */
+public Font(Device device, FontData fd, int deviceZoom) {
 	super(device);
+	this.zoomLevel = deviceZoom;
 	init(fd);
 	init();
 }
@@ -114,6 +137,7 @@ public Font(Device device, FontData[] fds) {
 	for (FontData fd : fds) {
 		if (fd == null) SWT.error(SWT.ERROR_INVALID_ARGUMENT);
 	}
+	this.zoomLevel = device.getDeviceZoom();
 	init(fds[0]);
 	init();
 }
@@ -145,6 +169,7 @@ public Font(Device device, FontData[] fds) {
 public Font(Device device, String name, int height, int style) {
 	super(device);
 	if (name == null) SWT.error(SWT.ERROR_NULL_ARGUMENT);
+	this.zoomLevel = device.getDeviceZoom();
 	init(new FontData (name, height, style));
 	init();
 }
@@ -152,6 +177,7 @@ public Font(Device device, String name, int height, int style) {
 /*public*/ Font(Device device, String name, float height, int style) {
 	super(device);
 	if (name == null) SWT.error(SWT.ERROR_NULL_ARGUMENT);
+	this.zoomLevel = device.getDeviceZoom();
 	init(new FontData (name, height, style));
 	init();
 }
@@ -195,7 +221,15 @@ public FontData[] getFontData() {
 	if (isDisposed()) SWT.error(SWT.ERROR_GRAPHIC_DISPOSED);
 	LOGFONT logFont = new LOGFONT ();
 	OS.GetObject(handle, LOGFONT.sizeof, logFont);
-	return new FontData[] {FontData.win32_new(logFont, device.computePoints(logFont, handle))};
+	float heightInPoints = device.computePoints(logFont, handle);
+	int primaryZoom = device.getDeviceZoom();
+	float zoomFactor;
+	if (zoomLevel != primaryZoom) {
+		zoomFactor = 1.0f * device.getDeviceZoom() / zoomLevel;
+	} else {
+		zoomFactor = 1.0f;
+	}
+	return new FontData[] {FontData.win32_new(logFont, heightInPoints * zoomFactor)};
 }
 
 /**
@@ -218,6 +252,13 @@ void init (FontData fd) {
 	LOGFONT logFont = fd.data;
 	int lfHeight = logFont.lfHeight;
 	logFont.lfHeight = device.computePixels(fd.height);
+
+	int primaryZoom = device.getDeviceZoom();
+	if (zoomLevel != primaryZoom) {
+		float scaleFactor = 1f * zoomLevel / primaryZoom;
+		logFont.lfHeight *= scaleFactor;
+	}
+
 	handle = OS.CreateFontIndirect(logFont);
 	logFont.lfHeight = lfHeight;
 	if (handle == 0) SWT.error(SWT.ERROR_NO_HANDLES);
@@ -268,6 +309,7 @@ public String toString () {
  */
 public static Font win32_new(Device device, long handle) {
 	Font font = new Font(device);
+	font.zoomLevel = device.getDeviceZoom();
 	font.handle = handle;
 	/*
 	 * When created this way, Font doesn't own its .handle, and
@@ -275,6 +317,12 @@ public static Font win32_new(Device device, long handle) {
 	 * to just ignore it.
 	 */
 	font.ignoreNonDisposed();
+	return font;
+}
+
+public static Font win32_new(Shell shell, long handle) {
+	Font font = win32_new(shell.getDisplay(), handle);
+	font.zoomLevel = shell.getCurrentDeviceZoom();
 	return font;
 }
 
