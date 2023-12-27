@@ -4971,8 +4971,13 @@ public boolean updateZoom(DPIChangeEvent event) {
 		// resize background image if set
 		Image image = getBackgroundImage();
 		if (image != null) {
-			resized |= image.updateZoom(event);
-			setBackgroundImage(image);
+			if (image.isDisposed()) {
+				System.out.println("NOT GOOD!");
+				setBackgroundImage(null);
+			} else {
+				resized |= image.updateZoom(event);
+				setBackgroundImage(image);
+			}
 		}
 	}
 	return resized;
