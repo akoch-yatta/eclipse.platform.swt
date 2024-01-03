@@ -89,6 +89,9 @@
                 xsi:type="predicates:OrPredicate">
               <operand
                   xsi:type="predicates:NamePredicate"
+                  pattern=".*(cocoa|gtk|win32)(\.(macosx|aix|hpux|linux|solaris|win32)(\.(x86_64|ppc64|ia64|aarch64|arm|ppc64|ppc64le|s390|s390x|x86|sparcv9))?)?"/>
+              <operand
+                  xsi:type="predicates:NamePredicate"
                   pattern="org\.eclipse\.swt\.opengl\.examples">
                 <annotation
                     source="http://www.eclipse.org/oomph/base/Warning">
@@ -98,26 +101,11 @@
                   </detail>
                 </annotation>
               </operand>
-              <operand
-                  xsi:type="predicates:NamePredicate"
-                  pattern="org\.eclipse\.swt\.tests\.cocoa"/>
-              <operand
-                  xsi:type="predicates:NamePredicate"
-                  pattern="org\.eclipse\.swt\.tests\.win32"/>
-              <operand
-                  xsi:type="predicates:NamePredicate"
-                  pattern="org\.eclipse\.swt\.tests\.gtk"/>
-              <operand
-                  xsi:type="predicates:NamePredicate"
-                  pattern="org\.eclipse\.swt\.examples\.ole\.win32"/>
             </operand>
           </operand>
           <operand
               xsi:type="predicates:NamePredicate"
-              pattern="org\.eclipse\.swt\.tests\.${osgi.ws}"/>
-          <operand
-              xsi:type="predicates:NamePredicate"
-              pattern="org\.eclipse\.swt\.examples\.ole\.${osgi.ws}"/>
+              pattern=".*\.${osgi.ws}(\.${osgi.os}(\.${osgi.arch})?)?"/>
         </predicate>
       </sourceLocator>
     </targlet>

@@ -74,6 +74,9 @@ pipeline {
 	}
 	stages {
 		stage('Checkout swt git repos') {
+			environment {
+				PATH = "${WORKSPACE}/tools/git-lfs:${env.PATH}" // Add git-lfs (installed subsequently) to PATH explicitly until it is available by default
+			}
 			steps {
 				dir('tools') { // download git-lfs until it is available by default
 					sh '''
@@ -81,7 +84,6 @@ pipeline {
 						mv git-lfs-* git-lfs
 					'''
 				}
-				withEnv(["PATH=${WORKSPACE}/tools/git-lfs:" + env.PATH]) {
 				dir('eclipse.platform.swt') {
 					checkout scm
 					script {
@@ -94,19 +96,23 @@ pipeline {
 						}
 					}
 					sh '''
-						echo $PATH
 						git version
 						git lfs version
-						git lfs install --local # install Git LFS only locally for the repository
+						git config --list --show-origin
+						git config --unset core.hooksPath # Jenkins disables hooks by default as security feature, but we need the hooks for lfs
+						git lfs install --local # install Git LFS only locally for the repository but skip the hooks that have been added manually above
+						git config core.hookspath '/dev/null'
 						git lfs pull
 						git fetch --all --tags --quiet
 						git remote set-url --push origin git@github.com:eclipse-platform/eclipse.platform.swt.git
 					'''
 				}
-				}
 			}
 		}
 		stage('Check if SWT-binaries build is needed') {
+			environment {
+				PATH = "${WORKSPACE}/tools/git-lfs:${env.PATH}" // Add git-lfs (installed subsequently) to PATH explicitly until it is available by default
+			}
 			steps {
 				withAnt(installation: 'apache-ant-latest', jdk: 'openjdk-jdk11-latest') { // nashorn javascript-engine required in ant-scripts
 					sh'''
@@ -183,8 +189,9 @@ pipeline {
 												ls -1R libs
 											'''
 										} else {
-											withEnv(['PATH=C:\\tools\\cygwin\\bin;' + env.PATH]) {
+											withEnv(['PATH=C:\\tools\\cygwin\\bin;' + env.PATH.replace(':',';')]) {
 												bat '''
+													echo %PATH%
 													unzip org.eclipse.swt.%PLATFORM%.master.zip
 													rm org.eclipse.swt.%PLATFORM%.master.zip
 													mkdir libs
@@ -260,6 +267,9 @@ pipeline {
 			}
 		}
 		stage('Commit SWT-native binaries, if build') {
+			environment {
+				PATH = "${WORKSPACE}/tools/git-lfs:${env.PATH}" // Add git-lfs (installed subsequently) to PATH explicitly until it is available by default
+			}
 			when {
 				expression { return params.forceNativeBuilds || fileExists ('tmp/build_changed.txt') }
 			}
@@ -297,7 +307,6 @@ pipeline {
 						sh '''
 							mvn clean verify \
 								--batch-mode -DforkCount=0 \
-								-DforceContextQualifier=zzz
 								-Dcompare-version-with-baselines.skip=false -Dmaven.compiler.failOnWarning=true \
 								-Dmaven.test.failure.ignore=true -Dmaven.test.error.ignore=true
 						'''
@@ -314,6 +323,9 @@ pipeline {
 			}
 		}
 		stage('Push SWT-native binaries, if build') {
+			environment {
+				PATH = "${WORKSPACE}/tools/git-lfs:${env.PATH}" // Add git-lfs (installed subsequently) to PATH explicitly until it is available by default
+			}
 			when {
 				expression { return params.forceNativeBuilds || fileExists ('tmp/build_changed.txt') }
 			}
@@ -325,7 +337,6 @@ pipeline {
 							newSWTNativesTag = sh(script: 'git describe --abbrev=0 --tags --match v[0-9][0-9][0-9][0-9]*', returnStdout: true).strip()
 						}
 						echo "newSWTNativesTag: ${newSWTNativesTag}"
-						withEnv(["PATH=${WORKSPACE}/tools/git-lfs:" + env.PATH]) { //TODO: remove this once GIT-LFS is installed by default
 						sh """
 							# Check for the master-branch as late as possible to have as much of the same behaviour as possible
 							if [[ '${BRANCH_NAME}' == master ]] || [[ '${BRANCH_NAME}' =~ R[0-9]+_[0-9]+(_[0-9]+)?_maintenance ]]; then
@@ -350,7 +361,6 @@ pipeline {
 							git log -n 2
 							popd
 						"""
-						}
 					}
 				}
 			}
