@@ -20,6 +20,7 @@ import java.util.concurrent.*;
 import java.util.function.*;
 
 import org.eclipse.swt.*;
+import org.eclipse.swt.custom.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.internal.*;
 import org.eclipse.swt.internal.ole.win32.*;
@@ -539,6 +540,13 @@ public class Display extends Device implements Executor {
 			}
 			setDevice (device);
 		};
+
+		DPIZoomChangeRegistry.unregisterForOnZoomChange(CBanner.class);
+		DPIZoomChangeRegistry.unregisterForOnZoomChange(CLabel.class);
+		DPIZoomChangeRegistry.unregisterForOnZoomChange(CCombo.class);
+		DPIZoomChangeRegistry.unregisterForOnZoomChange(CTabFolder.class);
+		DPIZoomChangeRegistry.unregisterForOnZoomChange(SashForm.class);
+		DPIZoomChangeRegistry.unregisterForOnZoomChange(StyledText.class);
 	}
 
 /*
