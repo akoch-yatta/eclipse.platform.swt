@@ -326,6 +326,18 @@ public static int autoScaleUp (int size) {
 	return Math.round (size * scaleFactor);
 }
 
+/**
+ * Scale size to specified zoom level
+ * @param size at 100%
+ * @param zoomLevel target zoom
+ *
+ * @return scaled size
+ */
+public static int scaleToZoomLevel (int size, int zoomLevel) {
+	float scaleFactor = getScalingFactor (zoomLevel);
+	return Math.round (size * scaleFactor);
+}
+
 public static int autoScaleUp (int size, Monitor monitor) {
 	int deviceZoom = monitor.getZoom();
 	if (deviceZoom == 100 || size == SWT.DEFAULT) return size;
