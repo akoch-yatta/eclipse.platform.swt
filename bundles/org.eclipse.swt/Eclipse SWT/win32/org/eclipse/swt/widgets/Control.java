@@ -4738,6 +4738,10 @@ public boolean setParent (Composite parent) {
 		Menu [] menus = oldShell.findMenus (this);
 		fixChildren (newShell, oldShell, newDecorations, oldDecorations, menus);
 	}
+	// If parent changed, zoom level might need to be adjusted
+	if (parent.getCurrentDeviceZoom() != getCurrentDeviceZoom()) {
+		this.updateZoom(new DPIChangeEvent(getCurrentDeviceZoom(), parent.getCurrentDeviceZoom()));
+	}
 	long topHandle = topHandle ();
 	if (OS.SetParent (topHandle, parent.handle) == 0) return false;
 	this.parent = parent;
