@@ -269,8 +269,10 @@ public class Display extends Device implements Executor {
 	static final String USE_DARKTHEME_TEXT_ICONS = "org.eclipse.swt.internal.win32.Text.useDarkThemeIcons"; //$NON-NLS-1$
 	boolean textUseDarkthemeIcons = false;
 
-	/* Custom icons */
+	/* Custom icons were moved to Shell */
+	@Deprecated
 	long hIconSearch;
+	@Deprecated()
 	long hIconCancel;
 
 	/* Focus */
@@ -2631,10 +2633,14 @@ long hButtonThemeDarkDpi (int dpi) {
 }
 
 long hButtonThemeAuto () {
+	return hButtonThemeAutoDpi(getDeviceZoom());
+}
+
+long hButtonThemeAutoDpi (int dpi) {
 	if (useDarkModeExplorerTheme) {
-		return hButtonThemeDark ();
+		return hButtonThemeDarkDpi (dpi);
 	} else {
-		return hButtonTheme ();
+		return hButtonThemeDPI (dpi);
 	}
 }
 

@@ -129,6 +129,8 @@ public class Shell extends Decorations {
 	boolean showWithParent, fullScreen, wasMaximized, modified, center;
 	String toolTitle, balloonTitle;
 	long toolIcon, balloonIcon;
+	/* icons used in a text field if SWT.Search is set */
+	long textSearchIcon, textCancelIcon;
 	long windowProc;
 	Control lastActive;
 	static /*final*/ long ToolTipProc;
@@ -1396,6 +1398,7 @@ void releaseWidget () {
 		long hHeap = OS.GetProcessHeap ();
 		OS.HeapFree (hHeap, 0, lpstrTip);
 	}
+	destroyTextIcons();
 	lpstrTip = 0;
 	toolTipHandle = balloonTipHandle = menuItemToolTipHandle = 0;
 	lastActive = null;
@@ -2105,6 +2108,19 @@ public void setVisible (boolean visible) {
 				OS.ShowWindow (hwndParent, OS.SW_RESTORE);
 			}
 		}
+	}
+}
+
+
+private void destroyTextIcons() {
+	if (textSearchIcon != 0) {
+		OS.DestroyIcon (textSearchIcon);
+		textSearchIcon = 0;
+	}
+
+	if (textCancelIcon != 0) {
+		OS.DestroyIcon (textCancelIcon);
+		textCancelIcon = 0;
 	}
 }
 
