@@ -16,6 +16,7 @@ package org.eclipse.swt.graphics;
 
 import org.eclipse.swt.*;
 import org.eclipse.swt.internal.win32.*;
+import org.eclipse.swt.widgets.*;
 
 /**
  * Instances of this class are descriptions of GCs in terms
@@ -31,6 +32,7 @@ import org.eclipse.swt.internal.win32.*;
  */
 public final class GCData {
 	public Device device;
+	public Shell shell;
 	public int style, state = -1;
 	public int foreground = -1;
 	public int background = -1;
