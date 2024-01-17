@@ -27,3 +27,4 @@
 #endif /* _WIN32 */
 
 #endif /* INC_c_H */
+/* Dummy comment*/
