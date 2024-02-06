@@ -3766,6 +3766,12 @@ public static final native boolean OpenClipboard (long hWndNewOwner);
  * @param pszClassList cast=(LPCWSTR),flags=no_out
  */
 public static final native long OpenThemeData (long hwnd, char[] pszClassList);
+/**
+ * @param hwnd cast=(HWND)
+ * @param pszClassList cast=(LPCWSTR),flags=no_out
+ */
+public static final native long OpenThemeDataForDpi (long hwnd, char[] pszClassList, int dpi);
+
 /** @param hdc cast=(HDC) */
 public static final native boolean PatBlt (long hdc, int x1, int x2, int w, int h, int rop);
 /** @param szfile cast=(LPCWSTR) */

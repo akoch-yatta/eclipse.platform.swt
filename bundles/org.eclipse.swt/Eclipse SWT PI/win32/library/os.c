@@ -6557,6 +6557,22 @@ fail:
 }
 #endif
 
+#ifndef NO_OpenThemeDataForDpi
+JNIEXPORT jlong JNICALL OS_NATIVE(OpenThemeDataForDpi)
+	(JNIEnv *env, jclass that, jlong arg0, jcharArray arg1, jint arg2)
+{
+	jchar *lparg1=NULL;
+	jlong rc = 0;
+	OS_NATIVE_ENTER(env, that, OpenThemeDataForDpi_FUNC);
+	if (arg1) if ((lparg1 = (*env)->GetCharArrayElements(env, arg1, NULL)) == NULL) goto fail;
+	rc = (jlong)OpenThemeDataForDpi((HWND)arg0, (LPCWSTR)lparg1, arg2);
+fail:
+	if (arg1 && lparg1) (*env)->ReleaseCharArrayElements(env, arg1, lparg1, JNI_ABORT);
+	OS_NATIVE_EXIT(env, that, OpenThemeDataForDpi_FUNC);
+	return rc;
+}
+#endif
+
 #ifndef NO_PAINTSTRUCT_1sizeof
 JNIEXPORT jint JNICALL OS_NATIVE(PAINTSTRUCT_1sizeof)
 	(JNIEnv *env, jclass that)
