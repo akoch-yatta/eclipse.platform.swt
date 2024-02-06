@@ -44,6 +44,7 @@ public class DPIUtil {
 	private static enum AutoScaleMethod { AUTO, NEAREST, SMOOTH }
 	private static AutoScaleMethod autoScaleMethodSetting = AutoScaleMethod.AUTO;
 	private static AutoScaleMethod autoScaleMethod = AutoScaleMethod.NEAREST;
+	public static boolean autoScaleOnRuntime = false;
 
 	private static String autoScaleValue;
 	private static boolean useCairoAutoScale = false;
@@ -84,6 +85,16 @@ public class DPIUtil {
 	 * <a href="https://bugs.eclipse.org/493455">bug 493455</a>.
 	 */
 	private static final String SWT_AUTOSCALE_METHOD = "swt.autoScale.method";
+
+	/**
+	 * System property to enable to scale the applicaiton on runtime
+	 * when a DPI change is detected.
+	 * <ul>
+	 * <li>"true": the application is scaled on DPI changes</li>
+	 * <li>"false": the application will remain in its initial scaling</li>
+	 * </ul>
+	 */
+	private static final String SWT_AUTOSCALE_UPDATE_ON_RUNTIME = "swt.autoScale.updateOnRuntime";
 	static {
 		autoScaleValue = System.getProperty (SWT_AUTOSCALE);
 
@@ -93,6 +104,13 @@ public class DPIUtil {
 				autoScaleMethod = autoScaleMethodSetting = AutoScaleMethod.NEAREST;
 			} else if (AutoScaleMethod.SMOOTH.name().equalsIgnoreCase(value)) {
 				autoScaleMethod = autoScaleMethodSetting = AutoScaleMethod.SMOOTH;
+			}
+		}
+
+		String updateOnRuntimeValue = System.getProperty (SWT_AUTOSCALE_UPDATE_ON_RUNTIME);
+		if (updateOnRuntimeValue != null) {
+			if (Boolean.TRUE.toString().equalsIgnoreCase(updateOnRuntimeValue)) {
+				autoScaleOnRuntime = true;
 			}
 		}
 	}
