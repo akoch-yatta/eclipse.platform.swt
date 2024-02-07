@@ -2242,7 +2242,7 @@ LRESULT wmPrint (long hwnd, long wParam, long lParam) {
 				rect.right -= rect.left;
 				rect.bottom -= rect.top;
 				rect.left = rect.top = 0;
-				int border = OS.GetSystemMetrics (OS.SM_CXEDGE);
+				int border = getSystemMetrics2 (OS.SM_CXEDGE);
 				OS.ExcludeClipRect (wParam, border, border, rect.right - border, rect.bottom - border);
 				OS.DrawThemeBackground (display.hEditTheme (getCurrentDeviceZoom()), wParam, OS.EP_EDITTEXT, OS.ETS_NORMAL, rect, null);
 				return new LRESULT (code);
@@ -2545,6 +2545,13 @@ void notifyDisposalTracker() {
 	}
 }
 
+static int getSystemMetrics2(int nIndex) {
+	if (OS.WIN32_BUILD >= OS.WIN32_BUILD_WIN10_1607) {
+		return OS.GetSystemMetricsForDpi(nIndex, DPIUtil.mapZoomToDPI(DPIUtil.getDeviceZoom()));
+	} else {
+		return OS.GetSystemMetrics(nIndex);
+	}
+}
 
 /**
  * The current DPI zoom level the widget is scaled for

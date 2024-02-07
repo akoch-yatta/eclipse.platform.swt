@@ -1691,7 +1691,7 @@ Point getCursorLocationInPixels () {
 public Point [] getCursorSizes () {
 	checkDevice ();
 	return new Point [] {
-		new Point (OS.GetSystemMetrics (OS.SM_CXCURSOR), OS.GetSystemMetrics (OS.SM_CYCURSOR))};
+		new Point (getSystemMetrics (OS.SM_CXCURSOR), getSystemMetrics (OS.SM_CYCURSOR))};
 }
 
 /**
@@ -1956,8 +1956,8 @@ public int getIconDepth () {
 public Point [] getIconSizes () {
 	checkDevice ();
 	return new Point [] {
-		new Point (OS.GetSystemMetrics (OS.SM_CXSMICON), OS.GetSystemMetrics (OS.SM_CYSMICON)),
-		new Point (OS.GetSystemMetrics (OS.SM_CXICON), OS.GetSystemMetrics (OS.SM_CYICON)),
+		new Point (getSystemMetrics (OS.SM_CXSMICON), getSystemMetrics (OS.SM_CYSMICON)),
+		new Point (getSystemMetrics (OS.SM_CXICON), getSystemMetrics (OS.SM_CYICON)),
 	};
 }
 
@@ -5195,6 +5195,16 @@ static char [] withCrLf (char [] string) {
 
 static boolean isActivateShellOnForceFocus() {
 	return "true".equals(System.getProperty("org.eclipse.swt.internal.activateShellOnForceFocus", "true")); //$NON-NLS-1$
+}
+
+int getSystemMetrics(int nIndex) {
+	int metricValue = OS.GetSystemMetrics(nIndex);
+	if (OS.WIN32_BUILD >= OS.WIN32_BUILD_WIN10_1809) {
+		metricValue = OS.GetSystemMetricsForDpi(nIndex, DPIUtil.mapZoomToDPI(DPIUtil.getDeviceZoom()));
+	} else {
+		metricValue = OS.GetSystemMetrics(nIndex);
+	}
+	return metricValue;
 }
 
 /**
