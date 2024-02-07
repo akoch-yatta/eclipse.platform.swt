@@ -79,6 +79,9 @@ public class Text extends Scrollable {
 	static final int IDI_SEARCH_DARKTHEME = 103;
 	static final int IDI_CANCEL_DARKTHEME = 104;
 
+	// Icon Size at default (100) zoom level
+	static int ICON_SIZE_AT_100;
+
 	/**
 	* The maximum number of characters that can be entered
 	* into a text widget.
@@ -112,6 +115,12 @@ public class Text extends Scrollable {
 		WNDCLASS lpWndClass = new WNDCLASS ();
 		OS.GetClassInfo (0, EditClass, lpWndClass);
 		EditProc = lpWndClass.lpfnWndProc;
+		if (OS.WIN32_BUILD >= OS.WIN32_BUILD_WIN10_1607) {
+			ICON_SIZE_AT_100 = OS.GetSystemMetricsForDpi(OS.SM_CXSMICON, 100);
+		} else {
+			ICON_SIZE_AT_100 = 16;
+		}
+		DPIZoomChangeRegistry.registerHandler(Text::handleDPIChange, Text.class);
 	}
 
 /**
@@ -336,47 +345,46 @@ void createHandle () {
 			state |= THEME_BACKGROUND;
 		}
 	}
+	addIcons();
+}
+
+private void addIcons() {
 	if ((style & SWT.SEARCH) != 0) {
-		if (display.hIconSearch == 0) {
-			long [] phicon = new long [1];
-
-			int searchIconResource = display.textUseDarkthemeIcons ? IDI_SEARCH_DARKTHEME : IDI_SEARCH;
-			int hresult = OS.LoadIconMetric (OS.GetLibraryHandle (), searchIconResource, OS.LIM_SMALL, phicon);
-			if (hresult != OS.S_OK) error (SWT.ERROR_NO_HANDLES);
-			display.hIconSearch = phicon [0];
-
-			int cancelIconResource = display.textUseDarkthemeIcons ? IDI_CANCEL_DARKTHEME : IDI_CANCEL;
-			hresult = OS.LoadIconMetric (OS.GetLibraryHandle (), cancelIconResource, OS.LIM_SMALL, phicon);
-			if (hresult != OS.S_OK) error (SWT.ERROR_NO_HANDLES);
-			display.hIconCancel = phicon [0];
-		}
 		if ((style & SWT.ICON_SEARCH) != 0) {
-			long hwndSearch = OS.CreateWindowEx (
-				0,
-				Label.LabelClass,
-				null,
-				OS.WS_CHILD | OS.WS_VISIBLE | OS.WS_CLIPSIBLINGS | OS.SS_OWNERDRAW,
-				0, 0, 0, 0,
-				handle,
-				SWT.ICON_SEARCH,
-				OS.GetModuleHandle (null),
-				null);
-			if (hwndSearch == 0) error (SWT.ERROR_NO_HANDLES);
+			setSearchIcon();
 		}
 		if ((style & SWT.ICON_CANCEL) != 0) {
-			state |= TRACK_MOUSE;
-			long hwndCancel = OS.CreateWindowEx (
-				0,
-				Label.LabelClass, null,
-				OS.WS_CHILD | OS.WS_CLIPSIBLINGS | OS.SS_OWNERDRAW,
-				0, 0, 0, 0,
-				handle,
-				SWT.ICON_CANCEL,
-				OS.GetModuleHandle (null),
-				null);
-			if (hwndCancel == 0) error (SWT.ERROR_NO_HANDLES);
+			setCancelIcon();
 		}
 	}
+}
+
+private void setCancelIcon() {
+	state |= TRACK_MOUSE;
+	long hwndCancel = OS.CreateWindowEx (
+		0,
+		Label.LabelClass, null,
+		OS.WS_CHILD | OS.WS_CLIPSIBLINGS | OS.SS_OWNERDRAW,
+		0, 0, 0, 0,
+		handle,
+		SWT.ICON_CANCEL,
+		OS.GetModuleHandle (null),
+		null);
+	if (hwndCancel == 0) error (SWT.ERROR_NO_HANDLES);
+}
+
+private void setSearchIcon() {
+	long hwndSearch = OS.CreateWindowEx (
+		0,
+		Label.LabelClass,
+		null,
+		OS.WS_CHILD | OS.WS_VISIBLE | OS.WS_CLIPSIBLINGS | OS.SS_OWNERDRAW,
+		0, 0, 0, 0,
+		handle,
+		SWT.ICON_SEARCH,
+		OS.GetModuleHandle (null),
+		null);
+	if (hwndSearch == 0) error (SWT.ERROR_NO_HANDLES);
 }
 
 @Override
@@ -2785,7 +2793,7 @@ LRESULT WM_DRAWITEM (long wParam, long lParam) {
 		int state = OS.GetKeyState (OS.VK_LBUTTON) < 0 ? OS.PBS_PRESSED : OS.PBS_HOT;
 		OS.DrawThemeBackground (display.hButtonThemeAuto (getCurrentDeviceZoom()), struct.hDC, OS.BP_PUSHBUTTON, state, rect, null);
 	}
-	long hIcon = (struct.CtlID == SWT.ICON_SEARCH) ? display.hIconSearch : display.hIconCancel;
+	long hIcon = (struct.CtlID == SWT.ICON_SEARCH) ? getDisplay().getTextSearchIcon(getCurrentDeviceZoom()) : getDisplay().getTextCancelIcon(getCurrentDeviceZoom());
 	int y = (rect.bottom - rect.right) / 2;
 	OS.DrawIconEx (struct.hDC, 0, y, hIcon, 0, 0, 0, 0, OS.DI_NORMAL);
 	return LRESULT.ONE;
@@ -3178,4 +3186,12 @@ LRESULT wmKeyDown (long hwnd, long wParam, long lParam) {
 	return result;
 }
 
+private static void handleDPIChange(Widget widget, int newZoom, float scalingFactor) {
+	if (!(widget instanceof Text)) {
+		return;
+	}
+	Text text = (Text) widget;
+	text.addIcons();
+	text.setMargins();
+}
 }

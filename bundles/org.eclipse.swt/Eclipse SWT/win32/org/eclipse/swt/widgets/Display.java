@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.*;
 import java.util.function.*;
 
 import org.eclipse.swt.*;
+import org.eclipse.swt.custom.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.internal.*;
 import org.eclipse.swt.internal.ole.win32.*;
@@ -270,9 +271,9 @@ public class Display extends Device implements Executor {
 	static final String USE_DARKTHEME_TEXT_ICONS = "org.eclipse.swt.internal.win32.Text.useDarkThemeIcons"; //$NON-NLS-1$
 	boolean textUseDarkthemeIcons = false;
 
-	/* Custom icons */
-	long hIconSearch;
-	long hIconCancel;
+	/* icons used in a text field if SWT.Search is set */
+	Map<Integer, Long> textSearchIcons = new HashMap<>();
+	Map<Integer, Long> textCancelIcons = new HashMap<>();
 
 	/* Focus */
 	int focusEvent;
@@ -538,6 +539,10 @@ public class Display extends Device implements Executor {
 			}
 			setDevice (device);
 		};
+	}
+
+	static {
+		CommonWidgetsDPIChangeHandlers.registerCommonHandlers();
 	}
 
 
@@ -3728,14 +3733,44 @@ protected void release () {
 	}
 }
 
+long getTextSearchIcon(int deviceZoom) {
+	long iconHandle;
+	if (!textCancelIcons.containsKey(deviceZoom)) {
+		int scaledIconSize = DPIUtil.autoScaleUp(Text.ICON_SIZE_AT_100, deviceZoom);
+		int searchIconResource = textUseDarkthemeIcons ? Text.IDI_SEARCH_DARKTHEME : Text.IDI_SEARCH;
+		iconHandle = OS.LoadImage (OS.GetLibraryHandle (), searchIconResource, OS.IMAGE_ICON, scaledIconSize, scaledIconSize, 0);
+		textSearchIcons.put(deviceZoom, iconHandle);
+	} else {
+		iconHandle = textSearchIcons.get(deviceZoom);
+	}
+	return iconHandle;
+}
+
+long getTextCancelIcon(int deviceZoom) {
+	long iconHandle;
+	if (!textCancelIcons.containsKey(deviceZoom)) {
+		int scaledIconSize = DPIUtil.autoScaleUp(Text.ICON_SIZE_AT_100, deviceZoom);
+		int cancelIconResource = textUseDarkthemeIcons ? Text.IDI_CANCEL_DARKTHEME : Text.IDI_CANCEL;
+		iconHandle = OS.LoadImage (OS.GetLibraryHandle (), cancelIconResource, OS.IMAGE_ICON, scaledIconSize, scaledIconSize, 0);
+		textCancelIcons.put(deviceZoom, iconHandle);
+	} else {
+		iconHandle = textCancelIcons.get(deviceZoom);
+	}
+	return iconHandle;
+}
+
 void releaseDisplay () {
 	if (embeddedHwnd != 0) {
 		OS.PostMessage (embeddedHwnd, SWT_DESTROY, 0, 0);
 	}
 
 	/* Free custom icons */
-	if (hIconSearch != 0) OS.DestroyIcon (hIconSearch);
-	if (hIconCancel != 0) OS.DestroyIcon (hIconCancel);
+	for (long iconHandle : textSearchIcons.values()) {
+		OS.DestroyIcon (iconHandle);
+	}
+	for (long iconHandle : textCancelIcons.values()) {
+		OS.DestroyIcon (iconHandle);
+	}
 
 	/* Release XP Themes */
 	resetThemes();

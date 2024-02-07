@@ -230,6 +230,10 @@ public Rectangle getBounds () {
 }
 
 Rectangle getBoundsInPixels () {
+ return getBoundsInPixels(getCurrentDeviceZoom());
+}
+
+Rectangle getBoundsInPixels (int zoomLevel) {
 	int index = parent.indexOf (this);
 	if (index == -1) return new Rectangle (0, 0, 0, 0);
 	long hwnd = parent.handle;
@@ -489,6 +493,10 @@ public Point getSize () {
 }
 
 Point getSizeInPixels() {
+	return getSizeInPixels(getCurrentDeviceZoom());
+}
+
+Point getSizeInPixels(int zoomLevel) {
 	int index = parent.indexOf (this);
 	if (index == -1) return new Point (0, 0);
 	long hwnd = parent.handle;
@@ -531,27 +539,37 @@ public void setSize (int width, int height) {
 }
 
 void setSizeInPixels (int width, int height) {
+	setSizeInPixels(width, height, getCurrentDeviceZoom());
+}
+
+
+void setSizeInPixels (int width, int height, int zoomLevel) {
 	int index = parent.indexOf (this);
 	if (index == -1) return;
 	width = Math.max (0, width);
 	height = Math.max (0, height);
 	long hwnd = parent.handle;
 	int cx, cyChild, cxIdeal;
-	if ((parent.style & SWT.VERTICAL) != 0) {
-		cx = height;
-		cyChild = width;
-		cxIdeal = Math.max (0, height - parent.getMargin (index));
-	} else {
-		cx = width;
-		cyChild = height;
-		cxIdeal = Math.max (0, width - parent.getMargin (index));
-	}
+
 	REBARBANDINFO rbBand = new REBARBANDINFO ();
 	rbBand.cbSize = REBARBANDINFO.sizeof;
 
 	/* Get the child size fields first so we don't overwrite them. */
 	rbBand.fMask = OS.RBBIM_CHILDSIZE | OS.RBBIM_IDEALSIZE;
 	OS.SendMessage (hwnd, OS.RB_GETBANDINFO, index, rbBand);
+
+	// TODO: cyMaxChild currently does not shrink (should be the case when scaling down)
+	if ((parent.style & SWT.VERTICAL) != 0) {
+		cx = height;
+		cyChild = width;
+		rbBand.cyMaxChild = Math.max(rbBand.cyMaxChild, width);
+		cxIdeal = Math.max (0, height - parent.getMargin (index));
+	} else {
+		cx = width;
+		cyChild = height;
+		rbBand.cyMaxChild = Math.max(rbBand.cyMaxChild, height);
+		cxIdeal = Math.max (0, width - parent.getMargin (index));
+	}
 
 	/* Set the size fields we are currently modifying. */
 	if (!ideal) rbBand.cxIdeal = cxIdeal;

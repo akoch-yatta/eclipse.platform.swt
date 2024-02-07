@@ -55,6 +55,9 @@ public class ExpandBar extends Composite {
 	int yCurrentScroll;
 	long hFont;
 
+	static {
+		DPIZoomChangeRegistry.registerHandler(ExpandBar::handleDPIChange, ExpandBar.class);
+	}
 
 /**
  * Constructs a new instance of this class given its parent
@@ -870,5 +873,17 @@ LRESULT wmScroll (ScrollBar bar, boolean update, long hwnd, int msg, long wParam
 		}
 	}
 	return result;
+}
+
+private static void handleDPIChange(Widget widget, int newZoom, float scalingFactor) {
+	if (!(widget instanceof ExpandBar)) {
+		return;
+	}
+	ExpandBar expandBar = (ExpandBar) widget;
+
+	for (ExpandItem item : expandBar.getItems()) {
+		DPIZoomChangeRegistry.applyChange(item, newZoom, scalingFactor);
+	}
+	expandBar.redraw();
 }
 }

@@ -58,6 +58,7 @@ public class CoolBar extends Composite {
 		WNDCLASS lpWndClass = new WNDCLASS ();
 		OS.GetClassInfo (0, ReBarClass, lpWndClass);
 		ReBarProc = lpWndClass.lpfnWndProc;
+		DPIZoomChangeRegistry.registerHandler(CoolBar::handleDPIChange, CoolBar.class);
 	}
 	static final int SEPARATOR_WIDTH = 2;
 	static final int MAX_WIDTH = 0x7FFF;
@@ -555,6 +556,10 @@ public Point [] getItemSizes () {
 }
 
 Point [] getItemSizesInPixels () {
+	return getItemSizesInPixels(getCurrentDeviceZoom());
+}
+
+Point [] getItemSizesInPixels (int zoomLevel) {
 	int count = (int)OS.SendMessage (handle, OS.RB_GETBANDCOUNT, 0, 0);
 	Point [] sizes = new Point [count];
 	REBARBANDINFO rbBand = new REBARBANDINFO ();
@@ -896,7 +901,12 @@ void setItemOrder (int [] itemOrder) {
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
  */
+
 void setItemSizes (Point [] sizes) {
+	setItemSizes(sizes, getCurrentDeviceZoom());
+}
+
+void setItemSizes (Point [] sizes, int deviceZoom) {
 	if (sizes == null) error (SWT.ERROR_NULL_ARGUMENT);
 	int count = (int)OS.SendMessage (handle, OS.RB_GETBANDCOUNT, 0, 0);
 	if (sizes.length != count) error (SWT.ERROR_INVALID_ARGUMENT);
@@ -905,7 +915,7 @@ void setItemSizes (Point [] sizes) {
 	rbBand.fMask = OS.RBBIM_ID;
 	for (int i=0; i<count; i++) {
 		OS.SendMessage (handle, OS.RB_GETBANDINFO, i, rbBand);
-		items [rbBand.wID].setSizeInPixels (sizes [i].x, sizes [i].y);
+		items [rbBand.wID].setSizeInPixels (sizes [i].x, sizes [i].y, deviceZoom);
 	}
 }
 
@@ -1197,5 +1207,50 @@ LRESULT wmNotifyChild (NMHDR hdr, long wParam, long lParam) {
 		}
 	}
 	return super.wmNotifyChild (hdr, wParam, lParam);
+}
+
+private static void handleDPIChange(Widget widget, int newZoom, float scalingFactor) {
+	if (!(widget instanceof CoolBar)) {
+		return;
+	}
+	CoolBar coolBar = (CoolBar) widget;
+	// TODO: This is not exact. In particular there are still issues with margins
+	var sizes = coolBar.getItemSizesInPixels(100);
+	var scaledSizes = new Point[sizes.length];
+	var prefSizes = new Point[sizes.length];
+	var minSizes = new Point[sizes.length];
+	var indices = coolBar.getWrapIndices();
+	var itemOrder = coolBar.getItemOrder();
+
+	var items = coolBar.getItems();
+	for (int index = 0; index < sizes.length; index++) {
+		minSizes[index] = items[index].getMinimumSizeInPixels();
+		prefSizes[index] = items[index].getPreferredSizeInPixels();
+	}
+
+	for (int index = 0; index < sizes.length; index++) {
+		var item = items[index];
+
+		Control control = item.control;
+		if (control != null) {
+			DPIZoomChangeRegistry.applyChange(control, newZoom, scalingFactor);
+			item.setControl(control);
+		}
+
+		var preferredControlSize =  item.getControl().computeSizeInPixels(SWT.DEFAULT, SWT.DEFAULT, true);
+		var controlWidth = preferredControlSize.x;
+		var controlHeight = preferredControlSize.y;
+		if (((coolBar.style & SWT.VERTICAL) != 0)) {
+			scaledSizes[index] = new Point(Math.round((sizes[index].x)*scalingFactor), Math.max(Math.round((sizes[index].y)*scalingFactor),0));
+			item.setMinimumSizeInPixels(Math.round(minSizes[index].x*scalingFactor), Math.max(Math.round((minSizes[index].y)*scalingFactor),controlWidth));
+			item.setPreferredSizeInPixels(Math.round(prefSizes[index].x*scalingFactor), Math.max(Math.round((prefSizes[index].y)*scalingFactor),controlWidth));
+		} else {
+			scaledSizes[index] = new Point(Math.round((sizes[index].x)*scalingFactor),Math.max(Math.round((sizes[index].y)*scalingFactor),0));
+			item.setMinimumSizeInPixels(Math.round(minSizes[index].x*scalingFactor), controlHeight);
+			item.setPreferredSizeInPixels(Math.round(prefSizes[index].x*scalingFactor), controlHeight);
+		}
+	}
+	coolBar.setItemLayoutInPixels(itemOrder, indices, scaledSizes);
+	coolBar.updateLayout(true);
 }
 }

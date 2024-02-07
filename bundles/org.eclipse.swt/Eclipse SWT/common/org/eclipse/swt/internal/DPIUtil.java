@@ -330,6 +330,14 @@ public static int autoScaleUp (int size) {
 }
 
 /**
+ * Auto-scale up int dimensions to match the given zoom level
+ */
+public static int autoScaleUp (int size, int shellDeviceZoom) {
+	float scaleFactor = getScalingFactor (shellDeviceZoom);
+	return Math.round (size * scaleFactor);
+}
+
+/**
  * Auto-scale up int dimensions using Native DPI
  */
 public static int autoScaleUpUsingNativeDPI (int size) {
@@ -410,6 +418,17 @@ private static float getScalingFactor () {
 		return 1;
 	}
 	return deviceZoom / 100f;
+}
+
+/**
+ * Returns scaling factor from the given device zoom
+ * @return float scaling factor
+ */
+private static float getScalingFactor (int shellDeviceZoom) {
+	if (useCairoAutoScale) {
+		return 1;
+	}
+	return shellDeviceZoom / 100f;
 }
 
 /**
