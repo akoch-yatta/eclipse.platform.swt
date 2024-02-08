@@ -244,7 +244,7 @@ Rectangle getBoundsInPixels (int zoomLevel) {
 	rect.left -= margins.cxLeftWidth;
 	rect.right += margins.cxRightWidth;
 	if (!parent.isLastItemOfRow (index)) {
-		rect.right += (parent.style & SWT.FLAT) == 0 ? CoolBar.SEPARATOR_WIDTH : 0;
+		rect.right += (parent.style & SWT.FLAT) == 0 ? DPIUtil.autoScaleUp(CoolBar.SEPARATOR_WIDTH, getShell()) : 0;
 	}
 	int width = rect.right - rect.left;
 	int height = rect.bottom - rect.top;
@@ -507,7 +507,7 @@ Point getSizeInPixels(int zoomLevel) {
 	rect.left -= margins.cxLeftWidth;
 	rect.right += margins.cxRightWidth;
 	if (!parent.isLastItemOfRow (index)) {
-		rect.right += (parent.style & SWT.FLAT) == 0 ? CoolBar.SEPARATOR_WIDTH : 0;
+		rect.right += (parent.style & SWT.FLAT) == 0 ? DPIUtil.autoScaleUp(CoolBar.SEPARATOR_WIDTH, getShell())  : 0;
 	}
 	int width = rect.right - rect.left;
 	int height = rect.bottom - rect.top;
@@ -583,7 +583,7 @@ void setSizeInPixels (int width, int height, int zoomLevel) {
 		MARGINS margins = new MARGINS ();
 		OS.SendMessage (hwnd, OS.RB_GETBANDMARGINS, 0, margins);
 		cx -= margins.cxLeftWidth + margins.cxRightWidth;
-		int separator = (parent.style & SWT.FLAT) == 0 ? CoolBar.SEPARATOR_WIDTH : 0;
+		int separator = (parent.style & SWT.FLAT) == 0 ? DPIUtil.autoScaleUp(CoolBar.SEPARATOR_WIDTH , getShell()) : 0;
 		rbBand.cx = cx - separator;
 		rbBand.fMask |= OS.RBBIM_SIZE;
 	}
@@ -769,4 +769,7 @@ public void removeSelectionListener(SelectionListener listener) {
 	eventTable.unhook (SWT.DefaultSelection,listener);
 }
 
+private Shell getShell() {
+	return parent.getShell();
+}
 }

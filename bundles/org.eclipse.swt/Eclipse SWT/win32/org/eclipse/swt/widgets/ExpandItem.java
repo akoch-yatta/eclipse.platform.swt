@@ -224,7 +224,7 @@ void drawItem (GC gc, long hTheme, RECT clipRect, boolean drawFocus) {
 			OS.SetBkMode (hDC, oldBkMode);
 		}
 	}
-	int chevronSize = ExpandItem.CHEVRON_SIZE;
+	int chevronSize = DPIUtil.autoScaleUp(ExpandItem.CHEVRON_SIZE);
 	rect.left = rect.right - chevronSize;
 	rect.top = y + (headerHeight - chevronSize) / 2;
 	rect.bottom = rect.top + chevronSize;

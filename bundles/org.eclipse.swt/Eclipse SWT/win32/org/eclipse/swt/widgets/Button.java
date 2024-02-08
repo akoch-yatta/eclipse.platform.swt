@@ -63,14 +63,14 @@ public class Button extends Control {
 	static {
 		long hBitmap = OS.LoadBitmap (0, OS.OBM_CHECKBOXES);
 		if (hBitmap == 0) {
-			CHECK_WIDTH = DPIUtil.autoScaleDown (OS.GetSystemMetrics (OS.SM_CXVSCROLL));
-			CHECK_HEIGHT = DPIUtil.autoScaleDown (OS.GetSystemMetrics (OS.SM_CYVSCROLL));
+			CHECK_WIDTH = DPIUtil.autoScaleDown(OS.GetSystemMetrics (OS.SM_CXVSCROLL));
+			CHECK_HEIGHT = DPIUtil.autoScaleDown(OS.GetSystemMetrics (OS.SM_CYVSCROLL));
 		} else {
 			BITMAP bitmap = new BITMAP ();
 			OS.GetObject (hBitmap, BITMAP.sizeof, bitmap);
 			OS.DeleteObject (hBitmap);
-			CHECK_WIDTH = bitmap.bmWidth / 4;
-			CHECK_HEIGHT =  bitmap.bmHeight / 3;
+			CHECK_WIDTH = DPIUtil.autoScaleDown (bitmap.bmWidth / 4);
+			CHECK_HEIGHT = DPIUtil.autoScaleDown (bitmap.bmHeight / 3);
 		}
 		WNDCLASS lpWndClass = new WNDCLASS ();
 		OS.GetClassInfo (0, ButtonClass, lpWndClass);
@@ -377,7 +377,7 @@ int computeLeftMargin () {
 						flags = OS.DT_CALCRECT | OS.DT_WORDBREAK;
 						rect.right = wHint - width - 2 * border;
 						if (isRadioOrCheck()) {
-							rect.right -= CHECK_WIDTH + 3;
+							rect.right -= DPIUtil.autoScaleUp(CHECK_WIDTH + 3);
 						} else {
 							rect.right -= 6;
 						}
@@ -396,8 +396,8 @@ int computeLeftMargin () {
 				OS.ReleaseDC (handle, hDC);
 			}
 			if (isRadioOrCheck()) {
-				width += CHECK_WIDTH + extra;
-				height = Math.max (height, CHECK_HEIGHT + 3);
+				width += DPIUtil.autoScaleUp(CHECK_WIDTH) + extra;
+				height = Math.max (height, DPIUtil.autoScaleUp(CHECK_HEIGHT) + 3);
 			}
 			if ((style & (SWT.PUSH | SWT.TOGGLE)) != 0) {
 				width += 12;  height += 10;

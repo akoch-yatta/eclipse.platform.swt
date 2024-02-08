@@ -321,7 +321,7 @@ int getBandHeight () {
 	OS.GetTextMetrics (hDC, lptm);
 	OS.SelectObject (hDC, oldHFont);
 	OS.ReleaseDC (handle, hDC);
-	return Math.max (ExpandItem.CHEVRON_SIZE, lptm.tmHeight + 4);
+	return Math.max (DPIUtil.autoScaleUp(ExpandItem.CHEVRON_SIZE), lptm.tmHeight + 4);
 }
 
 /**
