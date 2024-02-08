@@ -412,7 +412,7 @@ int getMargin (int index) {
 	}
 	if ((style & SWT.FLAT) == 0) {
 		if (!isLastItemOfRow (index)) {
-			margin += DPIUtil.autoScaleUp(SEPARATOR_WIDTH, getShell());
+			margin += DPIUtil.autoScaleUp(SEPARATOR_WIDTH, getCurrentDeviceZoom());
 		}
 	}
 	return margin;
@@ -565,7 +565,7 @@ Point [] getItemSizesInPixels (int zoomLevel) {
 	REBARBANDINFO rbBand = new REBARBANDINFO ();
 	rbBand.cbSize = REBARBANDINFO.sizeof;
 	rbBand.fMask = OS.RBBIM_CHILDSIZE;
-	int separator = (style & SWT.FLAT) == 0 ? DPIUtil.autoScaleUp(SEPARATOR_WIDTH, getShell()) : 0;
+	int separator = (style & SWT.FLAT) == 0 ? DPIUtil.autoScaleUp(SEPARATOR_WIDTH, getCurrentDeviceZoom()) : 0;
 	MARGINS margins = new MARGINS ();
 	for (int i=0; i<count; i++) {
 		RECT rect = new RECT ();

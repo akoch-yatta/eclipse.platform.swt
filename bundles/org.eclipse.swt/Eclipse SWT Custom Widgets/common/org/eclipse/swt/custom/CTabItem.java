@@ -401,8 +401,10 @@ public void setFont (Font font){
 		SWT.error(SWT.ERROR_INVALID_ARGUMENT);
 	}
 	if (font == null && this.font == null) return;
-	if (font != null && font.equals(this.font)) return;
-	this.font = font;
+
+	Font adjustedFont = font == null ? null : font.scaleFor(getCurrentDeviceZoom());
+	if (adjustedFont != null && adjustedFont.equals(this.font)) return;
+	this.font = adjustedFont;
 	parent.updateFolder(CTabFolder.UPDATE_TAB_HEIGHT | CTabFolder.REDRAW_TABS);
 }
 

@@ -411,9 +411,6 @@ void copyInto(StyledTextRenderer renderer) {
 	}
 }
 void dispose() {
-	if (boldFont != null) boldFont.dispose();
-	if (italicFont != null) italicFont.dispose();
-	if (boldItalicFont != null) boldItalicFont.dispose();
 	boldFont = italicFont = boldItalicFont = null;
 	reset();
 	content = null;
@@ -635,17 +632,19 @@ int getBaseline() {
 int getCachedLineHeight(int lineIndex) {
 	return getLineHeight(lineIndex, false);
 }
+
+// TODO: This change affects all OS. Validate that there are no issues with this change
 Font getFont(int style) {
 	switch (style) {
 		case SWT.BOLD:
 			if (boldFont != null) return boldFont;
-			return boldFont = new Font(device, getFontData(style));
+			return boldFont = new Font(device, getFontData(style)[0]).scaleFor(styledText.getCurrentDeviceZoom());
 		case SWT.ITALIC:
 			if (italicFont != null) return italicFont;
-			return italicFont = new Font(device, getFontData(style));
+			return italicFont = new Font(device, getFontData(style)[0]).scaleFor(styledText.getCurrentDeviceZoom());
 		case SWT.BOLD | SWT.ITALIC:
 			if (boldItalicFont != null) return boldItalicFont;
-			return boldItalicFont = new Font(device, getFontData(style));
+			return boldItalicFont = new Font(device, getFontData(style)[0]).scaleFor(styledText.getCurrentDeviceZoom());
 		default:
 			return regularFont;
 	}
@@ -1470,9 +1469,6 @@ void setFont(Font font, int tabs) {
 	layout.setFont(regularFont);
 	tabLength = tabs;
 	if (font != null) {
-		if (boldFont != null) boldFont.dispose();
-		if (italicFont != null) italicFont.dispose();
-		if (boldItalicFont != null) boldItalicFont.dispose();
 		boldFont = italicFont = boldItalicFont = null;
 		regularFont = font;
 		layout.setText("    ");
@@ -1484,9 +1480,6 @@ void setFont(Font font, int tabs) {
 		FontMetrics metrics = layout.getLineMetrics(0);
 		ascent = metrics.getAscent() + metrics.getLeading();
 		descent = metrics.getDescent();
-		boldFont.dispose();
-		italicFont.dispose();
-		boldItalicFont.dispose();
 		boldFont = italicFont = boldItalicFont = null;
 	}
 	layout.dispose();

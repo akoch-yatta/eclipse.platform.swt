@@ -32,7 +32,11 @@ import org.eclipse.swt.widgets.*;
 public class CommonWidgetsDPIChangeHandlers {
 
 	public static void registerCommonHandlers() {
+		DPIZoomChangeRegistry.registerHandler(CommonWidgetsDPIChangeHandlers::handleCComboDPIChange, CCombo.class);
+		DPIZoomChangeRegistry.registerHandler(CommonWidgetsDPIChangeHandlers::handleCTabFolderDPIChange, CTabFolder.class);
+		DPIZoomChangeRegistry.registerHandler(CommonWidgetsDPIChangeHandlers::handleCTabItemDPIChange, CTabItem.class);
 		DPIZoomChangeRegistry.registerHandler(CommonWidgetsDPIChangeHandlers::handleItemDPIChange, Item.class);
+		DPIZoomChangeRegistry.registerHandler(CommonWidgetsDPIChangeHandlers::handleStyledTextDPIChange, StyledText.class);
 	}
 
 	private static void handleItemDPIChange(Widget widget, int newZoom, float scalingFactor) {
@@ -41,11 +45,75 @@ public class CommonWidgetsDPIChangeHandlers {
 		}
 		Item item = (Item) widget;
 
-			// Refresh the image
+		// Refresh the image
 		Image image = item.getImage();
 		if (image != null) {
 			image.handleDPIChange(newZoom);
 			item.setImage(image);
 		}
+	}
+
+
+	private static void handleCComboDPIChange(Widget widget, int newZoom, float scalingFactor) {
+		if (!(widget instanceof CCombo)) {
+			return;
+		}
+		CCombo combo = (CCombo) widget;
+
+		DPIZoomChangeRegistry.applyChange(combo.text, newZoom, scalingFactor);
+		DPIZoomChangeRegistry.applyChange(combo.list, newZoom, scalingFactor);
+		DPIZoomChangeRegistry.applyChange(combo.arrow, newZoom, scalingFactor);
+	}
+
+	private static void handleCTabFolderDPIChange(Widget widget, int newZoom, float scalingFactor) {
+		if (!(widget instanceof CTabFolder)) {
+			return;
+		}
+		CTabFolder cTabFolder = (CTabFolder) widget;
+
+		for (CTabItem item : cTabFolder.getItems()) {
+			DPIZoomChangeRegistry.applyChange(item, newZoom, scalingFactor);
+		}
+		cTabFolder.updateFolder(CTabFolder.UPDATE_TAB_HEIGHT | CTabFolder.REDRAW_TABS);
+	}
+
+	private static void handleCTabItemDPIChange(Widget widget, int newZoom, float scalingFactor) {
+		if (!(widget instanceof CTabItem)) {
+			return;
+		}
+		CTabItem item = (CTabItem) widget;
+		Font itemFont = item.font;
+		if (itemFont != null) {
+			item.setFont(itemFont);
+		}
+		Image itemImage = item.getImage();
+		if (itemImage != null) {
+			itemImage.handleDPIChange(newZoom);
+
+		}
+		Image itemDisabledImage = item.getDisabledImage();
+		if (itemDisabledImage != null) {
+			itemDisabledImage.handleDPIChange(newZoom);
+		}
+	}
+
+	private static void handleStyledTextDPIChange(Widget widget, int newZoom, float scalingFactor) {
+		if (!(widget instanceof StyledText)) {
+			return;
+		}
+		StyledText styledText = (StyledText) widget;
+
+		DPIZoomChangeRegistry.applyChange(styledText.getCaret(), newZoom, scalingFactor);
+		DPIZoomChangeRegistry.applyChange(styledText.defaultCaret, newZoom, scalingFactor);
+		DPIZoomChangeRegistry.applyChange(styledText.ime, newZoom, scalingFactor);
+
+		for (Caret caret : styledText.carets) {
+			DPIZoomChangeRegistry.applyChange(caret, newZoom, scalingFactor);
+		}
+
+		styledText.updateCaretVisibility();
+
+		styledText.renderer.setFont(styledText.getFont(), styledText.tabLength);
+		styledText.setCaretLocations();
 	}
 }

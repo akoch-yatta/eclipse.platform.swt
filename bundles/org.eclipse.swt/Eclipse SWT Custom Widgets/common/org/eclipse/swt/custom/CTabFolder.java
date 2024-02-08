@@ -739,7 +739,8 @@ Image createButtonImage(Display display, int button) {
 	renderer.draw(button, SWT.NONE, new Rectangle(trim.x, trim.y, size.x, size.y), gc);
 	gc.dispose ();
 
-	final ImageData imageData = image.getImageData (DPIUtil.getDeviceZoom ());
+	//final ImageData imageData = image.getImageData (getCurrentDeviceZoom());
+	final ImageData imageData = image.getImageData (DPIUtil.getDeviceZoom());
 	imageData.transparentPixel = imageData.palette.getPixel(transColor.getRGB());
 	image.dispose();
 	image = new Image(display, new AutoScaleImageDataProvider(display, imageData, DPIUtil.getDeviceZoom()));
