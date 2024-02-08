@@ -622,7 +622,7 @@ LRESULT CDDS_ITEMPOSTPAINT (NMTVCUSTOMDRAW nmcd, long wParam, long lParam) {
 						if (isDisposed () || item.isDisposed ()) break;
 					}
 					if (hooks (SWT.EraseItem)) {
-						RECT cellRect = item.getBounds (index, true, true, true, true, true, hDC);
+						RECT cellRect = item.getBounds (index, true, true, true, true, true, hDC); // Pixels
 						int nSavedDC = OS.SaveDC (hDC);
 						GCData data = new GCData ();
 						data.device = display;
@@ -3748,7 +3748,7 @@ boolean hitTestSelection (long hItem, int x, int y) {
 int imageIndex (Image image, int index) {
 	if (image == null) return OS.I_IMAGENONE;
 	if (imageList == null) {
-		Rectangle bounds = image.getBoundsInPixels ();
+		Rectangle bounds = image.getBounds (getCurrentDeviceZoom());
 		imageList = display.getImageList (style & SWT.RIGHT_TO_LEFT, bounds.width, bounds.height);
 	}
 	int imageIndex = imageList.indexOf (image);
@@ -3772,7 +3772,7 @@ int imageIndex (Image image, int index) {
 int imageIndexHeader (Image image) {
 	if (image == null) return OS.I_IMAGENONE;
 	if (headerImageList == null) {
-		Rectangle bounds = image.getBoundsInPixels ();
+		Rectangle bounds = image.getBounds (getCurrentDeviceZoom());
 		headerImageList = display.getImageList (style & SWT.RIGHT_TO_LEFT, bounds.width, bounds.height);
 		int index = headerImageList.indexOf (image);
 		if (index == -1) index = headerImageList.add (image);
@@ -7549,7 +7549,7 @@ LRESULT wmNotifyChild (NMHDR hdr, long wParam, long lParam) {
 		}
 		case OS.NM_CUSTOMDRAW: {
 			if (hdr.hwndFrom == hwndHeader) break;
-			if (hooks (SWT.MeasureItem)) {
+			if  (hooks (SWT.MeasureItem)) {
 				if (hwndHeader == 0) createParent ();
 			}
 			if (!customDraw && findImageControl () == null) {
@@ -7935,9 +7935,9 @@ LRESULT wmNotifyHeader (NMHDR hdr, long wParam, long lParam) {
 							GCData data = new GCData();
 							data.device = display;
 							GC gc = GC.win32_new (nmcd.hdc, data);
-							int y = Math.max (0, (nmcd.bottom - columns[i].image.getBoundsInPixels().height) / 2);
+							int y = Math.max (0, (nmcd.bottom - columns[i].image.getBounds(getCurrentDeviceZoom()).height) / 2);
 							gc.drawImage (columns[i].image, DPIUtil.autoScaleDown(x), DPIUtil.autoScaleDown(y));
-							x += columns[i].image.getBoundsInPixels().width + 12;
+							x += columns[i].image.getBounds(getCurrentDeviceZoom()).width + DPIUtil.autoScaleUp(12);
 							gc.dispose ();
 						}
 
@@ -8288,7 +8288,6 @@ private static void handleDPIChange(Widget widget, int newZoom, float scalingFac
 		OS.SendMessage (tree.handle, OS.TVM_SETIMAGELIST, 0, 0);
 		tree.imageList = null;
 	}
-
 
 	for (TreeColumn treeColumn : tree.getColumns()) {
 		DPIZoomChangeRegistry.applyChange(treeColumn, newZoom, scalingFactor);
