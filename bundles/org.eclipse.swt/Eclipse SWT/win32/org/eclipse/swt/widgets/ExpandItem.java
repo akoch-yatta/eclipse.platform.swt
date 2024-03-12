@@ -526,10 +526,9 @@ public void setText (String string) {
 }
 
 private static void handleDPIChange(Widget widget, int newZoom, float scalingFactor) {
-	if (!(widget instanceof ExpandItem)) {
+	if (!(widget instanceof ExpandItem item)) {
 		return;
 	}
-	ExpandItem item = (ExpandItem) widget;
 	if (item.height != 0 || item.width != 0) {
 		int newWidth = Math.round(item.width * scalingFactor);
 		int newHeight = Math.round(item.height * scalingFactor);

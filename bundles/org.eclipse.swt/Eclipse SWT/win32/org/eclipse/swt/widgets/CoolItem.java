@@ -539,11 +539,6 @@ public void setSize (int width, int height) {
 }
 
 void setSizeInPixels (int width, int height) {
-	setSizeInPixels(width, height, getCurrentDeviceZoom());
-}
-
-
-void setSizeInPixels (int width, int height, int zoomLevel) {
 	int index = parent.indexOf (this);
 	if (index == -1) return;
 	width = Math.max (0, width);
@@ -558,7 +553,6 @@ void setSizeInPixels (int width, int height, int zoomLevel) {
 	rbBand.fMask = OS.RBBIM_CHILDSIZE | OS.RBBIM_IDEALSIZE;
 	OS.SendMessage (hwnd, OS.RB_GETBANDINFO, index, rbBand);
 
-	// TODO: cyMaxChild currently does not shrink (should be the case when scaling down)
 	if ((parent.style & SWT.VERTICAL) != 0) {
 		cx = height;
 		cyChild = width;

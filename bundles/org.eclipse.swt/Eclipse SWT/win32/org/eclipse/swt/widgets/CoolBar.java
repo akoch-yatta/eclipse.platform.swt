@@ -556,10 +556,6 @@ public Point [] getItemSizes () {
 }
 
 Point [] getItemSizesInPixels () {
-	return getItemSizesInPixels(getCurrentDeviceZoom());
-}
-
-Point [] getItemSizesInPixels (int zoomLevel) {
 	int count = (int)OS.SendMessage (handle, OS.RB_GETBANDCOUNT, 0, 0);
 	Point [] sizes = new Point [count];
 	REBARBANDINFO rbBand = new REBARBANDINFO ();
@@ -903,10 +899,6 @@ void setItemOrder (int [] itemOrder) {
  */
 
 void setItemSizes (Point [] sizes) {
-	setItemSizes(sizes, getCurrentDeviceZoom());
-}
-
-void setItemSizes (Point [] sizes, int deviceZoom) {
 	if (sizes == null) error (SWT.ERROR_NULL_ARGUMENT);
 	int count = (int)OS.SendMessage (handle, OS.RB_GETBANDCOUNT, 0, 0);
 	if (sizes.length != count) error (SWT.ERROR_INVALID_ARGUMENT);
@@ -915,7 +907,7 @@ void setItemSizes (Point [] sizes, int deviceZoom) {
 	rbBand.fMask = OS.RBBIM_ID;
 	for (int i=0; i<count; i++) {
 		OS.SendMessage (handle, OS.RB_GETBANDINFO, i, rbBand);
-		items [rbBand.wID].setSizeInPixels (sizes [i].x, sizes [i].y, deviceZoom);
+		items [rbBand.wID].setSizeInPixels (sizes [i].x, sizes [i].y);
 	}
 }
 
@@ -1210,12 +1202,10 @@ LRESULT wmNotifyChild (NMHDR hdr, long wParam, long lParam) {
 }
 
 private static void handleDPIChange(Widget widget, int newZoom, float scalingFactor) {
-	if (!(widget instanceof CoolBar)) {
+	if (!(widget instanceof CoolBar coolBar)) {
 		return;
 	}
-	CoolBar coolBar = (CoolBar) widget;
-	// TODO: This is not exact. In particular there are still issues with margins
-	var sizes = coolBar.getItemSizesInPixels(100);
+	var sizes = coolBar.getItemSizesInPixels();
 	var scaledSizes = new Point[sizes.length];
 	var prefSizes = new Point[sizes.length];
 	var minSizes = new Point[sizes.length];

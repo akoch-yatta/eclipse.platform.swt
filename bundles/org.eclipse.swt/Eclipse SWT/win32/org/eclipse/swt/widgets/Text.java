@@ -3187,10 +3187,9 @@ LRESULT wmKeyDown (long hwnd, long wParam, long lParam) {
 }
 
 private static void handleDPIChange(Widget widget, int newZoom, float scalingFactor) {
-	if (!(widget instanceof Text)) {
+	if (!(widget instanceof Text text)) {
 		return;
 	}
-	Text text = (Text) widget;
 	text.addIcons();
 	text.setMargins();
 }

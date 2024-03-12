@@ -1132,11 +1132,9 @@ LRESULT wmNotifyChild (NMHDR hdr, long wParam, long lParam) {
 }
 
 private static void handleDPIChange(Widget widget, int newZoom, float scalingFactor) {
-	if (!(widget instanceof TabFolder)) {
+	if (!(widget instanceof TabFolder tabFolder)) {
 		return;
 	}
-	TabFolder tabFolder = (TabFolder) widget;
-
 	Display display = tabFolder.getDisplay();
 	if (tabFolder.imageList != null) {
 		display.releaseImageList (tabFolder.imageList);

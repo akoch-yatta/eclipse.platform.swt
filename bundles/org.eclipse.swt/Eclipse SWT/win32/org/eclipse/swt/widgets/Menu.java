@@ -1375,10 +1375,9 @@ LRESULT wmTimer (long wParam, long lParam) {
 }
 
 private static void handleDPIChange(Widget widget, int newZoom, float scalingFactor) {
-	if (!(widget instanceof Menu)) {
+	if (!(widget instanceof Menu menu)) {
 		return;
 	}
-	Menu menu = (Menu) widget;
 	for (MenuItem item : menu.getItems()) {
 		DPIZoomChangeRegistry.applyChange(item, newZoom, scalingFactor);
 	}

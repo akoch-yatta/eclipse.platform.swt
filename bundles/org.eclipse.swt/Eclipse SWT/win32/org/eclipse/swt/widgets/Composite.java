@@ -1971,10 +1971,9 @@ public String toString() {
 }
 
 private static void handleDPIChange(Widget widget, int newZoom, float scalingFactor) {
-	if (!(widget instanceof Composite)) {
+	if (!(widget instanceof Composite composite)) {
 		return;
 	}
-	Composite composite = (Composite) widget;
 	for (Control child : composite.getChildren()) {
 		DPIZoomChangeRegistry.applyChange(child, newZoom, scalingFactor);
 	}

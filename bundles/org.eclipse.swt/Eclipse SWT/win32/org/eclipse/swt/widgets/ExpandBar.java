@@ -876,11 +876,9 @@ LRESULT wmScroll (ScrollBar bar, boolean update, long hwnd, int msg, long wParam
 }
 
 private static void handleDPIChange(Widget widget, int newZoom, float scalingFactor) {
-	if (!(widget instanceof ExpandBar)) {
+	if (!(widget instanceof ExpandBar expandBar)) {
 		return;
 	}
-	ExpandBar expandBar = (ExpandBar) widget;
-
 	for (ExpandItem item : expandBar.getItems()) {
 		DPIZoomChangeRegistry.applyChange(item, newZoom, scalingFactor);
 	}

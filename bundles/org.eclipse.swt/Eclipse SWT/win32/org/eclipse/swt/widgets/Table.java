@@ -7334,11 +7334,9 @@ LRESULT wmNotifyToolTip (NMTTCUSTOMDRAW nmcd, long lParam) {
 }
 
 private static void handleDPIChange(Widget widget, int newZoom, float scalingFactor) {
-	if (!(widget instanceof Table)) {
+	if (!(widget instanceof Table table)) {
 		return;
 	}
-	Table table = (Table) widget;
-
 	table.settingItemHeight = true;
 	var scrollWidth = 0;
 	// Request ScrollWidth

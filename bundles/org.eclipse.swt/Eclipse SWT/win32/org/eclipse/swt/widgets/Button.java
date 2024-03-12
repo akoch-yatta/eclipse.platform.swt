@@ -75,7 +75,7 @@ public class Button extends Control {
 		WNDCLASS lpWndClass = new WNDCLASS ();
 		OS.GetClassInfo (0, ButtonClass, lpWndClass);
 		ButtonProc = lpWndClass.lpfnWndProc;
-		
+
 		DPIZoomChangeRegistry.registerHandler(Button::handleDPIChange, Button.class);
 	}
 
@@ -1302,7 +1302,7 @@ private int getCheckboxTextOffset(long hdc) {
 	SIZE size = new SIZE();
 
 	if (OS.IsAppThemed ()) {
-		OS.GetThemePartSize(display.hButtonTheme(getCurrentDeviceZoom()), hdc, OS.BP_CHECKBOX, OS.CBS_UNCHECKEDNORMAL, null, OS.TS_TRUE, size);
+		OS.GetThemePartSize(display.hButtonTheme(this.getCurrentDeviceZoom()), hdc, OS.BP_CHECKBOX, OS.CBS_UNCHECKEDNORMAL, null, OS.TS_TRUE, size);
 		result += size.cx;
 	} else {
 		result += DPIUtil.autoScaleUpUsingNativeDPI(13);
@@ -1532,7 +1532,7 @@ LRESULT wmDrawChild (long wParam, long lParam) {
 		boolean pressed = ((struct.itemState & OS.ODS_SELECTED) != 0);
 		boolean enabled = getEnabled ();
 		int iStateId = getThemeStateId(style, pressed, enabled);
-		OS.DrawThemeBackground (display.hScrollBarThemeAuto (getCurrentDeviceZoom()), struct.hDC, OS.SBP_ARROWBTN, iStateId, rect, null);
+		OS.DrawThemeBackground (display.hScrollBarThemeAuto (this.getCurrentDeviceZoom()), struct.hDC, OS.SBP_ARROWBTN, iStateId, rect, null);
 	} else {
 		int uState = OS.DFCS_SCROLLLEFT;
 		switch (style & (SWT.UP | SWT.DOWN | SWT.LEFT | SWT.RIGHT)) {
@@ -1552,10 +1552,9 @@ LRESULT wmDrawChild (long wParam, long lParam) {
 
 
 private static void handleDPIChange(Widget widget, int newZoom, float scalingFactor) {
-	if (!(widget instanceof Button)) {
+	if (!(widget instanceof Button button)) {
 		return;
 	}
-	Button button = (Button) widget;
 
 	// Refresh the image
 	if (button.image != null) {

@@ -252,12 +252,6 @@ void clearSizeCache(boolean changed) {
 			OS.SendMessage (handle, OS.TB_GETITEMRECT, count - 1, rect);
 			width = Math.max (width, rect.right);
 			height = Math.max (height, rect.bottom);
-			// If a Separator has a control, its height might exceed the height of the Items
-			for (ToolItem item: items) {
-				if (item != null && item.getControl() != null) {
-					height = Math.max (height, item.getControl().getBoundsInPixels().height);
-				}
-			}
 		}
 		OS.SetWindowPos (handle, 0, 0, 0, oldWidth, oldHeight, flags);
 		if (redraw) OS.ValidateRect (handle, null);
@@ -1744,10 +1738,9 @@ LRESULT wmNotifyChild (NMHDR hdr, long wParam, long lParam) {
 }
 
 private static void handleDPIChange(Widget widget, int newZoom, float scalingFactor) {
-	if (!(widget instanceof ToolBar)) {
+	if (!(widget instanceof ToolBar toolBar)) {
 		return;
 	}
-	ToolBar toolBar = (ToolBar) widget;
 	ToolItem[] toolItems = toolBar._getItems ();
 	// Only Items with SWT.Sepreator Style have an own width assigned to them
 	var seperatorWidth  =  new int[toolItems.length];

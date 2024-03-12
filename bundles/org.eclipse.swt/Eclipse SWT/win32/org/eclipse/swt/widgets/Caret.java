@@ -654,10 +654,9 @@ public void setVisible (boolean visible) {
 }
 
 private static void handleDPIChange(Widget widget, int newZoom, float scalingFactor) {
-	if (!(widget instanceof Caret)) {
+	if (!(widget instanceof Caret caret)) {
 		return;
 	}
-	Caret caret = (Caret) widget;
 
 	Image image = caret.getImage();
 	if (image != null) {

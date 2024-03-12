@@ -36,12 +36,10 @@ public class CommonWidgetsDPIChangeHandlers {
 	}
 
 	private static void handleItemDPIChange(Widget widget, int newZoom, float scalingFactor) {
-		if (!(widget instanceof Item)) {
+		if (!(widget instanceof Item item)) {
 			return;
 		}
-		Item item = (Item) widget;
-
-			// Refresh the image
+		// Refresh the image
 		Image image = item.getImage();
 		if (image != null) {
 			image.handleDPIChange(newZoom);

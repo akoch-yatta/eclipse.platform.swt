@@ -3372,10 +3372,9 @@ LRESULT wmSysKeyDown (long hwnd, long wParam, long lParam) {
 }
 
 private static void handleDPIChange(Widget widget, int newZoom, float scalingFactor) {
-	if (!(widget instanceof Combo)) {
+	if (!(widget instanceof Combo combo)) {
 		return;
 	}
-	Combo combo = (Combo) widget;
 	if ((combo.style & SWT.H_SCROLL) != 0) {
 		combo.scrollWidth = 0;
 		combo.setScrollWidth();

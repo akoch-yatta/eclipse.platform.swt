@@ -53,7 +53,7 @@ public class ToolItem extends Item {
 	static {
 		DPIZoomChangeRegistry.registerHandler(ToolItem::handleDPIChange, ToolItem.class);
 	}
-	
+
 /**
  * Constructs a new instance of this class given its parent
  * (which must be a <code>ToolBar</code>) and a style value
@@ -1224,11 +1224,9 @@ LRESULT wmCommandChild (long wParam, long lParam) {
 }
 
 private static void handleDPIChange(Widget widget, int newZoom, float scalingFactor) {
-	if (!(widget instanceof ToolItem)) {
+	if (!(widget instanceof ToolItem item)) {
 		return;
 	}
-	ToolItem item = (ToolItem) widget;
-
 	Image image = item.getImage();
 	if (image != null) {
 		ToolBar parent = item.getParent();

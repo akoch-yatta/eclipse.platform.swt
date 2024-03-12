@@ -7549,7 +7549,7 @@ LRESULT wmNotifyChild (NMHDR hdr, long wParam, long lParam) {
 		}
 		case OS.NM_CUSTOMDRAW: {
 			if (hdr.hwndFrom == hwndHeader) break;
-			if  (hooks (SWT.MeasureItem)) {
+			if (hooks (SWT.MeasureItem)) {
 				if (hwndHeader == 0) createParent ();
 			}
 			if (!customDraw && findImageControl () == null) {
@@ -8272,10 +8272,9 @@ LRESULT wmNotifyToolTip (NMTTCUSTOMDRAW nmcd, long lParam) {
 }
 
 private static void handleDPIChange(Widget widget, int newZoom, float scalingFactor) {
-	if (!(widget instanceof Tree)) {
+	if (!(widget instanceof Tree tree)) {
 		return;
 	}
-	Tree tree = (Tree) widget;
 	Display display = tree.getDisplay();
 	// Reset ImageList
 	if (tree.headerImageList != null) {

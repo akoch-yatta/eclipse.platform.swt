@@ -1689,10 +1689,9 @@ LRESULT WM_WINDOWPOSCHANGING (long wParam, long lParam) {
 }
 
 private static void handleDPIChange(Widget widget, int newZoom, float scalingFactor) {
-	if (!(widget instanceof Decorations)) {
+	if (!(widget instanceof Decorations decorations)) {
 		return;
 	}
-	Decorations decorations = (Decorations) widget;
 
 	Image image = decorations.getImage();
 	if (image != null) {

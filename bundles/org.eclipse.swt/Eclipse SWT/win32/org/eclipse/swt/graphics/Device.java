@@ -906,7 +906,9 @@ protected void release () {
 		fontCollection = 0;
 		Gdip.GdiplusShutdown (gdipToken[0]);
 	}
-	fontRegistry.dispose();
+	if (fontRegistry != null) {
+		fontRegistry.dispose();
+	}
 	gdipToken = null;
 	scripts = null;
 	logFonts = null;

@@ -107,11 +107,9 @@ public class DPIUtil {
 			}
 		}
 
-		String updateOnRuntimeValue = System.getProperty (SWT_AUTOSCALE_UPDATE_ON_RUNTIME);
-		if (updateOnRuntimeValue != null) {
-			if (Boolean.TRUE.toString().equalsIgnoreCase(updateOnRuntimeValue)) {
-				autoScaleOnRuntime = true;
-			}
+		String updateOnRuntimeValue = System.getProperty (SWT_AUTOSCALE_UPDATE_ON_RUNTIME, "false");
+		if (Boolean.TRUE.toString().equalsIgnoreCase(updateOnRuntimeValue)) {
+			autoScaleOnRuntime = true;
 		}
 	}
 
@@ -414,10 +412,7 @@ public static Rectangle autoScaleUp (Drawable drawable, Rectangle rect) {
  * @return float scaling factor
  */
 private static float getScalingFactor () {
-	if (useCairoAutoScale) {
-		return 1;
-	}
-	return deviceZoom / 100f;
+	return getScalingFactor(deviceZoom);
 }
 
 /**
@@ -445,12 +440,12 @@ public static int mapDPIToZoom (int dpi) {
 /**
  * Compute the DPI value value based on the zoom.
  *
- * @return zoom
+ * @return DPI
  */
-public static int mapZoomToDPI (int dpi) {
-	double zoom = (double) dpi / 100 * DPI_ZOOM_100;
-	int roundedZoom = (int) Math.round (zoom);
-	return roundedZoom;
+public static int mapZoomToDPI (int zoom) {
+	double dpi = (double) zoom / 100 * DPI_ZOOM_100;
+	int roundedDpi = (int) Math.round (dpi);
+	return roundedDpi;
 }
 
 /**

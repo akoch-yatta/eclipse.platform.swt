@@ -3739,6 +3739,7 @@ long getTextSearchIcon(int deviceZoom) {
 		int scaledIconSize = DPIUtil.autoScaleUp(Text.ICON_SIZE_AT_100, deviceZoom);
 		int searchIconResource = textUseDarkthemeIcons ? Text.IDI_SEARCH_DARKTHEME : Text.IDI_SEARCH;
 		iconHandle = OS.LoadImage (OS.GetLibraryHandle (), searchIconResource, OS.IMAGE_ICON, scaledIconSize, scaledIconSize, 0);
+		if (iconHandle == 0) error (SWT.ERROR_NO_HANDLES);
 		textSearchIcons.put(deviceZoom, iconHandle);
 	} else {
 		iconHandle = textSearchIcons.get(deviceZoom);
@@ -3752,6 +3753,7 @@ long getTextCancelIcon(int deviceZoom) {
 		int scaledIconSize = DPIUtil.autoScaleUp(Text.ICON_SIZE_AT_100, deviceZoom);
 		int cancelIconResource = textUseDarkthemeIcons ? Text.IDI_CANCEL_DARKTHEME : Text.IDI_CANCEL;
 		iconHandle = OS.LoadImage (OS.GetLibraryHandle (), cancelIconResource, OS.IMAGE_ICON, scaledIconSize, scaledIconSize, 0);
+		if (iconHandle == 0) error (SWT.ERROR_NO_HANDLES);
 		textCancelIcons.put(deviceZoom, iconHandle);
 	} else {
 		iconHandle = textCancelIcons.get(deviceZoom);

@@ -51,7 +51,7 @@ public class MenuItem extends Item {
 	static {
 		DPIZoomChangeRegistry.registerHandler(MenuItem::handleDPIChange, MenuItem.class);
 	}
-	
+
 /**
  * Constructs a new instance of this class given its parent
  * (which must be a <code>Menu</code>) and a style value
@@ -1144,9 +1144,8 @@ LRESULT wmDrawChild (long wParam, long lParam) {
 		* the item is in a menu bar.
 		*/
 		int x = (parent.style & SWT.BAR) != 0 ? MARGIN_WIDTH * 2 : struct.left;
-		int y = (parent.style & SWT.BAR) != 0 ? MARGIN_HEIGHT * 2 : struct.top + MARGIN_HEIGHT;
 		Image image = getEnabled () ? this.image : new Image (display, this.image, SWT.IMAGE_DISABLE);
-		gc.drawImage (image, DPIUtil.autoScaleDown(x), DPIUtil.autoScaleDown(y));
+		gc.drawImage (image, DPIUtil.autoScaleDown(x), DPIUtil.autoScaleDown(struct.top + MARGIN_HEIGHT));
 		if (this.image != image) image.dispose ();
 		gc.dispose ();
 	}
@@ -1229,10 +1228,9 @@ private static final class MenuItemToolTip extends ToolTip {
 }
 
 private static void handleDPIChange(Widget widget, int newZoom, float scalingFactor) {
-	if (!(widget instanceof MenuItem)) {
+	if (!(widget instanceof MenuItem menuItem)) {
 		return;
 	}
-	MenuItem menuItem = (MenuItem) widget;
 	// Refresh the image
 	Image menuItemImage = menuItem.getImage();
 	if (menuItemImage != null) {
@@ -1241,7 +1239,6 @@ private static void handleDPIChange(Widget widget, int newZoom, float scalingFac
 		menuItem.image = null;
 		menuItem.setImage (currentImage);
 	}
-
 	// Refresh the sub menu
 	Menu subMenu = menuItem.getMenu();
 	if (subMenu != null) {

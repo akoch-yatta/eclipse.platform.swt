@@ -1273,10 +1273,9 @@ public void setText (String string) {
 }
 
 private static void handleDPIChange(Widget widget, int newZoom, float scalingFactor) {
-	if (!(widget instanceof TableItem)) {
+	if (!(widget instanceof TableItem tableItem)) {
 		return;
 	}
-	TableItem tableItem = (TableItem) widget;
 	Image[] images = tableItem.images;
 	if (images != null) {
 		for (Image innerImage : images) {

@@ -621,11 +621,9 @@ LRESULT wmDrawChild (long wParam, long lParam) {
 }
 
 private static void handleDPIChange(Widget widget, int newZoom, float scalingFactor) {
-	if (!(widget instanceof Label)) {
+	if (!(widget instanceof Label label)) {
 		return;
 	}
-	Label label = (Label) widget;
-
 	Image image = label.getImage();
 	if (image != null) {
 		image.handleDPIChange(newZoom);

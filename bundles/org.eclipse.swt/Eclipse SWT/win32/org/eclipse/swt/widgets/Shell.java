@@ -2686,10 +2686,9 @@ private void handleZoomEvent(Event event) {
 }
 
 private static void handleDPIChange(Widget widget, int newZoom, float scalingFactor) {
-	if (!(widget instanceof Shell)) {
+	if (!(widget instanceof Shell shell)) {
 		return;
 	}
-	Shell shell = (Shell) widget;
 	shell.layout (null, SWT.DEFER | SWT.ALL | SWT.CHANGED);
 }
 }

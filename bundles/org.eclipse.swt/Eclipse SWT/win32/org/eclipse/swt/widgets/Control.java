@@ -5847,10 +5847,9 @@ LRESULT wmScrollChild (long wParam, long lParam) {
 
 
 private static void handleDPIChange(Widget widget, int newZoom, float scalingFactor) {
-	if (!(widget instanceof Control)) {
+	if (!(widget instanceof Control control)) {
 		return;
 	}
-	Control control = (Control) widget;
 	resizeFont(control, control.getShell().getNativeDeviceZoom());
 
 	Image image = control.getBackgroundImage();

@@ -769,11 +769,9 @@ void updateToolTip (int index) {
 }
 
 private static void handleDPIChange(Widget widget, int newZoom, float scalingFactor) {
-	if (!(widget instanceof TreeColumn)) {
+	if (!(widget instanceof TreeColumn treeColumn)) {
 		return;
 	}
-	TreeColumn treeColumn = (TreeColumn) widget;
-
 	treeColumn.setWidth(Math.round(treeColumn.getWidth() * scalingFactor));
 	Image image = treeColumn.image;
 	if (image != null) {

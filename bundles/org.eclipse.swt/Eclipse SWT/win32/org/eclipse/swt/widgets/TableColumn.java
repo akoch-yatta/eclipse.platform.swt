@@ -896,10 +896,9 @@ void updateToolTip (int index) {
 }
 
 private static void handleDPIChange(Widget widget, int newZoom, float scalingFactor) {
-	if (!(widget instanceof TableColumn)) {
+	if (!(widget instanceof TableColumn tableColumn)) {
 		return;
 	}
-	TableColumn tableColumn = (TableColumn) widget;
 	final int newColumnWidth = Math.round(tableColumn.getWidthInPixels() * scalingFactor);
 	tableColumn.setWidthInPixels(newColumnWidth);
 	Image image = tableColumn.getImage();

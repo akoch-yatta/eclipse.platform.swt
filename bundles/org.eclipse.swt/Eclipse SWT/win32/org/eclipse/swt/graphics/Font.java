@@ -255,7 +255,7 @@ void init (FontData fd) {
 	}
 
 	handle = OS.CreateFontIndirect(logFont);
-	if(lfHeight != logFont.lfHeight) {
+	if (lfHeight != logFont.lfHeight) {
 		logFont.lfHeight = lfHeight;
 	}
 	if (handle == 0) SWT.error(SWT.ERROR_NO_HANDLES);

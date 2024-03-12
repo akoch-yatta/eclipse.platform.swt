@@ -1818,10 +1818,9 @@ String getNameText () {
 }
 
 private static void handleDPIChange(Widget widget, int newZoom, float scalingFactor) {
-	if (!(widget instanceof TreeItem)) {
+	if (!(widget instanceof TreeItem treeItem)) {
 		return;
 	}
-	TreeItem treeItem = (TreeItem) widget;
 	Image[] images = treeItem.images;
 	if (images != null) {
 		for (Image innerImage : images) {

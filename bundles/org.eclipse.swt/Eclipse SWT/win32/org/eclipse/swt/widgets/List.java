@@ -1856,10 +1856,9 @@ LRESULT wmCommandChild (long wParam, long lParam) {
 }
 
 private static void handleDPIChange(Widget widget, int newZoom, float scalingFactor) {
-	if (!(widget instanceof List)) {
+	if (!(widget instanceof List list)) {
 		return;
 	}
-	List list = (List) widget;
 	if((list.style & SWT.H_SCROLL) != 0) {
 		// Recalculate the Scroll width, as length of items has changed
 		list.setScrollWidth();
