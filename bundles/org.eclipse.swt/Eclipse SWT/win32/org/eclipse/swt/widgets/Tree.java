@@ -622,7 +622,7 @@ LRESULT CDDS_ITEMPOSTPAINT (NMTVCUSTOMDRAW nmcd, long wParam, long lParam) {
 						if (isDisposed () || item.isDisposed ()) break;
 					}
 					if (hooks (SWT.EraseItem)) {
-						RECT cellRect = item.getBounds (index, true, true, true, true, true, hDC); // Pixels
+						RECT cellRect = item.getBounds (index, true, true, true, true, true, hDC);
 						int nSavedDC = OS.SaveDC (hDC);
 						GCData data = new GCData ();
 						data.device = display;

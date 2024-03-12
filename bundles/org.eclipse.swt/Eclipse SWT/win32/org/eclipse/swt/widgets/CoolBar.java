@@ -897,7 +897,6 @@ void setItemOrder (int [] itemOrder) {
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
  */
-
 void setItemSizes (Point [] sizes) {
 	if (sizes == null) error (SWT.ERROR_NULL_ARGUMENT);
 	int count = (int)OS.SendMessage (handle, OS.RB_GETBANDCOUNT, 0, 0);

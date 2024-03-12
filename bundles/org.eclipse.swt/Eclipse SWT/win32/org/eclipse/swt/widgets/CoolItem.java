@@ -230,10 +230,6 @@ public Rectangle getBounds () {
 }
 
 Rectangle getBoundsInPixels () {
- return getBoundsInPixels(getCurrentDeviceZoom());
-}
-
-Rectangle getBoundsInPixels (int zoomLevel) {
 	int index = parent.indexOf (this);
 	if (index == -1) return new Rectangle (0, 0, 0, 0);
 	long hwnd = parent.handle;
@@ -493,10 +489,6 @@ public Point getSize () {
 }
 
 Point getSizeInPixels() {
-	return getSizeInPixels(getCurrentDeviceZoom());
-}
-
-Point getSizeInPixels(int zoomLevel) {
 	int index = parent.indexOf (this);
 	if (index == -1) return new Point (0, 0);
 	long hwnd = parent.handle;

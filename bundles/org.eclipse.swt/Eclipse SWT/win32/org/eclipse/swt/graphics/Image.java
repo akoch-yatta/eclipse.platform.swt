@@ -2035,7 +2035,7 @@ static long [] init(Device device, Image image, ImageData i) {
 	return result;
 }
 
-static long /*int*/ [] init(Device device, Image image, ImageData source, ImageData mask) {
+static long [] init(Device device, Image image, ImageData source, ImageData mask) {
 	ImageData imageData = applyMask(source, mask);
 	return init(device, image, imageData);
 }
