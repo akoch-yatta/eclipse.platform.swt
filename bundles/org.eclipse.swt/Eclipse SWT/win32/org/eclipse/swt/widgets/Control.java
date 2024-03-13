@@ -5847,7 +5847,7 @@ LRESULT wmScrollChild (long wParam, long lParam) {
 
 int getSystemMetrics(int nIndex) {
 	if (OS.WIN32_BUILD >= OS.WIN32_BUILD_WIN10_1607) {
-		return OS.GetSystemMetricsForDpi(nIndex, DPIUtil.mapZoomToDPI(getCurrentDeviceZoom()));
+		return OS.GetSystemMetricsForDpi(nIndex, getCurrentDeviceZoom());
 	} else {
 		return OS.GetSystemMetrics(nIndex);
 	}
