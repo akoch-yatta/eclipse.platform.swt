@@ -1483,10 +1483,10 @@ public void clearAll () {
 	int border = getBorderWidthInPixels ();
 	width += border * 2;  height += border * 2;
 	if ((style & SWT.V_SCROLL) != 0) {
-		width += getSystemMetrics (OS.SM_CXVSCROLL);
+		width += OS.GetSystemMetricsForDpi(OS.SM_CXVSCROLL, getCurrentDeviceZoom());
 	}
 	if ((style & SWT.H_SCROLL) != 0) {
-		height += getSystemMetrics (OS.SM_CYHSCROLL);
+		height += OS.GetSystemMetricsForDpi(OS.SM_CYHSCROLL, getCurrentDeviceZoom());
 	}
 	return new Point (width, height);
 }
