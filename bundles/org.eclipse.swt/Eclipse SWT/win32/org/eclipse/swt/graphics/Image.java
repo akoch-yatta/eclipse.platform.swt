@@ -974,6 +974,11 @@ void initNative(String filename) {
 }
 
 long [] createGdipImage() {
+	return createGdipImage(DPIUtil.getDeviceZoom());
+}
+
+long [] createGdipImage(int zoomLevel) {
+	handleDPIChange(zoomLevel);
 	switch (type) {
 		case SWT.BITMAP: {
 			BITMAP bm = new BITMAP();

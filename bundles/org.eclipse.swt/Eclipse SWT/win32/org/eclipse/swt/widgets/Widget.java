@@ -1067,7 +1067,12 @@ boolean sendDragEvent (int button, int stateMask, int x, int y) {
 void sendEvent (Event event) {
 	Display display = event.display;
 	if (!display.filterEvent (event)) {
-		if (eventTable != null) display.sendEvent(eventTable, event);
+		if (eventTable != null) {
+			if (event.gc != null) {
+				event.gc.getGCData().deviceZoom = getCurrentDeviceZoom();
+			}
+			display.sendEvent(eventTable, event);
+		}
 	}
 }
 
@@ -1089,6 +1094,9 @@ void sendEvent (int eventType, Event event, boolean send) {
 	event.widget = this;
 	if (event.time == 0) {
 		event.time = display.getLastEventTime ();
+	}
+	if (event.gc != null) {
+		event.gc.getGCData().deviceZoom = getCurrentDeviceZoom();
 	}
 	if (send) {
 		sendEvent (event);
