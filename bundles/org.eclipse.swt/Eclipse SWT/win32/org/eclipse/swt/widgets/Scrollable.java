@@ -120,11 +120,11 @@ long callWindowProc (long hwnd, int msg, long wParam, long lParam) {
  */
 public Rectangle computeTrim (int x, int y, int width, int height) {
 	checkWidget ();
-	x = DPIUtil.autoScaleUp(x);
-	y = DPIUtil.autoScaleUp(y);
-	width = DPIUtil.autoScaleUp(width);
-	height = DPIUtil.autoScaleUp(height);
-	return DPIUtil.autoScaleDown(computeTrimInPixels(x, y, width, height));
+	x = DPIUtil.autoScaleUp(x, getZoomFactor());
+	y = DPIUtil.autoScaleUp(y, getZoomFactor());
+	width = DPIUtil.autoScaleUp(width, getZoomFactor());
+	height = DPIUtil.autoScaleUp(height, getZoomFactor());
+	return DPIUtil.autoScaleDown(computeTrimInPixels(x, y, width, height), getZoomFactor());
 }
 
 Rectangle computeTrimInPixels (int x, int y, int width, int height) {
@@ -212,7 +212,7 @@ void destroyScrollBar (int type) {
  */
 public Rectangle getClientArea () {
 	checkWidget ();
-	return DPIUtil.autoScaleDown(getClientAreaInPixels());
+	return DPIUtil.autoScaleDown(getClientAreaInPixels(), getZoomFactor());
 }
 
 Rectangle getClientAreaInPixels () {

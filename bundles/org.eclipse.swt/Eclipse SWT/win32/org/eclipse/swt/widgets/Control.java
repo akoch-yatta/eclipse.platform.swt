@@ -614,9 +614,9 @@ public Point computeSize (int wHint, int hHint) {
  */
 public Point computeSize (int wHint, int hHint, boolean changed){
 	checkWidget ();
-	wHint = (wHint != SWT.DEFAULT ? DPIUtil.autoScaleUp(wHint) : wHint);
-	hHint = (hHint != SWT.DEFAULT ? DPIUtil.autoScaleUp(hHint) : hHint);
-	return DPIUtil.autoScaleDown(computeSizeInPixels(wHint, hHint, changed));
+	wHint = (wHint != SWT.DEFAULT ? DPIUtil.autoScaleUp(wHint, getZoomFactor()) : wHint);
+	hHint = (hHint != SWT.DEFAULT ? DPIUtil.autoScaleUp(hHint, getZoomFactor()) : hHint);
+	return DPIUtil.autoScaleDown(computeSizeInPixels(wHint, hHint, changed), getZoomFactor());
 }
 
 Point computeSizeInPixels (int wHint, int hHint, boolean changed) {
@@ -819,7 +819,7 @@ public boolean dragDetect (Event event) {
 public boolean dragDetect (MouseEvent event) {
 	checkWidget ();
 	if (event == null) error (SWT.ERROR_NULL_ARGUMENT);
-	return dragDetect (event.button, event.count, event.stateMask, DPIUtil.autoScaleUp(event.x), DPIUtil.autoScaleUp(event.y)); // To Pixels
+	return dragDetect (event.button, event.count, event.stateMask, DPIUtil.autoScaleUp(event.x, getZoomFactor()), DPIUtil.autoScaleUp(event.y, getZoomFactor())); // To Pixels
 }
 
 boolean dragDetect (int button, int count, int stateMask, int x, int y) {
@@ -1153,7 +1153,7 @@ int getBackgroundPixel () {
  */
 public int getBorderWidth () {
 	checkWidget ();
-	return DPIUtil.autoScaleDown(getBorderWidthInPixels ());
+	return DPIUtil.autoScaleDown(getBorderWidthInPixels (), getZoomFactor());
 }
 
 int getBorderWidthInPixels () {
@@ -1193,7 +1193,7 @@ int getBorderWidthInPixels () {
  */
 public Rectangle getBounds (){
 	checkWidget ();
-	return DPIUtil.autoScaleDown(getBoundsInPixels ());
+	return DPIUtil.autoScaleDown(getBoundsInPixels (), getZoomFactor());
 }
 
 Rectangle getBoundsInPixels () {
@@ -1361,7 +1361,7 @@ public Object getLayoutData () {
  */
 public Point getLocation () {
 	checkWidget ();
-	return DPIUtil.autoScaleDown(getLocationInPixels());
+	return DPIUtil.autoScaleDown(getLocationInPixels(), getZoomFactor());
 }
 
 Point getLocationInPixels () {
@@ -1517,7 +1517,7 @@ public Shell getShell () {
  */
 public Point getSize (){
 	checkWidget ();
-	return DPIUtil.autoScaleDown(getSizeInPixels ());
+	return DPIUtil.autoScaleDown(getSizeInPixels (), getZoomFactor());
 }
 
 Point getSizeInPixels () {
@@ -2425,10 +2425,10 @@ public void redraw () {
  */
 public void redraw (int x, int y, int width, int height, boolean all) {
 	checkWidget ();
-	x = DPIUtil.autoScaleUp(x);
-	y = DPIUtil.autoScaleUp(y);
-	width = DPIUtil.autoScaleUp(width);
-	height = DPIUtil.autoScaleUp(height);
+	x = DPIUtil.autoScaleUp(x, getZoomFactor());
+	y = DPIUtil.autoScaleUp(y, getZoomFactor());
+	width = DPIUtil.autoScaleUp(width, getZoomFactor());
+	height = DPIUtil.autoScaleUp(height, getZoomFactor());
 	if (width <= 0 || height <= 0) return;
 
 	RECT rect = new RECT ();
@@ -3158,10 +3158,10 @@ void setBackgroundPixel (int pixel) {
  */
 public void setBounds(int x, int y, int width, int height) {
 	checkWidget ();
-	x = DPIUtil.autoScaleUp(x);
-	y = DPIUtil.autoScaleUp(y);
-	width = DPIUtil.autoScaleUp(width);
-	height = DPIUtil.autoScaleUp(height);
+	x = DPIUtil.autoScaleUp(x, getZoomFactor());
+	y = DPIUtil.autoScaleUp(y, getZoomFactor());
+	width = DPIUtil.autoScaleUp(width, getZoomFactor());
+	height = DPIUtil.autoScaleUp(height, getZoomFactor());
 	setBoundsInPixels(x, y, width, height);
 }
 
@@ -3239,7 +3239,7 @@ void setBoundsInPixels (int x, int y, int width, int height, int flags, boolean 
 public void setBounds (Rectangle rect) {
 	checkWidget ();
 	if (rect == null) error (SWT.ERROR_NULL_ARGUMENT);
-	setBoundsInPixels(DPIUtil.autoScaleUp(rect));
+	setBoundsInPixels(DPIUtil.autoScaleUp(rect, getZoomFactor()));
 }
 
 void setBoundsInPixels (Rectangle rect) {
@@ -3498,8 +3498,8 @@ public void setLayoutData (Object layoutData) {
  */
 public void setLocation (int x, int y) {
 	checkWidget ();
-	x = DPIUtil.autoScaleUp(x);
-	y = DPIUtil.autoScaleUp(y);
+	x = DPIUtil.autoScaleUp(x, getZoomFactor());
+	y = DPIUtil.autoScaleUp(y, getZoomFactor());
 	setLocationInPixels(x, y);
 }
 
@@ -3525,7 +3525,7 @@ void setLocationInPixels (int x, int y) {
 public void setLocation (Point location) {
 	checkWidget ();
 	if (location == null) error (SWT.ERROR_NULL_ARGUMENT);
-	location = DPIUtil.autoScaleUp(location);
+	location = DPIUtil.autoScaleUp(location, getZoomFactor());
 	setLocationInPixels(location.x, location.y);
 }
 
@@ -3714,8 +3714,8 @@ public void setRegion (Region region) {
  */
 public void setSize (int width, int height) {
 	checkWidget ();
-	width = DPIUtil.autoScaleUp(width);
-	height = DPIUtil.autoScaleUp(height);
+	width = DPIUtil.autoScaleUp(width, getZoomFactor());
+	height = DPIUtil.autoScaleUp(height, getZoomFactor());
 	setSizeInPixels(width, height);
 }
 
@@ -3750,7 +3750,7 @@ void setSizeInPixels (int width, int height) {
 public void setSize (Point size) {
 	checkWidget ();
 	if (size == null) error (SWT.ERROR_NULL_ARGUMENT);
-	size = DPIUtil.autoScaleUp(size);
+	size = DPIUtil.autoScaleUp(size, getZoomFactor());
 	setSizeInPixels(size.x, size.y);
 }
 
@@ -3963,7 +3963,7 @@ void subclass () {
  */
 public Point toControl (int x, int y) {
 	checkWidget ();
-	return DPIUtil.autoScaleDown(toControlInPixels(DPIUtil.autoScaleUp(x), DPIUtil.autoScaleUp(y)));
+	return DPIUtil.autoScaleDown(toControlInPixels(DPIUtil.autoScaleUp(x, getZoomFactor()), DPIUtil.autoScaleUp(y, getZoomFactor())), getZoomFactor());
 }
 
 Point toControlInPixels (int x, int y) {
@@ -3996,8 +3996,8 @@ Point toControlInPixels (int x, int y) {
 public Point toControl (Point point) {
 	checkWidget ();
 	if (point == null) error (SWT.ERROR_NULL_ARGUMENT);
-	point = DPIUtil.autoScaleUp(point);
-	return DPIUtil.autoScaleDown(toControlInPixels(point.x, point.y));
+	point = DPIUtil.autoScaleUp(point, getZoomFactor());
+	return DPIUtil.autoScaleDown(toControlInPixels(point.x, point.y), getZoomFactor());
 }
 
 /**
@@ -4022,7 +4022,7 @@ public Point toControl (Point point) {
  */
 public Point toDisplay (int x, int y) {
 	checkWidget ();
-	return DPIUtil.autoScaleDown(toDisplayInPixels(DPIUtil.autoScaleUp(x), DPIUtil.autoScaleUp(y)));
+	return DPIUtil.autoScaleDown(toDisplayInPixels(DPIUtil.autoScaleUp(x, getZoomFactor()), DPIUtil.autoScaleUp(y, getZoomFactor())), getZoomFactor());
 }
 
 Point toDisplayInPixels (int x, int y) {
@@ -4055,8 +4055,8 @@ Point toDisplayInPixels (int x, int y) {
 public Point toDisplay (Point point) {
 	checkWidget ();
 	if (point == null) error (SWT.ERROR_NULL_ARGUMENT);
-	point = DPIUtil.autoScaleUp(point);
-	return DPIUtil.autoScaleDown(toDisplayInPixels(point.x, point.y));
+	point = DPIUtil.autoScaleUp(point, getZoomFactor());
+	return DPIUtil.autoScaleDown(toDisplayInPixels(point.x, point.y), getZoomFactor());
 }
 
 long topHandle () {

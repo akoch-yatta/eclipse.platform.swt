@@ -355,7 +355,7 @@ public int getSelection () {
  */
 public Point getSize () {
 	checkWidget();
-	return DPIUtil.autoScaleDown(getSizeInPixels());
+	return DPIUtil.autoScaleDown(getSizeInPixels(), parent.getZoomFactor());
 }
 
 Point getSizeInPixels () {
@@ -412,7 +412,7 @@ public int getThumb () {
  */
 public Rectangle getThumbBounds () {
 	checkWidget();
-	return DPIUtil.autoScaleDown(getThumbBoundsInPixels());
+	return DPIUtil.autoScaleDown(getThumbBoundsInPixels(), parent.getZoomFactor());
 }
 
 Rectangle getThumbBoundsInPixels () {
@@ -458,7 +458,7 @@ Rectangle getThumbBoundsInPixels () {
  */
 public Rectangle getThumbTrackBounds () {
 	checkWidget();
-	return DPIUtil.autoScaleDown(getThumbTrackBoundsInPixels());
+	return DPIUtil.autoScaleDown(getThumbTrackBoundsInPixels(), parent.getZoomFactor());
 }
 
 Rectangle getThumbTrackBoundsInPixels () {

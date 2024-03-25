@@ -412,7 +412,7 @@ int getMargin (int index) {
 	}
 	if ((style & SWT.FLAT) == 0) {
 		if (!isLastItemOfRow (index)) {
-			margin += CoolBar.SEPARATOR_WIDTH;
+			margin += DPIUtil.autoScaleUp(SEPARATOR_WIDTH, getZoomFactor());
 		}
 	}
 	return margin;
@@ -549,7 +549,7 @@ public Point [] getItemSizes () {
 	Point [] sizes = getItemSizesInPixels();
 	if (sizes != null) {
 		for (int i = 0; i < sizes.length; i++) {
-			sizes[i] = DPIUtil.autoScaleDown(sizes[i]);
+			sizes[i] = DPIUtil.autoScaleDown(sizes[i], getZoomFactor());
 		}
 	}
 	return sizes;
@@ -561,7 +561,7 @@ Point [] getItemSizesInPixels () {
 	REBARBANDINFO rbBand = new REBARBANDINFO ();
 	rbBand.cbSize = REBARBANDINFO.sizeof;
 	rbBand.fMask = OS.RBBIM_CHILDSIZE;
-	int separator = (style & SWT.FLAT) == 0 ? SEPARATOR_WIDTH : 0;
+	int separator = (style & SWT.FLAT) == 0 ? DPIUtil.autoScaleUp(SEPARATOR_WIDTH, getZoomFactor()) : 0;
 	MARGINS margins = new MARGINS ();
 	for (int i=0; i<count; i++) {
 		RECT rect = new RECT ();
@@ -809,7 +809,7 @@ public void setItemLayout (int [] itemOrder, int [] wrapIndices, Point [] sizes)
 	if (sizes == null) error (SWT.ERROR_NULL_ARGUMENT);
 	Point [] sizesInPoints = new Point [sizes.length];
 	for (int i = 0; i < sizes.length; i++) {
-		sizesInPoints[i] = DPIUtil.autoScaleUp(sizes[i]);
+		sizesInPoints[i] = DPIUtil.autoScaleUp(sizes[i], getZoomFactor());
 	}
 	setItemLayoutInPixels (itemOrder, wrapIndices, sizesInPoints);
 }

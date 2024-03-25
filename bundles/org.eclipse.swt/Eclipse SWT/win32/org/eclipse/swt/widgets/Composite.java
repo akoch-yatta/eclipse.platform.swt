@@ -218,7 +218,7 @@ Point computeSizeInPixels (int wHint, int hHint, boolean changed) {
 		if (wHint == SWT.DEFAULT || hHint == SWT.DEFAULT) {
 			changed |= (state & LAYOUT_CHANGED) != 0;
 			state &= ~LAYOUT_CHANGED;
-			size = DPIUtil.autoScaleUp(layout.computeSize (this, DPIUtil.autoScaleDown(wHint), DPIUtil.autoScaleDown(hHint), changed));
+			size = DPIUtil.autoScaleUp(layout.computeSize (this, DPIUtil.autoScaleDown(wHint, getZoomFactor()), DPIUtil.autoScaleDown(hHint, getZoomFactor()), changed), getZoomFactor());
 		} else {
 			size = new Point (wHint, hHint);
 		}
@@ -233,7 +233,7 @@ Point computeSizeInPixels (int wHint, int hHint, boolean changed) {
 	 * Since computeTrim can be overridden by subclasses, we cannot
 	 * call computeTrimInPixels directly.
 	 */
-	Rectangle trim = DPIUtil.autoScaleUp(computeTrim (0, 0, DPIUtil.autoScaleDown(size.x), DPIUtil.autoScaleDown(size.y)));
+	Rectangle trim = DPIUtil.autoScaleUp(computeTrim (0, 0, DPIUtil.autoScaleDown(size.x, getZoomFactor()), DPIUtil.autoScaleDown(size.y, getZoomFactor())), getZoomFactor());
 	return new Point (trim.width, trim.height);
 }
 
@@ -353,12 +353,12 @@ int applyThemeBackground () {
  */
 public void drawBackground (GC gc, int x, int y, int width, int height, int offsetX, int offsetY) {
 	checkWidget ();
-	x = DPIUtil.autoScaleUp(x);
-	y = DPIUtil.autoScaleUp(y);
-	width = DPIUtil.autoScaleUp(width);
-	height = DPIUtil.autoScaleUp(height);
-	offsetX = DPIUtil.autoScaleUp(offsetX);
-	offsetY = DPIUtil.autoScaleUp(offsetY);
+	x = DPIUtil.autoScaleUp(x, getZoomFactor());
+	y = DPIUtil.autoScaleUp(y, getZoomFactor());
+	width = DPIUtil.autoScaleUp(width, getZoomFactor());
+	height = DPIUtil.autoScaleUp(height, getZoomFactor());
+	offsetX = DPIUtil.autoScaleUp(offsetX, getZoomFactor());
+	offsetY = DPIUtil.autoScaleUp(offsetY, getZoomFactor());
 	drawBackgroundInPixels(gc, x, y, width, height, offsetX, offsetY);
 }
 
@@ -878,10 +878,10 @@ Point minimumSize (int wHint, int hHint, boolean changed) {
 	 * Since getClientArea can be overridden by subclasses, we cannot
 	 * call getClientAreaInPixels directly.
 	 */
-	Rectangle clientArea = DPIUtil.autoScaleUp(getClientArea ());
+	Rectangle clientArea = DPIUtil.autoScaleUp(getClientArea (), getZoomFactor());
 	int width = 0, height = 0;
 	for (Control element : _getChildren ()) {
-		Rectangle rect = DPIUtil.autoScaleUp(element.getBounds ());
+		Rectangle rect = DPIUtil.autoScaleUp(element.getBounds (), getZoomFactor());
 		width = Math.max (width, rect.x - clientArea.x + rect.width);
 		height = Math.max (height, rect.y - clientArea.y + rect.height);
 	}
@@ -1638,7 +1638,7 @@ LRESULT WM_PAINT (long wParam, long lParam) {
 						if (gcData.focusDrawn && !isDisposed ()) updateUIState ();
 					}
 					gc.dispose();
-					if (!isDisposed ()) paintGC.drawImage (image, DPIUtil.autoScaleDown(ps.left), DPIUtil.autoScaleDown(ps.top));
+					if (!isDisposed ()) paintGC.drawImage (image, DPIUtil.autoScaleDown(ps.left, getZoomFactor()), DPIUtil.autoScaleDown(ps.top, getZoomFactor()));
 					image.dispose ();
 					gc = paintGC;
 				}
