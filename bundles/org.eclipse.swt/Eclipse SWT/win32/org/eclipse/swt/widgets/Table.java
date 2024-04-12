@@ -2849,8 +2849,8 @@ int imageIndex (Image image, int column) {
 		setSubImagesVisible (true);
 	}
 	if (imageList == null) {
-		Rectangle bounds = image.getBoundsInPixels ();
-		imageList = display.getImageList (style & SWT.RIGHT_TO_LEFT, bounds.width, bounds.height);
+		Rectangle bounds = DPIUtil.autoScaleBounds(image.getBounds(), this.getZoom(), 100);
+		imageList = display.getImageList (style & SWT.RIGHT_TO_LEFT, bounds.width, bounds.height, getZoom());
 		int index = imageList.indexOf (image);
 		if (index == -1) index = imageList.add (image);
 		long hImageList = imageList.getHandle ();
@@ -2889,8 +2889,8 @@ int imageIndex (Image image, int column) {
 int imageIndexHeader (Image image) {
 	if (image == null) return OS.I_IMAGENONE;
 	if (headerImageList == null) {
-		Rectangle bounds = image.getBoundsInPixels ();
-		headerImageList = display.getImageList (style & SWT.RIGHT_TO_LEFT, bounds.width, bounds.height);
+		Rectangle bounds = DPIUtil.autoScaleBounds(image.getBounds(), this.getZoom(), 100);
+		headerImageList = display.getImageList (style & SWT.RIGHT_TO_LEFT, bounds.width, bounds.height, getZoom());
 		int index = headerImageList.indexOf (image);
 		if (index == -1) index = headerImageList.add (image);
 		long hImageList = headerImageList.getHandle ();
@@ -3464,7 +3464,7 @@ void sendEraseItemEvent (TableItem item, NMLVCUSTOMDRAW nmcd, long lParam, Event
 	data.font = item.getFont (nmcd.iSubItem);
 	data.uiState = (int)OS.SendMessage (handle, OS.WM_QUERYUISTATE, 0, 0);
 	int nSavedDC = OS.SaveDC (hDC);
-	GC gc = GC.win32_new (hDC, data);
+	GC gc = getNewGC(hDC, data);
 	RECT cellRect = item.getBounds ((int)nmcd.dwItemSpec, nmcd.iSubItem, true, true, true, true, hDC);
 	Event event = new Event ();
 	event.item = item;
@@ -3599,7 +3599,7 @@ Event sendEraseItemEvent (TableItem item, NMTTCUSTOMDRAW nmcd, int column, RECT 
 	data.background = OS.GetBkColor (nmcd.hdc);
 	data.font = item.getFont (column);
 	data.uiState = (int)OS.SendMessage (handle, OS.WM_QUERYUISTATE, 0, 0);
-	GC gc = GC.win32_new (nmcd.hdc, data);
+	GC gc = getNewGC(nmcd.hdc, data);
 	Event event = new Event ();
 	event.item = item;
 	event.index = column;
@@ -3620,7 +3620,7 @@ Event sendMeasureItemEvent (TableItem item, int row, int column, long hDC) {
 	data.device = display;
 	data.font = item.getFont (column);
 	int nSavedDC = OS.SaveDC (hDC);
-	GC gc = GC.win32_new (hDC, data);
+	GC gc = getNewGC(hDC, data);
 	RECT itemRect = item.getBounds (row, column, true, true, false, false, hDC);
 	Event event = new Event ();
 	event.item = item;
@@ -3907,7 +3907,7 @@ void sendPaintItemEvent (TableItem item, NMLVCUSTOMDRAW nmcd) {
 	}
 	data.uiState = (int)OS.SendMessage (handle, OS.WM_QUERYUISTATE, 0, 0);
 	int nSavedDC = OS.SaveDC (hDC);
-	GC gc = GC.win32_new (hDC, data);
+	GC gc = getNewGC(hDC, data);
 	RECT itemRect = item.getBounds ((int)nmcd.dwItemSpec, nmcd.iSubItem, true, true, false, false, hDC);
 	Event event = new Event ();
 	event.item = item;
@@ -3948,7 +3948,7 @@ Event sendPaintItemEvent (TableItem item, NMTTCUSTOMDRAW nmcd, int column, RECT 
 	data.foreground = OS.GetTextColor (nmcd.hdc);
 	data.background = OS.GetBkColor (nmcd.hdc);
 	data.uiState = (int)OS.SendMessage (handle, OS.WM_QUERYUISTATE, 0, 0);
-	GC gc = GC.win32_new (nmcd.hdc, data);
+	GC gc = getNewGC(nmcd.hdc, data);
 	Event event = new Event ();
 	event.item = item;
 	event.index = column;
@@ -5577,7 +5577,7 @@ void updateOrientation () {
 	if (imageList != null) {
 		Point size = imageList.getImageSize ();
 		display.releaseImageList (imageList);
-		imageList = display.getImageList (style & SWT.RIGHT_TO_LEFT, size.x, size.y);
+		imageList = display.getImageList (style & SWT.RIGHT_TO_LEFT, size.x, size.y, getZoom());
 		int count = (int)OS.SendMessage (handle, OS.LVM_GETITEMCOUNT, 0, 0);
 		for (int i = 0; i < count; i++) {
 			TableItem item = _getItem (i, false);
@@ -5596,7 +5596,7 @@ void updateOrientation () {
 		if (headerImageList != null) {
 			Point size = headerImageList.getImageSize ();
 			display.releaseImageList (headerImageList);
-			headerImageList = display.getImageList (style & SWT.RIGHT_TO_LEFT, size.x, size.y);
+			headerImageList = display.getImageList (style & SWT.RIGHT_TO_LEFT, size.x, size.y, getZoom());
 			if (columns != null) {
 				for (int i = 0; i < columns.length; i++) {
 					TableColumn column = columns [i];
@@ -6964,7 +6964,7 @@ LRESULT wmNotifyHeader (NMHDR hdr, long wParam, long lParam) {
 						if (columns[i].image != null) {
 							GCData data = new GCData();
 							data.device = display;
-							GC gc = GC.win32_new (nmcd.hdc, data);
+							GC gc = getNewGC(nmcd.hdc, data);
 							int y = Math.max (0, (nmcd.bottom - columns[i].image.getBoundsInPixels().height) / 2);
 							gc.drawImage (columns[i].image, DPIUtil.autoScaleDown(x), DPIUtil.autoScaleDown(y));
 							x += columns[i].image.getBoundsInPixels().width + 12;
@@ -7286,7 +7286,7 @@ LRESULT wmNotifyToolTip (NMTTCUSTOMDRAW nmcd, long lParam) {
 					data.foreground = OS.GetTextColor (nmcd.hdc);
 					data.background = OS.GetBkColor (nmcd.hdc);
 					data.font = Font.win32_new (display, hFont);
-					GC gc = GC.win32_new (nmcd.hdc, data);
+					GC gc = getNewGC(nmcd.hdc, data);
 					int x = cellRect.left;
 					if (pinfo.iSubItem != 0) x -= gridWidth;
 					Image image = item.getImage (pinfo.iSubItem);

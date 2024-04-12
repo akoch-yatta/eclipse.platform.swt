@@ -15,6 +15,7 @@ package org.eclipse.swt.graphics;
 
 
 import org.eclipse.swt.*;
+import org.eclipse.swt.internal.*;
 import org.eclipse.swt.internal.win32.*;
 
 /**
@@ -300,7 +301,7 @@ public Cursor(Device device, ImageData source, int hotspotX, int hotspotY) {
 		if (hMask == 0) SWT.error(SWT.ERROR_NO_HANDLES);
 	} else {
 		ImageData mask = source.getTransparencyMask();
-		long [] result = Image.init(this.device, null, source, mask);
+		long [] result = Image.init(this.device, null, source, mask, DPIUtil.getDeviceZoom());
 		hBitmap = result[0];
 		hMask = result[1];
 	}

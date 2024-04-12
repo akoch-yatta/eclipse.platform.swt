@@ -2647,6 +2647,11 @@ void notifyDisposalTracker() {
 	}
 }
 
+GC getNewGC(long hDC, GCData data) {
+	data.nativeDeviceZoom = nativeZoom;
+	return GC.win32_new(hDC, data);
+}
+
 int getZoom() {
 	return DPIUtil.getZoomForAutoscaleProperty(nativeZoom);
 }
