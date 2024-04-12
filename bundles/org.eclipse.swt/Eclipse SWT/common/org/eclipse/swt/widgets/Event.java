@@ -334,7 +334,8 @@ public Rectangle getBounds () {
 	return new Rectangle (x, y, width, height);
 }
 Rectangle getBoundsInPixels () {
-	return DPIUtil.autoScaleUp(getBounds());
+	int deviceZoom = getDeviceZoom();
+	return DPIUtil.autoScaleUp(getBounds(), deviceZoom);
 }
 
 Point getLocation () {
@@ -342,7 +343,8 @@ Point getLocation () {
 }
 
 Point getLocationInPixels () {
-	return DPIUtil.autoScaleUp(new Point(x, y));
+	int deviceZoom = getDeviceZoom();
+	return DPIUtil.autoScaleUp(new Point(x, y), deviceZoom);
 }
 
 /**
@@ -357,13 +359,26 @@ public void setBounds (Rectangle rect) {
 	this.height = rect.height;
 }
 
+private int getDeviceZoom() {
+	if (widget != null) {
+		return widget.getZoom();
+	} else if (item != null) {
+		return item.getZoom();
+	} else if (gc != null && gc.getGCData().deviceZoom != 0) {
+		return gc.getGCData().deviceZoom;
+	} else {
+		return DPIUtil.getDeviceZoom();
+	}
+}
+
 void setBoundsInPixels (Rectangle rect) {
-	setBounds(DPIUtil.autoScaleDown(rect));
+	setBounds(DPIUtil.autoScaleDown(rect, getDeviceZoom()));
 }
 
 void setLocationInPixels (int x, int y) {
-	this.x = DPIUtil.autoScaleDown(x);
-	this.y = DPIUtil.autoScaleDown(y);
+	int deviceZoom = getDeviceZoom();
+	this.x = DPIUtil.autoScaleDown(x, deviceZoom);
+	this.y = DPIUtil.autoScaleDown(y, deviceZoom);
 }
 
 /**

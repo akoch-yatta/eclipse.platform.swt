@@ -462,12 +462,9 @@ public void setProgressState (int progressState) {
 
 void setShell (Shell shell) {
 	this.shell = shell;
-	shell.addListener (SWT.Dispose, new Listener () {
-		@Override
-		public void handleEvent (Event event) {
-			if (isDisposed ()) return;
-			dispose ();
-		}
+	shell.addListener (SWT.Dispose, event -> {
+		if (isDisposed ()) return;
+		dispose ();
 	});
 }
 

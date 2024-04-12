@@ -118,6 +118,7 @@ Control () {
 public Control (Composite parent, int style) {
 	super (parent, style);
 	this.parent = parent;
+	this.setZoom(getZoom());
 	createWidget ();
 }
 

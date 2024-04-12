@@ -1537,6 +1537,7 @@ LRESULT WM_PAINT (long wParam, long lParam) {
 				GC gc = GC.win32_new (phdc [0], data);
 				Event event = new Event ();
 				event.gc = gc;
+				event.widget = this;
 				event.setBoundsInPixels(new Rectangle(ps.left, ps.top, width, height));
 				sendEvent (SWT.Paint, event);
 				if (data.focusDrawn && !isDisposed ()) updateUIState ();

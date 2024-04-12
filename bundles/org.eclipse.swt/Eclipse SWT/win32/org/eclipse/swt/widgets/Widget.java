@@ -1223,6 +1223,7 @@ boolean sendMouseEvent (int type, int button, long hwnd, long lParam) {
 boolean sendMouseEvent (int type, int button, int count, int detail, boolean send, long hwnd, long lParam) {
 	if (!hooks (type) && !filters (type)) return true;
 	Event event = new Event ();
+	event.widget = this;
 	event.button = button;
 	event.detail = detail;
 	event.count = count;
