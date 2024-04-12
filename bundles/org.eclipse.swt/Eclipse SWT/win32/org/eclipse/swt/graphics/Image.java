@@ -139,7 +139,7 @@ public final class Image extends Resource implements Drawable {
 	/**
 	 * Attribute to cache current device zoom level
 	 */
-	private int currentDeviceZoom = 100;
+	int currentDeviceZoom = 100;
 
 	/**
 	 * width of the image
