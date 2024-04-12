@@ -13,6 +13,8 @@
  *******************************************************************************/
 package org.eclipse.swt.graphics;
 
+import java.util.*;
+
 import org.eclipse.swt.*;
 import org.eclipse.swt.internal.*;
 import org.eclipse.swt.internal.gdip.*;
@@ -50,6 +52,9 @@ public class Transform extends Resource {
 	 * @noreference This field is not intended to be referenced by clients.
 	 */
 	public long handle;
+
+
+	private HashMap<Integer, Long> handleMap = new HashMap<>();
 
 /**
  * Constructs a new identity Transform.
@@ -147,8 +152,7 @@ public Transform(Device device, float[] elements) {
 public Transform (Device device, float m11, float m12, float m21, float m22, float dx, float dy) {
 	super(device);
 	this.device.checkGDIP();
-	handle = Gdip.Matrix_new(m11, m12, m21, m22, 
-	        DPIUtil.autoScaleUp(this.device, dx), DPIUtil.autoScaleUp(this.device, dy));
+	handle = Gdip.Matrix_new(m11, m12, m21, m22, dx, dy);
 	if (handle == 0) SWT.error(SWT.ERROR_NO_HANDLES);
 	init();
 }
@@ -161,7 +165,7 @@ static float[] checkTransform(float[] elements) {
 
 @Override
 void destroy() {
-	Gdip.Matrix_delete(handle);
+	handleMap.values().forEach(handle  -> Gdip.Matrix_delete(handle));
 	handle = 0;
 }
 
@@ -184,9 +188,6 @@ public void getElements(float[] elements) {
 	if (elements == null) SWT.error(SWT.ERROR_NULL_ARGUMENT);
 	if (elements.length < 6) SWT.error(SWT.ERROR_INVALID_ARGUMENT);
 	Gdip.Matrix_GetElements(handle, elements);
-	Drawable drawable = getDevice();
-	elements[4] = DPIUtil.autoScaleDown(drawable, elements[4]);
-	elements[5] = DPIUtil.autoScaleDown(drawable, elements[5]);
 }
 
 /**
@@ -317,9 +318,33 @@ public void scale(float scaleX, float scaleY) {
  */
 public void setElements(float m11, float m12, float m21, float m22, float dx, float dy) {
 	if (isDisposed()) SWT.error(SWT.ERROR_GRAPHIC_DISPOSED);
-	Drawable drawable = getDevice();
-	Gdip.Matrix_SetElements(handle, m11, m12, m21, m22, 
-	        DPIUtil.autoScaleUp(drawable, dx), DPIUtil.autoScaleUp(drawable, dy));
+	Gdip.Matrix_SetElements(handle, m11, m12, m21, m22, dx, dy);
+}
+
+/**
+ * the handle to the OS resource for the right zoom level
+ * <p>
+ * <b>IMPORTANT:</b> This field is <em>not</em> part of the SWT
+ * public API. It is marked public only so that it can be shared
+ * within the packages provided by SWT. It is not available on all
+ * platforms and should never be accessed from application code.
+ * </p>
+ *
+ * @noreference This field is not intended to be referenced by clients.
+ */
+public long getHandle(int zoomLevel) {
+	if(zoomLevel == this.device.getDeviceZoom()) {
+		return this.handle;
+	}
+	if(this.handleMap.get(zoomLevel) == null) {
+		float[] elements = new float[6];
+		getElements(elements);
+		elements[4] = DPIUtil.autoScaleUp(this.device, elements[4], zoomLevel);
+		elements[5] = DPIUtil.autoScaleUp(this.device, elements[5], zoomLevel);
+
+		handleMap.put(zoomLevel, Gdip.Matrix_new(elements[0], elements[1], elements[2], elements[3], elements[4], elements[5]));
+	}
+	return this.handleMap.get(zoomLevel);
 }
 
 /**
@@ -358,14 +383,7 @@ public void transform(float[] pointArray) {
 	if (isDisposed()) SWT.error(SWT.ERROR_GRAPHIC_DISPOSED);
 	if (pointArray == null) SWT.error(SWT.ERROR_NULL_ARGUMENT);
 	int length = pointArray.length;
-	Drawable drawable = getDevice();
-	for (int i = 0; i < length; i++) {
-		pointArray[i] = DPIUtil.autoScaleUp(drawable, pointArray[i]);
-	}
 	Gdip.Matrix_TransformPoints(handle, pointArray, length / 2);
-	for (int i = 0; i < length; i++) {
-		pointArray[i] = DPIUtil.autoScaleDown(drawable, pointArray[i]);
-	}
 }
 
 /**
@@ -381,8 +399,7 @@ public void transform(float[] pointArray) {
  */
 public void translate(float offsetX, float offsetY) {
 	if (isDisposed()) SWT.error(SWT.ERROR_GRAPHIC_DISPOSED);
-	Drawable drawable = getDevice();
-	Gdip.Matrix_Translate(handle, DPIUtil.autoScaleUp(drawable, offsetX), DPIUtil.autoScaleUp(drawable, offsetY), Gdip.MatrixOrderPrepend);
+	Gdip.Matrix_Translate(handle, offsetX, offsetY, Gdip.MatrixOrderPrepend);
 }
 
 /**

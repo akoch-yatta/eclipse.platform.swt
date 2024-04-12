@@ -477,5 +477,4 @@ LRESULT WM_WINDOWPOSCHANGING (long wParam, long lParam) {
 	if (isFocus) caret.killFocus ();
 	return result;
 }
-
 }

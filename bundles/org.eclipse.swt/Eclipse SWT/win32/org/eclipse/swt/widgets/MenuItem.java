@@ -785,7 +785,7 @@ public void setImage (Image image) {
 	} else {
 		if (OS.IsAppThemed ()) {
 			if (hBitmap != 0) OS.DeleteObject (hBitmap);
-			info.hbmpItem = hBitmap = image != null ? Display.create32bitDIB (image) : 0;
+			info.hbmpItem = hBitmap = image != null ? Display.create32bitDIB (image, getZoom()) : 0;
 		} else {
 			info.hbmpItem = image != null ? OS.HBMMENU_CALLBACK : 0;
 		}

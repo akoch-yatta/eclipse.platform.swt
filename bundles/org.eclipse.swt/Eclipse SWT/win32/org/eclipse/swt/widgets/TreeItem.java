@@ -1821,6 +1821,12 @@ private static void handleDPIChange(Widget widget, int newZoom, float scalingFac
 	if (!(widget instanceof TreeItem treeItem)) {
 		return;
 	}
+	treeItem = (TreeItem) widget;
+	Image image = treeItem.image;
+	if (image != null) {
+		image.getHandleByZoomLevel(newZoom);
+		treeItem.setImage(image);
+	}
 	Image[] images = treeItem.images;
 	if (images != null) {
 		for (Image innerImage : images) {

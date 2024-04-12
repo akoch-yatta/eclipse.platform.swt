@@ -943,19 +943,24 @@ void createDisplay (DeviceData data) {
 }
 
 static long create32bitDIB (Image image) {
+	return create32bitDIB (image, DPIUtil.getDeviceZoom());
+}
+
+static long create32bitDIB (Image image, int zoomLevel) {
+	long handle = image.getHandleByZoomLevel(zoomLevel);
 	int transparentPixel = -1, alpha = -1;
 	long hMask = 0, hBitmap = 0;
 	byte[] alphaData = null;
 	switch (image.type) {
 		case SWT.ICON:
 			ICONINFO info = new ICONINFO ();
-			OS.GetIconInfo (image.handle, info);
+			OS.GetIconInfo (handle, info);
 			hBitmap = info.hbmColor;
 			hMask = info.hbmMask;
 			break;
 		case SWT.BITMAP:
-			ImageData data = image.getImageData (DPIUtil.getDeviceZoom ());
-			hBitmap = image.handle;
+			ImageData data = image.getImageData (zoomLevel);
+			hBitmap = handle;
 			alpha = data.alpha;
 			alphaData = data.alphaData;
 			transparentPixel = data.transparentPixel;
@@ -1053,7 +1058,7 @@ static long create32bitDIB (Image image) {
 	OS.DeleteObject (srcHdc);
 	OS.DeleteObject (memHdc);
 	OS.ReleaseDC (0, hDC);
-	if (hBitmap != image.handle && hBitmap != 0) OS.DeleteObject (hBitmap);
+	if (hBitmap != handle && hBitmap != 0) OS.DeleteObject (hBitmap);
 	if (hMask != 0) OS.DeleteObject (hMask);
 	return memDib;
 }
@@ -1961,7 +1966,7 @@ public Point [] getIconSizes () {
 	};
 }
 
-ImageList getImageList (int style, int width, int height) {
+ImageList getImageList (int style, int width, int height, int currentZoomLevel) {
 	if (imageList == null) imageList = new ImageList [4];
 
 	int i = 0;
@@ -1985,13 +1990,13 @@ ImageList getImageList (int style, int width, int height) {
 		imageList = newList;
 	}
 
-	ImageList list = new ImageList (style, width, height);
+	ImageList list = new ImageList (style, width, height, currentZoomLevel);
 	imageList [i] = list;
 	list.addRef();
 	return list;
 }
 
-ImageList getImageListToolBar (int style, int width, int height) {
+ImageList getImageListToolBar (int style, int width, int height, int currentZoomLevel) {
 	if (toolImageList == null) toolImageList = new ImageList [4];
 
 	int i = 0;
@@ -2015,13 +2020,13 @@ ImageList getImageListToolBar (int style, int width, int height) {
 		toolImageList = newList;
 	}
 
-	ImageList list = new ImageList (style, width, height);
+	ImageList list = new ImageList (style, width, height, currentZoomLevel);
 	toolImageList [i] = list;
 	list.addRef();
 	return list;
 }
 
-ImageList getImageListToolBarDisabled (int style, int width, int height) {
+ImageList getImageListToolBarDisabled (int style, int width, int height, int currentZoomLevel) {
 	if (toolDisabledImageList == null) toolDisabledImageList = new ImageList [4];
 
 	int i = 0;
@@ -2045,13 +2050,13 @@ ImageList getImageListToolBarDisabled (int style, int width, int height) {
 		toolDisabledImageList = newList;
 	}
 
-	ImageList list = new ImageList (style, width, height);
+	ImageList list = new ImageList (style, width, height, currentZoomLevel);
 	toolDisabledImageList [i] = list;
 	list.addRef();
 	return list;
 }
 
-ImageList getImageListToolBarHot (int style, int width, int height) {
+ImageList getImageListToolBarHot (int style, int width, int height, int currentZoomLevel) {
 	if (toolHotImageList == null) toolHotImageList = new ImageList [4];
 
 	int i = 0;
@@ -2075,7 +2080,7 @@ ImageList getImageListToolBarHot (int style, int width, int height) {
 		toolHotImageList = newList;
 	}
 
-	ImageList list = new ImageList (style, width, height);
+	ImageList list = new ImageList (style, width, height, currentZoomLevel);
 	toolHotImageList [i] = list;
 	list.addRef();
 	return list;
@@ -2940,8 +2945,8 @@ boolean isValidThread () {
 public Point map (Control from, Control to, Point point) {
 	checkDevice ();
 	if (point == null) error (SWT.ERROR_NULL_ARGUMENT);
-	point = DPIUtil.autoScaleUp(point);
-	return DPIUtil.autoScaleDown(mapInPixels(from, to, point));
+	point = DPIUtil.autoScaleUp(point, getZoomLevelForMapping(from, to));
+	return DPIUtil.autoScaleDown(mapInPixels(from, to, point), getZoomLevelForMapping(from, to));
 }
 
 Point mapInPixels (Control from, Control to, Point point) {
@@ -2986,9 +2991,9 @@ Point mapInPixels (Control from, Control to, Point point) {
  */
 public Point map (Control from, Control to, int x, int y) {
 	checkDevice ();
-	x = DPIUtil.autoScaleUp(x);
-	y = DPIUtil.autoScaleUp(y);
-	return DPIUtil.autoScaleDown(mapInPixels(from, to, x, y));
+	x = DPIUtil.autoScaleUp(x, getZoomLevelForMapping(from, to));
+	y = DPIUtil.autoScaleUp(y, getZoomLevelForMapping(from, to));
+	return DPIUtil.autoScaleDown(mapInPixels(from, to, x, y), getZoomLevelForMapping(from, to));
 }
 
 Point mapInPixels (Control from, Control to, int x, int y) {
@@ -3002,6 +3007,14 @@ Point mapInPixels (Control from, Control to, int x, int y) {
 	point.y = y;
 	OS.MapWindowPoints (hwndFrom, hwndTo, point, 1);
 	return new Point (point.x, point.y);
+}
+
+private int getZoomLevelForMapping(Control from, Control to) {
+	return Optional.ofNullable(to)
+            .map(Control::getZoom)
+            .orElseGet(() -> Optional.ofNullable(from)
+                    .map(Control::getZoom)
+                    .orElse(0));
 }
 
 /**
@@ -3043,8 +3056,8 @@ Point mapInPixels (Control from, Control to, int x, int y) {
 public Rectangle map (Control from, Control to, Rectangle rectangle) {
 	checkDevice ();
 	if (rectangle == null) error (SWT.ERROR_NULL_ARGUMENT);
-	rectangle = DPIUtil.autoScaleUp(rectangle);
-	return DPIUtil.autoScaleDown(mapInPixels(from, to, rectangle));
+	rectangle = DPIUtil.autoScaleUp(rectangle, getZoomLevelForMapping(from, to));
+	return DPIUtil.autoScaleDown(mapInPixels(from, to, rectangle), getZoomLevelForMapping(from, to));
 }
 
 Rectangle mapInPixels (Control from, Control to, Rectangle rectangle) {
@@ -3091,11 +3104,11 @@ Rectangle mapInPixels (Control from, Control to, Rectangle rectangle) {
  */
 public Rectangle map (Control from, Control to, int x, int y, int width, int height) {
 	checkDevice ();
-	x = DPIUtil.autoScaleUp(x);
-	y = DPIUtil.autoScaleUp(y);
-	width = DPIUtil.autoScaleUp(width);
-	height = DPIUtil.autoScaleUp(height);
-	return DPIUtil.autoScaleDown(mapInPixels(from, to, x, y, width, height));
+	x = DPIUtil.autoScaleUp(x, getZoomLevelForMapping(from, to));
+	y = DPIUtil.autoScaleUp(y, getZoomLevelForMapping(from, to));
+	width = DPIUtil.autoScaleUp(width, getZoomLevelForMapping(from, to));
+	height = DPIUtil.autoScaleUp(height, getZoomLevelForMapping(from, to));
+	return DPIUtil.autoScaleDown(mapInPixels(from, to, x, y, width, height), getZoomLevelForMapping(from, to));
 }
 
 Rectangle mapInPixels (Control from, Control to, int x, int y, int width, int height) {

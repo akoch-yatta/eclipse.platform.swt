@@ -118,6 +118,7 @@ Control () {
 public Control (Composite parent, int style) {
 	super (parent, style);
 	this.parent = parent;
+	this.setZoom(getZoom());
 	createWidget ();
 }
 
@@ -941,7 +942,7 @@ void fillImageBackground (long hDC, Control control, RECT rect, int tx, int ty) 
 	if (control != null) {
 		Image image = control.backgroundImage;
 		if (image != null) {
-			control.drawImageBackground (hDC, handle, image.handle, rect, tx, ty);
+			control.drawImageBackground (hDC, handle, image.getHandleByZoomLevel(getZoom()), rect, tx, ty);
 		}
 	}
 }
@@ -3036,7 +3037,7 @@ void setBackground () {
 	if (control.backgroundImage != null) {
 		Shell shell = getShell ();
 		shell.releaseBrushes ();
-		setBackgroundImage (control.backgroundImage.handle);
+		setBackgroundImage (control.backgroundImage.getHandleByZoomLevel(getZoom()));
 	} else {
 		setBackgroundPixel (control.background == -1 ? control.defaultBackground() : control.background);
 	}
@@ -3658,6 +3659,19 @@ public void setRedraw (boolean redraw) {
 }
 
 /**
+ * @since 3.125
+ */
+@Override
+public void sendEvent(int eventType, Event event, boolean send) {
+	if(event != null && event.gc != null && event.gc.getGCData() != null) {
+		event.gc.getGCData().deviceZoom = getZoom();
+		event.gc.getGCData().nativeDeviceZoom = getShell().getNativeZoom();
+		DPIUtil.setDeviceZoom(getShell().getNativeZoom());
+	}
+	super.sendEvent(eventType, event, send);
+}
+
+/**
  * Sets the shape of the control to the region specified
  * by the argument.  When the argument is null, the
  * default shape of the control is restored.
@@ -3680,7 +3694,7 @@ public void setRegion (Region region) {
 	long hRegion = 0;
 	if (region != null) {
 		hRegion = OS.CreateRectRgn (0, 0, 0, 0);
-		OS.CombineRgn (hRegion, region.handle, hRegion, OS.RGN_OR);
+		OS.CombineRgn (hRegion, region.getHandle(getZoom()), hRegion, OS.RGN_OR);
 	}
 	OS.SetWindowRgn (handle, hRegion, true);
 	this.region = region;
@@ -4558,7 +4572,7 @@ void updateBackgroundColor () {
 void updateBackgroundImage () {
 	Control control = findBackgroundControl ();
 	Image image = control != null ? control.backgroundImage : backgroundImage;
-	setBackgroundImage (image != null ? image.handle : 0);
+	setBackgroundImage (image != null ? image.getHandleByZoomLevel(getZoom()) : 0);
 }
 
 void updateBackgroundMode () {
@@ -5734,7 +5748,7 @@ LRESULT wmColorChild (long wParam, long lParam) {
 		RECT rect = new RECT ();
 		OS.GetClientRect (handle, rect);
 		long hwnd = control.handle;
-		long hBitmap = control.backgroundImage.handle;
+		long hBitmap = control.backgroundImage.getHandleByZoomLevel(getZoom());
 		OS.MapWindowPoints (handle, hwnd, rect, 2);
 		POINT lpPoint = new POINT ();
 		OS.GetWindowOrgEx (wParam, lpPoint);

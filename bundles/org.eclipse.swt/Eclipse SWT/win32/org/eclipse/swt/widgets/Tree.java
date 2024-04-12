@@ -831,6 +831,7 @@ LRESULT CDDS_ITEMPOSTPAINT (NMTVCUSTOMDRAW nmcd, long wParam, long lParam) {
 				int nSavedDC = OS.SaveDC (hDC);
 				GCData data = new GCData ();
 				data.device = display;
+				data.deviceZoom = getZoom();
 				data.font = item.getFont (index);
 				data.foreground = OS.GetTextColor (hDC);
 				data.background = OS.GetBkColor (hDC);
@@ -1050,6 +1051,7 @@ LRESULT CDDS_ITEMPREPAINT (NMTVCUSTOMDRAW nmcd, long wParam, long lParam) {
 			}
 			int nSavedDC = OS.SaveDC (hDC);
 			GCData data = new GCData ();
+			data.deviceZoom = getZoom();
 			data.device = display;
 			if (selected && explorerTheme) {
 				data.foreground = OS.GetSysColor (OS.COLOR_WINDOWTEXT);
@@ -3740,7 +3742,7 @@ int imageIndex (Image image, int index) {
 	if (image == null) return OS.I_IMAGENONE;
 	if (imageList == null) {
 		Rectangle bounds = DPIUtil.autoScaleBounds(image.getBounds(), this.getZoom(), 100);
-		imageList = display.getImageList (style & SWT.RIGHT_TO_LEFT, bounds.width, bounds.height);
+		imageList = display.getImageList (style & SWT.RIGHT_TO_LEFT, bounds.width, bounds.height, getZoom());
 	}
 	int imageIndex = imageList.indexOf (image);
 	if (imageIndex == -1) imageIndex = imageList.add (image);
@@ -3764,7 +3766,7 @@ int imageIndexHeader (Image image) {
 	if (image == null) return OS.I_IMAGENONE;
 	if (headerImageList == null) {
 		Rectangle bounds = DPIUtil.autoScaleBounds(image.getBounds(), this.getZoom(), 100);
-		headerImageList = display.getImageList (style & SWT.RIGHT_TO_LEFT, bounds.width, bounds.height);
+		headerImageList = display.getImageList (style & SWT.RIGHT_TO_LEFT, bounds.width, bounds.height, getZoom());
 		int index = headerImageList.indexOf (image);
 		if (index == -1) index = headerImageList.add (image);
 		long hImageList = headerImageList.getHandle ();
@@ -5791,7 +5793,7 @@ void updateOrientation () {
 	if (imageList != null) {
 		Point size = imageList.getImageSize ();
 		display.releaseImageList (imageList);
-		imageList = display.getImageList (style & SWT.RIGHT_TO_LEFT, size.x, size.y);
+		imageList = display.getImageList (style & SWT.RIGHT_TO_LEFT, size.x, size.y, getZoom());
 		for (TreeItem item : items) {
 			if (item != null) {
 				Image image = item.image;
@@ -5808,7 +5810,7 @@ void updateOrientation () {
 		if (headerImageList != null) {
 			Point size = headerImageList.getImageSize ();
 			display.releaseImageList (headerImageList);
-			headerImageList = display.getImageList (style & SWT.RIGHT_TO_LEFT, size.x, size.y);
+			headerImageList = display.getImageList (style & SWT.RIGHT_TO_LEFT, size.x, size.y, getZoom());
 			if (columns != null) {
 				for (int i = 0; i < columns.length; i++) {
 					TreeColumn column = columns[i];
@@ -7928,12 +7930,7 @@ LRESULT wmNotifyHeader (NMHDR hdr, long wParam, long lParam) {
 							GC gc = GC.win32_new (nmcd.hdc, data);
 							Rectangle imageBounds = DPIUtil.autoScaleBounds(columns[i].image.getBounds(), this.getZoom(), 100);
 							int y = Math.max (0, (nmcd.bottom - imageBounds.height) / 2);
-							gc.drawImage (columns[i].image, DPIUtil.autoScaleDown(x), DPIUtil.autoScaleDown(y));
-							Rectangle scaledBounds = DPIUtil.autoScaleBounds(columns[i].image.getBounds(), getZoom(), 100);
-							x += scaledBounds.width + DPIUtil.autoScaleUp(12, getZoom());
-							gc.drawImage (columns[i].image, DPIUtil.autoScaleDown(x, getZoom()), DPIUtil.autoScaleDown(y, getZoom()));
-							x += scaledBounds.width + DPIUtil.autoScaleUp(12, getZoom());
-							gc.drawImage (columns[i].image, DPIUtil.autoScaleDown(x), DPIUtil.autoScaleDown(y));
+							gc.drawImage (columns[i].image, DPIUtil.autoScaleDown(x, getShell().getZoom()), DPIUtil.autoScaleDown(y, getShell().getZoom()));
 							x += imageBounds.width + 12;
 							gc.dispose ();
 						}
