@@ -1695,16 +1695,11 @@ private static void handleDPIChange(Widget widget, int newZoom, float scalingFac
 
 	Image image = decorations.getImage();
 	if (image != null) {
-		decorations.setImage(Image.win32_new(image, newZoom));
+		decorations.setImage(image);
 	}
 
 	Image[] images = decorations.getImages();
 	if (images != null) {
-		for(Image subImage : images) {
-			if (subImage != null) {
-				Image.win32_new(subImage, newZoom);
-			}
-		}
 		decorations.setImages(images);
 	}
 

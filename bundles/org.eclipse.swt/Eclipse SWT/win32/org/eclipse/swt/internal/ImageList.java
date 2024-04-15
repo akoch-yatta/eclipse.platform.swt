@@ -24,8 +24,8 @@ public class ImageList {
 	Image [] images;
 	final int zoom;
 
-public ImageList (int style, int currentZoomLevel) {
-	this (style, 32, 32, currentZoomLevel);
+public ImageList (int style, int zoom) {
+	this (style, 32, 32, zoom);
 }
 
 public ImageList (int style, int width, int height, int currentZoomLevel) {

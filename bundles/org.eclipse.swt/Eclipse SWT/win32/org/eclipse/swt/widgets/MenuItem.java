@@ -1226,7 +1226,7 @@ private static void handleDPIChange(Widget widget, int newZoom, float scalingFac
 	if (menuItemImage != null) {
 		Image currentImage = menuItemImage;
 		menuItem.image = null;
-		menuItem.setImage (Image.win32_new(currentImage, newZoom));
+		menuItem.setImage (currentImage);
 	}
 	// Refresh the sub menu
 	Menu subMenu = menuItem.getMenu();

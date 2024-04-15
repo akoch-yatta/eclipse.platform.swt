@@ -1552,7 +1552,7 @@ private static void handleDPIChange(Widget widget, int newZoom, float scalingFac
 	}
 	// Refresh the image
 	if (button.image != null) {
-		button._setImage(Image.win32_new(button.image, newZoom));
+		button._setImage(button.image);
 		button.updateImageList();
 	}
 }

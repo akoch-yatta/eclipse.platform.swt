@@ -659,7 +659,7 @@ private static void handleDPIChange(Widget widget, int newZoom, float scalingFac
 
 	Image image = caret.getImage();
 	if (image != null) {
-		caret.setImage(Image.win32_new(image, newZoom));
+		caret.setImage(image);
 	}
 
 	if (caret.font != null) {

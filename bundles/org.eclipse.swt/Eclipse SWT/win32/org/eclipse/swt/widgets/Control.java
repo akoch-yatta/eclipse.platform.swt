@@ -5797,7 +5797,7 @@ private static void handleDPIChange(Widget widget, int newZoom, float scalingFac
 		if (image.isDisposed()) {
 			control.setBackgroundImage(null);
 		} else {
-			control.setBackgroundImage(Image.win32_new(image, newZoom));
+			control.setBackgroundImage(image);
 		}
 	}
 }

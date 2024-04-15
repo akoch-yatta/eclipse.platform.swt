@@ -738,38 +738,45 @@ public Image(Device device, ImageDataProvider imageDataProvider) {
 }
 
 /**
- * Update zoom and refresh the Image based on the native zoom level, if required.
+ * <b>IMPORTANT:</b> This method is not part of the public
+ * API for Image. It is marked public only so that it
+ * can be shared within the packages provided by SWT. It is not
+ * available on all platforms, and should never be called from
+ * application code.
+ *
+ * Updates zoom and refresh the Image based on the native zoom level, if required.
  *
  * @param image the image to get the handle of
- * @param deviceZoomLevel device zoom in % of the monitor on which the image is painted
+ * @param zoom device zoom in % of the monitor on which the image is painted
  *
  * @return true if image is refreshed
- * @since 3.126
+ *
+ * @noreference This method is not intended to be referenced by clients.
  */
-public static Long win32_getHandle (Image image, int deviceZoomLevel) {
+public static Long win32_getHandle (Image image, int zoom) {
 	if(image.isDisposed()) {
 		return image.handle;
 	}
-	if(image.handleMap.get(deviceZoomLevel) != null) {
-		return image.handleMap.get(deviceZoomLevel);
+	if(image.handleMap.get(zoom) != null) {
+		return image.handleMap.get(zoom);
 	}
 
 	if (image.imageFileNameProvider != null) {
-		ElementAtZoom<String> imageCandidate = DPIUtil.validateAndGetImagePathAtZoom (image.imageFileNameProvider, deviceZoomLevel);
-		if (imageCandidate.zoom() == deviceZoomLevel) {
+		ElementAtZoom<String> imageCandidate = DPIUtil.validateAndGetImagePathAtZoom (image.imageFileNameProvider, zoom);
+		if (imageCandidate.zoom() == zoom) {
 			/* Release current native resources */
-			long handle = image.initNative(imageCandidate.element(), deviceZoomLevel);
-			if (handle == 0) image.init(new ImageData (imageCandidate.element()), deviceZoomLevel);
+			long handle = image.initNative(imageCandidate.element(), zoom);
+			if (handle == 0) image.init(new ImageData (imageCandidate.element()), zoom);
 			image.init();
 		} else {
-			ImageData resizedData = DPIUtil.autoScaleImageData (image.device, new ImageData (imageCandidate.element()), deviceZoomLevel, imageCandidate.zoom());
-			image.init(resizedData, deviceZoomLevel);
+			ImageData resizedData = DPIUtil.autoScaleImageData (image.device, new ImageData (imageCandidate.element()), zoom, imageCandidate.zoom());
+			image.init(resizedData, zoom);
 			image.init ();
 		}
 	} else if (image.imageDataProvider != null) {
-		ElementAtZoom<ImageData> imageCandidate = DPIUtil.validateAndGetImageDataAtZoom (image.imageDataProvider, deviceZoomLevel);
-		ImageData resizedData = DPIUtil.autoScaleImageData (image.device, imageCandidate.element(), deviceZoomLevel, imageCandidate.zoom());
-		image.init(resizedData, deviceZoomLevel);
+		ElementAtZoom<ImageData> imageCandidate = DPIUtil.validateAndGetImageDataAtZoom (image.imageDataProvider, zoom);
+		ImageData resizedData = DPIUtil.autoScaleImageData (image.device, imageCandidate.element(), zoom, imageCandidate.zoom());
+		image.init(resizedData, zoom);
 		image.init();
 	} else {
 		if (image.dataAtBaseZoom == null && image.memGC == null) {
@@ -777,12 +784,12 @@ public static Long win32_getHandle (Image image, int deviceZoomLevel) {
 			image.dataAtBaseZoom = new ElementAtZoom<>(image.getImageData(image.getZoom()), image.getZoom());
 		}
 		if (image.dataAtBaseZoom != null) {
-			ImageData resizedData = image.getImageData(deviceZoomLevel);
-			image.init(resizedData, deviceZoomLevel);
+			ImageData resizedData = image.getImageData(zoom);
+			image.init(resizedData, zoom);
 			image.init();
 		}
 	}
-	return image.handleMap.get(deviceZoomLevel);
+	return image.handleMap.get(zoom);
 }
 
 long initNative(String filename, int zoom) {
@@ -2321,30 +2328,6 @@ public static Image win32_new(Device device, int type, long handle) {
 	Image image = new Image(device);
 	image.type = type;
 	image.handle = handle;
-	return image;
-}
-
-/**
- * Invokes platform specific functionality to adapt an image for
- * the correct zoom.
- * <p>
- * <b>IMPORTANT:</b> This method is <em>not</em> part of the public
- * API for <code>Image</code>. It is marked public only so that it
- * can be shared within the packages provided by SWT. It is not
- * available on all platforms, and should never be called from
- * application code.
- * </p>
- *
- * @param image the image to adapt for the provided zoom
- * @param targetZoom zoom in % of the standard resolution
- * @return an image object equal to the specified image scaled to the provided targetZoom
- *
- * @noreference This method is not intended to be referenced by clients.
- */
-public static Image win32_new(Image image, int targetZoom) {
-	if (targetZoom != image.getZoom()) {
-		Image.win32_getHandle(image, DPIUtil.getZoomForAutoscaleProperty(targetZoom));
-	}
 	return image;
 }
 }

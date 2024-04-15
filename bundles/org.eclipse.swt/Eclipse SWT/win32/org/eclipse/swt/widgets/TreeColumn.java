@@ -767,7 +767,7 @@ private static void handleDPIChange(Widget widget, int newZoom, float scalingFac
 	treeColumn.setWidth(Math.round(treeColumn.getWidth() * scalingFactor));
 	Image image = treeColumn.image;
 	if (image != null) {
-		treeColumn.setImage (Image.win32_new(image, newZoom));
+		treeColumn.setImage (image);
 	}
 }
 }

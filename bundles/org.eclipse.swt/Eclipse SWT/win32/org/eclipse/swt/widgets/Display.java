@@ -1965,7 +1965,7 @@ public Point [] getIconSizes () {
 	};
 }
 
-ImageList getImageList (int style, int width, int height, int currentZoomLevel) {
+ImageList getImageList (int style, int width, int height, int zoom) {
 	if (imageList == null) imageList = new ImageList [4];
 
 	int i = 0;
@@ -1989,7 +1989,7 @@ ImageList getImageList (int style, int width, int height, int currentZoomLevel) 
 		imageList = newList;
 	}
 
-	ImageList list = new ImageList (style, width, height, currentZoomLevel);
+	ImageList list = new ImageList (style, width, height, zoom);
 	imageList [i] = list;
 	list.addRef();
 	return list;
