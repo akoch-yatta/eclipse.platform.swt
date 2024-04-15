@@ -3374,7 +3374,7 @@ public void getClipping (Region region) {
 			Gdip.Graphics_SetPixelOffsetMode(gdipGraphics, Gdip.PixelOffsetModeNone);
 			Gdip.Graphics_GetVisibleClipBounds(gdipGraphics, rect);
 			Gdip.Graphics_SetPixelOffsetMode(gdipGraphics, Gdip.PixelOffsetModeHalf);
-			OS.SetRectRgn(region.handle, rect.X, rect.Y, rect.X + rect.Width, rect.Y + rect.Height);
+			OS.SetRectRgn(Region.win32_getHandle(region, getDeviceZoom()), rect.X, rect.Y, rect.X + rect.Width, rect.Y + rect.Height);
 		} else {
 			long matrix = Gdip.Matrix_new(1, 0, 0, 1, 0, 0);
 			long identity = Gdip.Matrix_new(1, 0, 0, 1, 0, 0);
@@ -3387,7 +3387,7 @@ public void getClipping (Region region) {
 			POINT pt = new POINT ();
 			OS.GetWindowOrgEx (handle, pt);
 			OS.OffsetRgn (hRgn, pt.x, pt.y);
-			OS.CombineRgn(region.handle, hRgn, 0, OS.RGN_COPY);
+			OS.CombineRgn(Region.win32_getHandle(region, getDeviceZoom()), hRgn, 0, OS.RGN_COPY);
 			OS.DeleteObject(hRgn);
 		}
 		Gdip.Region_delete(rgn);
@@ -3395,18 +3395,18 @@ public void getClipping (Region region) {
 	}
 	POINT pt = new POINT ();
 	OS.GetWindowOrgEx (handle, pt);
-	int result = OS.GetClipRgn (handle, region.handle);
+	int result = OS.GetClipRgn (handle, Region.win32_getHandle(region, getDeviceZoom()));
 	if (result != 1) {
 		RECT rect = new RECT();
 		OS.GetClipBox(handle, rect);
-		OS.SetRectRgn(region.handle, rect.left, rect.top, rect.right, rect.bottom);
+		OS.SetRectRgn(Region.win32_getHandle(region, getDeviceZoom()), rect.left, rect.top, rect.right, rect.bottom);
 	} else {
-		OS.OffsetRgn (region.handle, pt.x, pt.y);
+		OS.OffsetRgn (Region.win32_getHandle(region, getDeviceZoom()), pt.x, pt.y);
 	}
 	long metaRgn = OS.CreateRectRgn (0, 0, 0, 0);
 	if (OS.GetMetaRgn (handle, metaRgn) != 0) {
 		OS.OffsetRgn (metaRgn, pt.x, pt.y);
-		OS.CombineRgn (region.handle, metaRgn, region.handle, OS.RGN_AND);
+		OS.CombineRgn (Region.win32_getHandle(region, getDeviceZoom()), metaRgn, Region.win32_getHandle(region, getDeviceZoom()), OS.RGN_AND);
 	}
 	OS.DeleteObject(metaRgn);
 	long hwnd = data.hwnd;
@@ -3423,7 +3423,7 @@ public void getClipping (Region region) {
 			}
 			OS.MapWindowPoints (0, hwnd, pt, 1);
 			OS.OffsetRgn (sysRgn, pt.x, pt.y);
-			OS.CombineRgn (region.handle, sysRgn, region.handle, OS.RGN_AND);
+			OS.CombineRgn (Region.win32_getHandle(region, getDeviceZoom()), sysRgn, Region.win32_getHandle(region, getDeviceZoom()), OS.RGN_AND);
 		}
 		OS.DeleteObject(sysRgn);
 	}
@@ -4345,7 +4345,7 @@ public void setClipping (Rectangle rect) {
 public void setClipping (Region region) {
 	if (handle == 0) SWT.error(SWT.ERROR_GRAPHIC_DISPOSED);
 	if (region != null && region.isDisposed()) SWT.error(SWT.ERROR_INVALID_ARGUMENT);
-	setClipping(region != null ? region.handle : 0);
+	setClipping(region != null ? Region.win32_getHandle(region, getDeviceZoom()) : 0);
 }
 
 /**

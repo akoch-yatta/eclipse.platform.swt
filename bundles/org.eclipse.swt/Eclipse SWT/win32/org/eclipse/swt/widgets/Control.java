@@ -3693,7 +3693,7 @@ public void setRegion (Region region) {
 	long hRegion = 0;
 	if (region != null) {
 		hRegion = OS.CreateRectRgn (0, 0, 0, 0);
-		OS.CombineRgn (hRegion, region.handle, hRegion, OS.RGN_OR);
+		OS.CombineRgn (hRegion, Region.win32_getHandle(region, getZoom()), hRegion, OS.RGN_OR);
 	}
 	OS.SetWindowRgn (handle, hRegion, true);
 	this.region = region;
