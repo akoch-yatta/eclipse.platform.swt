@@ -203,7 +203,7 @@ void checkGC(int mask) {
 			if (data.gdipFgBrush != 0) Gdip.SolidBrush_delete(data.gdipFgBrush);
 			data.gdipFgBrush = 0;
 			long brush;
-			Pattern pattern = data.foregroundPattern;
+			Pattern pattern = data.foregroundPattern != null ? data.foregroundPattern.getScaledPattern(getDeviceZoom()) : null;
 			if (pattern != null) {
 				if(data.alpha == 0xFF) {
 					brush = pattern.handle;
@@ -294,7 +294,7 @@ void checkGC(int mask) {
 		if ((state & BACKGROUND) != 0) {
 			if (data.gdipBgBrush != 0) Gdip.SolidBrush_delete(data.gdipBgBrush);
 			data.gdipBgBrush = 0;
-			Pattern pattern = data.backgroundPattern;
+			Pattern pattern = data.backgroundPattern != null ? data.backgroundPattern.getScaledPattern(getDeviceZoom()) : null;
 			if (pattern != null) {
 				if(data.alpha == 0xFF) {
 					data.gdipBrush = pattern.handle;

@@ -13,6 +13,8 @@
  *******************************************************************************/
 package org.eclipse.swt.graphics;
 
+import java.util.*;
+
 import org.eclipse.swt.*;
 import org.eclipse.swt.internal.*;
 import org.eclipse.swt.internal.gdip.*;
@@ -55,6 +57,15 @@ public class Pattern extends Resource {
 
 	private Runnable bitmapDestructor;
 
+	private Image image;
+
+	private float x1, y1, x2, y2;
+	private Color color1, color2;
+	private int alpha1, alpha2;
+	private final boolean isImagePattern;
+
+	private HashMap<Integer, Pattern> scaledPattern = new HashMap<>();
+
 /**
  * Constructs a new Pattern given an image. Drawing with the resulting
  * pattern will cause the image to be tiled over the resulting area.
@@ -85,10 +96,17 @@ public class Pattern extends Resource {
  */
 public Pattern(Device device, Image image) {
 	super(device);
+	isImagePattern = true;
 	if (image == null) SWT.error(SWT.ERROR_NULL_ARGUMENT);
 	if (image.isDisposed()) SWT.error(SWT.ERROR_INVALID_ARGUMENT);
 	this.device.checkGDIP();
-	long[] gdipImage = image.createGdipImage();
+	this.image = image;
+	setImageHandle(image, null);
+	init();
+}
+
+void setImageHandle(Image image, Integer zoomLevel) {
+	long[] gdipImage = image.createGdipImage(zoomLevel);
 	long img = gdipImage[0];
 	int width = Gdip.Image_GetWidth(img);
 	int height = Gdip.Image_GetHeight(img);
@@ -104,7 +122,6 @@ public Pattern(Device device, Image image) {
 		bitmapDestructor.run();
 		SWT.error(SWT.ERROR_NO_HANDLES);
 	}
-	init();
 }
 
 /**
@@ -187,10 +204,60 @@ public Pattern(Device device, float x1, float y1, float x2, float y2, Color colo
  */
 public Pattern(Device device, float x1, float y1, float x2, float y2, Color color1, int alpha1, Color color2, int alpha2) {
 	super(device);
-	x1 = DPIUtil.autoScaleUp(x1);
-	y1 = DPIUtil.autoScaleUp(y1);
-	x2 = DPIUtil.autoScaleUp(x2);
-	y2 = DPIUtil.autoScaleUp(y2);
+	this.x1 = x1;
+	this.x2 = x2;
+	this.y1 = y1;
+	this.y2 = y2;
+	this.color1 = color1;
+	this.color2 = color2;
+	this.alpha1 = alpha1;
+	this.alpha2 = alpha2;
+	this.isImagePattern = false;
+	initializeSize(0);
+}
+
+private Pattern(Device device, int zoomLevel, float x1, float y1, float x2, float y2, Color color1, int alpha1, Color color2, int alpha2) {
+	super(device);
+	this.x1 = x1;
+	this.x2 = x2;
+	this.y1 = y1;
+	this.y2 = y2;
+	this.color1 = color1;
+	this.color2 = color2;
+	this.alpha1 = alpha1;
+	this.alpha2 = alpha2;
+	this.isImagePattern = false;
+	initializeSize(zoomLevel);
+}
+
+Pattern getScaledPattern(int zoomLevel) {
+	if(zoomLevel == this.device.getDeviceZoom()) {
+		return this;
+	}
+	if (this.isImagePattern) {
+		setImageHandle(image, zoomLevel);
+		return this;
+	}
+	if(this.scaledPattern.get(zoomLevel) == null) {
+		Pattern p = new Pattern(this.device, zoomLevel, x1, y1, x2, y2, color1, alpha1, color2, alpha2);
+		this.scaledPattern.put(zoomLevel, p);
+	}
+	return this.scaledPattern.get(zoomLevel);
+}
+
+private void initializeSize(int zoomLevel) {
+	float x1, y1, x2, y2;
+	if(zoomLevel != 0) {
+		x1 = DPIUtil.autoScaleUp(this.x1, zoomLevel);
+		y1 = DPIUtil.autoScaleUp(this.y1, zoomLevel);
+		x2 = DPIUtil.autoScaleUp(this.x2, zoomLevel);
+		y2 = DPIUtil.autoScaleUp(this.y2, zoomLevel);
+	} else {
+		x1 = DPIUtil.autoScaleUp(this.x1);
+		y1 = DPIUtil.autoScaleUp(this.y1);
+		x2 = DPIUtil.autoScaleUp(this.x2);
+		y2 = DPIUtil.autoScaleUp(this.y2);
+	}
 	if (color1 == null) SWT.error(SWT.ERROR_NULL_ARGUMENT);
 	if (color1.isDisposed()) SWT.error(SWT.ERROR_INVALID_ARGUMENT);
 	if (color2 == null) SWT.error(SWT.ERROR_NULL_ARGUMENT);
@@ -224,8 +291,11 @@ public Pattern(Device device, float x1, float y1, float x2, float y2, Color colo
 	init();
 }
 
+
+
 @Override
 void destroy() {
+	this.scaledPattern.values().forEach(Pattern::destroy);
 	int type = Gdip.Brush_GetType(handle);
 	switch (type) {
 		case Gdip.BrushTypeSolidColor:
