@@ -13,6 +13,8 @@
  *******************************************************************************/
 package org.eclipse.swt.graphics;
 
+import java.util.*;
+
 import org.eclipse.swt.*;
 import org.eclipse.swt.internal.*;
 import org.eclipse.swt.internal.gdip.*;
@@ -200,11 +202,6 @@ public Path (Device device, PathData data) {
  */
 public void addArc (float x, float y, float width, float height, float startAngle, float arcAngle) {
 	if (width == 0 || height == 0 || arcAngle == 0) return;
-	Drawable drawable = getDevice();
-	x = DPIUtil.autoScaleUp(drawable, x);
-	y = DPIUtil.autoScaleUp(drawable, y);
-	width = DPIUtil.autoScaleUp(drawable, width);
-	height = DPIUtil.autoScaleUp(drawable, height);
 	addArcInPixels(x, y, width, height, startAngle, arcAngle);
 }
 
@@ -270,11 +267,6 @@ public void addPath(Path path) {
  * </ul>
  */
 public void addRectangle (float x, float y, float width, float height) {
-	Drawable drawable = getDevice();
-	x = DPIUtil.autoScaleUp(drawable, x);
-	y = DPIUtil.autoScaleUp(drawable, y);
-	width = DPIUtil.autoScaleUp(drawable, width);
-	height = DPIUtil.autoScaleUp(drawable, height);
 	addRectangleInPixels(x, y, width, height);
 }
 
@@ -308,9 +300,6 @@ void addRectangleInPixels(float x, float y, float width, float height) {
  * </ul>
  */
 public void addString (String string, float x, float y, Font font) {
-	Drawable drawable = getDevice();
-	x = DPIUtil.autoScaleUp(drawable, x);
-	y = DPIUtil.autoScaleUp(drawable, y);
 	addStringInPixels(string, x, y, font);
 }
 
@@ -381,9 +370,6 @@ public void close() {
  * </ul>
  */
 public boolean contains (float x, float y, GC gc, boolean outline) {
-	Drawable drawable = getDevice();
-	x = DPIUtil.autoScaleUp(drawable, x);
-	y = DPIUtil.autoScaleUp(drawable, y);
 	return containsInPixels(x, y, gc, outline);
 }
 
@@ -418,13 +404,6 @@ boolean containsInPixels(float x, float y, GC gc, boolean outline) {
  * </ul>
  */
 public void cubicTo (float cx1, float cy1, float cx2, float cy2, float x, float y) {
-	Drawable drawable = getDevice();
-	cx1 = DPIUtil.autoScaleUp(drawable, cx1);
-	cy1 = DPIUtil.autoScaleUp(drawable, cy1);
-	cx2 = DPIUtil.autoScaleUp(drawable, cx2);
-	cy2 = DPIUtil.autoScaleUp(drawable, cy2);
-	x = DPIUtil.autoScaleUp(drawable, x);
-	y = DPIUtil.autoScaleUp(drawable, y);
 	cubicToInPixels(cx1, cy1, cx2, cy2, x, y);
 }
 
@@ -436,6 +415,7 @@ void cubicToInPixels(float cx1, float cy1, float cx2, float cy2, float x, float 
 
 @Override
 void destroy() {
+	handleMap.values().forEach(handle -> Gdip.GraphicsPath_delete(handle));
 	Gdip.GraphicsPath_delete(handle);
 	handle = 0;
 }
@@ -458,8 +438,6 @@ void destroy() {
 public void getBounds (float[] bounds) {
 	if (bounds == null) SWT.error(SWT.ERROR_NULL_ARGUMENT);
 	getBoundsInPixels(bounds);
-	float[] scaledbounds= DPIUtil.autoScaleDown(getDevice(), bounds);
-	System.arraycopy(scaledbounds, 0, bounds, 0, 4);
 }
 
 void getBoundsInPixels(float[] bounds) {
@@ -490,8 +468,6 @@ void getBoundsInPixels(float[] bounds) {
 public void getCurrentPoint (float[] point) {
 	if (point == null) SWT.error(SWT.ERROR_NULL_ARGUMENT);
 	getCurrentPointInPixels(point);
-	float[] scaledpoint= DPIUtil.autoScaleDown(getDevice(), point);
-	System.arraycopy(scaledpoint, 0, point, 0, 2);
 }
 
 void getCurrentPointInPixels(float[] point) {
@@ -515,7 +491,6 @@ void getCurrentPointInPixels(float[] point) {
 public PathData getPathData() {
 	if (isDisposed()) SWT.error(SWT.ERROR_GRAPHIC_DISPOSED);
 	PathData result = getPathDataInPixels();
-	result.points = DPIUtil.autoScaleDown(getDevice(), result.points);
 	return result;
 }
 
@@ -576,8 +551,7 @@ PathData getPathDataInPixels() {
  * </ul>
  */
 public void lineTo (float x, float y) {
-	Drawable drawable = getDevice();
-	lineToInPixels(DPIUtil.autoScaleUp(drawable, x), DPIUtil.autoScaleUp(drawable, y));
+	lineToInPixels(x, y);
 }
 
 void lineToInPixels(float x, float y) {
@@ -642,7 +616,7 @@ public boolean isDisposed() {
  */
 public void moveTo (float x, float y) {
 	Drawable drawable = getDevice();
-	moveToInPixels(DPIUtil.autoScaleUp(drawable, x), DPIUtil.autoScaleUp(drawable, y));
+	moveToInPixels(x, y);
 }
 
 void moveToInPixels(float x, float y) {
@@ -665,11 +639,6 @@ void moveToInPixels(float x, float y) {
  * </ul>
  */
 public void quadTo (float cx, float cy, float x, float y) {
-	Drawable drawable = getDevice();
-	cx = DPIUtil.autoScaleUp(drawable, cx);
-	cy = DPIUtil.autoScaleUp(drawable, cy);
-	x = DPIUtil.autoScaleUp(drawable, x);
-	y = DPIUtil.autoScaleUp(drawable, y);
 	quadToInPixels(cx, cy, x, y);
 }
 
@@ -681,6 +650,25 @@ void quadToInPixels(float cx, float cy, float x, float y) {
 	float cy2 = cy1 + (y - currentPoint.Y) / 3;
 	Gdip.GraphicsPath_AddBezier(handle, currentPoint.X, currentPoint.Y, cx1, cy1, cx2, cy2, x, y);
 	Gdip.GraphicsPath_GetLastPoint(handle, currentPoint);
+}
+
+private HashMap<Integer, Long> handleMap = new HashMap<>();
+
+/**
+ * @since 3.126
+ */
+public static long win32_getHandle(Path path, int zoomLevel) {
+	if(zoomLevel == path.device.getDeviceZoom()) {
+		return path.handle;
+	}
+	if(path.handleMap.get(zoomLevel) == null) {
+		PathData pathData = path.getPathDataInPixels();
+		for (int index = 0; index < pathData.points.length; index++) {
+			pathData.points[index] = DPIUtil.autoScaleUp(path.getDevice(), pathData.points[index], zoomLevel);
+		}
+		path.handleMap.put(zoomLevel, new Path(path.getDevice(), pathData).handle);
+	}
+	return path.handleMap.get(zoomLevel);
 }
 
 /**

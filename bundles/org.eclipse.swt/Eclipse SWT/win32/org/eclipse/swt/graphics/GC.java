@@ -1749,12 +1749,12 @@ void drawOvalInPixels (int x, int y, int width, int height) {
 public void drawPath (Path path) {
 	if (handle == 0) SWT.error(SWT.ERROR_GRAPHIC_DISPOSED);
 	if (path == null) SWT.error(SWT.ERROR_NULL_ARGUMENT);
-	if (path.handle == 0) SWT.error(SWT.ERROR_INVALID_ARGUMENT);
+	if (Path.win32_getHandle(path, getDeviceZoom()) == 0) SWT.error(SWT.ERROR_INVALID_ARGUMENT);
 	initGdip();
 	checkGC(DRAW);
 	long gdipGraphics = data.gdipGraphics;
 	Gdip.Graphics_TranslateTransform(gdipGraphics, data.gdipXOffset, data.gdipYOffset, Gdip.MatrixOrderPrepend);
-	Gdip.Graphics_DrawPath(gdipGraphics, data.gdipPen, path.handle);
+	Gdip.Graphics_DrawPath(gdipGraphics, data.gdipPen, Path.win32_getHandle(path, getDeviceZoom()));
 	Gdip.Graphics_TranslateTransform(gdipGraphics, -data.gdipXOffset, -data.gdipYOffset, Gdip.MatrixOrderPrepend);
 }
 
@@ -2922,12 +2922,12 @@ void fillOvalInPixels (int x, int y, int width, int height) {
 public void fillPath (Path path) {
 	if (handle == 0) SWT.error(SWT.ERROR_GRAPHIC_DISPOSED);
 	if (path == null) SWT.error(SWT.ERROR_NULL_ARGUMENT);
-	if (path.handle == 0) SWT.error(SWT.ERROR_INVALID_ARGUMENT);
+	if (Path.win32_getHandle(path, getDeviceZoom()) == 0) SWT.error(SWT.ERROR_INVALID_ARGUMENT);
 	initGdip();
 	checkGC(FILL);
 	int mode = OS.GetPolyFillMode(handle) == OS.WINDING ? Gdip.FillModeWinding : Gdip.FillModeAlternate;
-	Gdip.GraphicsPath_SetFillMode(path.handle, mode);
-	Gdip.Graphics_FillPath(data.gdipGraphics, data.gdipBrush, path.handle);
+	Gdip.GraphicsPath_SetFillMode(Path.win32_getHandle(path, getDeviceZoom()), mode);
+	Gdip.Graphics_FillPath(data.gdipGraphics, data.gdipBrush, Path.win32_getHandle(path, getDeviceZoom()));
 }
 
 /**
@@ -4297,8 +4297,8 @@ public void setClipping (Path path) {
 	if (path != null) {
 		initGdip();
 		int mode = OS.GetPolyFillMode(handle) == OS.WINDING ? Gdip.FillModeWinding : Gdip.FillModeAlternate;
-		Gdip.GraphicsPath_SetFillMode(path.handle, mode);
-		Gdip.Graphics_SetClipPath(data.gdipGraphics, path.handle);
+		Gdip.GraphicsPath_SetFillMode(Path.win32_getHandle(path, getDeviceZoom()), mode);
+		Gdip.Graphics_SetClipPath(data.gdipGraphics, Path.win32_getHandle(path, getDeviceZoom()));
 	}
 }
 
