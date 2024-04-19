@@ -33,6 +33,7 @@ public class CommonWidgetsDPIChangeHandlers {
 
 	public static void registerCommonHandlers() {
 		DPIZoomChangeRegistry.registerHandler(CommonWidgetsDPIChangeHandlers::handleItemDPIChange, Item.class);
+		DPIZoomChangeRegistry.registerHandler(CommonWidgetsDPIChangeHandlers::handleStyledTextDPIChange, StyledText.class);
 	}
 
 	private static void handleItemDPIChange(Widget widget, int newZoom, float scalingFactor) {
@@ -44,5 +45,26 @@ public class CommonWidgetsDPIChangeHandlers {
 		if (image != null) {
 			item.setImage(Image.win32_new(image, newZoom));
 		}
+	}
+
+	private static void handleStyledTextDPIChange(Widget widget, int newZoom, float scalingFactor) {
+		if (!(widget instanceof StyledText)) {
+			return;
+		}
+		StyledText styledText = (StyledText) widget;
+
+
+		DPIZoomChangeRegistry.applyChange(styledText.getCaret(), newZoom, scalingFactor);
+		styledText.getCaret().setSize(styledText.getCaret().prefferedWidth, styledText.getLineHeight());
+
+		DPIZoomChangeRegistry.applyChange(styledText.defaultCaret, newZoom, scalingFactor);
+		styledText.defaultCaret.setSize(styledText.defaultCaret.prefferedWidth, styledText.getLineHeight());
+		for (Caret caret : styledText.carets) {
+			DPIZoomChangeRegistry.applyChange( caret, newZoom, scalingFactor);
+			caret.setSize(caret.prefferedWidth, styledText.getLineHeight());
+		}
+
+		styledText.updateCaretVisibility();
+		styledText.setCaretLocations();
 	}
 }

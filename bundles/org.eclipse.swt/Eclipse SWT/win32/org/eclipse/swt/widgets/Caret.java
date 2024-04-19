@@ -41,6 +41,11 @@ public class Caret extends Widget {
 	/** The Caret last updated on the OS-level */
 	private static Caret currentCaret;
 
+	/**
+	 * @since 3.126
+	 */
+	public int prefferedWidth;
+
 	Canvas parent;
 	int x, y, width, height;
 	boolean moved, resized;
@@ -589,6 +594,7 @@ public void setLocation (Point location) {
  */
 public void setSize (int width, int height) {
 	checkWidget();
+	this.prefferedWidth = width;
 	setSizeInPixels(DPIUtil.autoScaleUp(width, getZoom()), DPIUtil.autoScaleUp(height, getZoom()));
 }
 
