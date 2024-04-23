@@ -21,6 +21,7 @@ import java.util.List;
 
 import org.eclipse.swt.*;
 import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.internal.*;
 import org.eclipse.swt.widgets.*;
 
 /**
@@ -411,9 +412,6 @@ void copyInto(StyledTextRenderer renderer) {
 	}
 }
 void dispose() {
-	if (boldFont != null) boldFont.dispose();
-	if (italicFont != null) italicFont.dispose();
-	if (boldItalicFont != null) boldItalicFont.dispose();
 	boldFont = italicFont = boldItalicFont = null;
 	reset();
 	content = null;
@@ -635,17 +633,19 @@ int getBaseline() {
 int getCachedLineHeight(int lineIndex) {
 	return getLineHeight(lineIndex, false);
 }
+
+// TODO: This change affects all OS. Validate that there are no issues with this change
 Font getFont(int style) {
 	switch (style) {
 		case SWT.BOLD:
 			if (boldFont != null) return boldFont;
-			return boldFont = new Font(device, getFontData(style));
+			return boldFont = SWTFontProvider.getFont(device, getFontData(style)[0], styledText.zoom);
 		case SWT.ITALIC:
 			if (italicFont != null) return italicFont;
-			return italicFont = new Font(device, getFontData(style));
+			return italicFont = SWTFontProvider.getFont(device, getFontData(style)[0], styledText.zoom);
 		case SWT.BOLD | SWT.ITALIC:
 			if (boldItalicFont != null) return boldItalicFont;
-			return boldItalicFont = new Font(device, getFontData(style));
+			return boldItalicFont = SWTFontProvider.getFont(device, getFontData(style)[0], styledText.zoom);
 		default:
 			return regularFont;
 	}
@@ -1470,9 +1470,6 @@ void setFont(Font font, int tabs) {
 	layout.setFont(regularFont);
 	tabLength = tabs;
 	if (font != null) {
-		if (boldFont != null) boldFont.dispose();
-		if (italicFont != null) italicFont.dispose();
-		if (boldItalicFont != null) boldItalicFont.dispose();
 		boldFont = italicFont = boldItalicFont = null;
 		regularFont = font;
 		layout.setText("    ");
@@ -1484,9 +1481,6 @@ void setFont(Font font, int tabs) {
 		FontMetrics metrics = layout.getLineMetrics(0);
 		ascent = metrics.getAscent() + metrics.getLeading();
 		descent = metrics.getDescent();
-		boldFont.dispose();
-		italicFont.dispose();
-		boldItalicFont.dispose();
 		boldFont = italicFont = boldItalicFont = null;
 	}
 	layout.dispose();

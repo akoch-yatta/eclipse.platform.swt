@@ -4392,7 +4392,7 @@ public void setFillRule(int rule) {
 public void setFont (Font font) {
 	if (handle == 0) SWT.error(SWT.ERROR_GRAPHIC_DISPOSED);
 	if (font != null && font.isDisposed()) SWT.error(SWT.ERROR_INVALID_ARGUMENT);
-	data.font = font != null ? Font.win32_new(font, DPIUtil.getNativeDeviceZoom()) : data.device.systemFont;
+	data.font = font != null ? Font.win32_new(font, getNativeDeviceZoom()) : data.device.systemFont;
 	data.state &= ~FONT;
 }
 
@@ -5129,6 +5129,11 @@ private static int sin(int angle, int length) {
 private int getDeviceZoom() {
 	return data.deviceZoom != 0 ? data.deviceZoom : DPIUtil.getDeviceZoom();
 }
+
+private int getNativeDeviceZoom() {
+	return data.nativeDeviceZoom != 0 ? data.nativeDeviceZoom : DPIUtil.getNativeDeviceZoom();
+}
+
 
 private Integer getDeviceZoomNullable() {
 	return getDeviceZoom() != 0 ? getDeviceZoom() : null;

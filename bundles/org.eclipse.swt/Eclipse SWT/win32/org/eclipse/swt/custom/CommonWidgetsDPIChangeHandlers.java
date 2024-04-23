@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2024 Yatta Solutions and others.
+ * Copyright (c) 2000, 2024 Yatta Solutions and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -32,18 +32,72 @@ import org.eclipse.swt.widgets.*;
 public class CommonWidgetsDPIChangeHandlers {
 
 	public static void registerCommonHandlers() {
+		DPIZoomChangeRegistry.registerHandler(CommonWidgetsDPIChangeHandlers::handleCComboDPIChange, CCombo.class);
+		DPIZoomChangeRegistry.registerHandler(CommonWidgetsDPIChangeHandlers::handleCTabFolderDPIChange, CTabFolder.class);
+		DPIZoomChangeRegistry.registerHandler(CommonWidgetsDPIChangeHandlers::handleCTabItemDPIChange, CTabItem.class);
 		DPIZoomChangeRegistry.registerHandler(CommonWidgetsDPIChangeHandlers::handleItemDPIChange, Item.class);
 		DPIZoomChangeRegistry.registerHandler(CommonWidgetsDPIChangeHandlers::handleStyledTextDPIChange, StyledText.class);
 	}
 
 	private static void handleItemDPIChange(Widget widget, int newZoom, float scalingFactor) {
-		if (!(widget instanceof Item item)) {
+		if (!(widget instanceof Item)) {
 			return;
 		}
+		Item item = (Item) widget;
+
 		// Refresh the image
 		Image image = item.getImage();
 		if (image != null) {
-			item.setImage(Image.win32_new(image, newZoom));
+			Image.win32_getHandle(image, newZoom);
+			item.setImage(image);
+		}
+	}
+
+
+	private static void handleCComboDPIChange(Widget widget, int newZoom, float scalingFactor) {
+		if (!(widget instanceof CCombo)) {
+			return;
+		}
+		CCombo combo = (CCombo) widget;
+		List list = combo.list;
+		String [] items = list.getItems();
+		list.dispose();
+		combo.createPopup(items, -1);
+
+		DPIZoomChangeRegistry.applyChange(combo.text, newZoom, scalingFactor);
+		DPIZoomChangeRegistry.applyChange(combo.list, newZoom, scalingFactor);
+		DPIZoomChangeRegistry.applyChange(combo.arrow, newZoom, scalingFactor);
+	}
+
+	private static void handleCTabFolderDPIChange(Widget widget, int newZoom, float scalingFactor) {
+		if (!(widget instanceof CTabFolder)) {
+			return;
+		}
+		CTabFolder cTabFolder = (CTabFolder) widget;
+
+		for (CTabItem item : cTabFolder.getItems()) {
+			DPIZoomChangeRegistry.applyChange(item, newZoom, scalingFactor);
+		}
+		cTabFolder.updateFolder(CTabFolder.UPDATE_TAB_HEIGHT | CTabFolder.REDRAW_TABS);
+	}
+
+	private static void handleCTabItemDPIChange(Widget widget, int newZoom, float scalingFactor) {
+		if (!(widget instanceof CTabItem)) {
+			return;
+		}
+		CTabItem item = (CTabItem) widget;
+		Font itemFont = item.font;
+		if (itemFont != null) {
+			item.setFont(itemFont);
+		}
+		Image itemImage = item.getImage();
+		if (itemImage != null) {
+			Image.win32_getHandle(itemImage, newZoom);
+
+		}
+		Image itemDisabledImage = item.getDisabledImage();
+		if (itemDisabledImage != null) {
+			Image.win32_getHandle(itemDisabledImage, newZoom);
 		}
 	}
 

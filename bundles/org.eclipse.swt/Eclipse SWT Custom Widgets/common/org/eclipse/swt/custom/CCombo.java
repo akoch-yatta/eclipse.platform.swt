@@ -21,6 +21,7 @@ import org.eclipse.swt.*;
 import org.eclipse.swt.accessibility.*;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.internal.*;
 import org.eclipse.swt.widgets.*;
 
 /**
@@ -1579,9 +1580,9 @@ public boolean setFocus () {
 @Override
 public void setFont (Font font) {
 	super.setFont (font);
-	this.font = font;
-	text.setFont (font);
-	list.setFont (font);
+	this.font = SWTFontProvider.getFont(getDisplay(), font.getFontData()[0], zoom);
+	text.setFont (this.font);
+	list.setFont (this.font);
 	internalLayout (true);
 }
 @Override

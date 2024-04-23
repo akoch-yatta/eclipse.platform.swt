@@ -618,7 +618,7 @@ public void translate (Point pt) {
 private HashMap<Integer, Long> handleMap = new HashMap<>();
 
 /**
- * @since 3.125
+ * @since 3.126
  */
 public static long win32_getHandle(Region region, int zoomLevel) {
 	if(zoomLevel == region.device.getDeviceZoom()) {

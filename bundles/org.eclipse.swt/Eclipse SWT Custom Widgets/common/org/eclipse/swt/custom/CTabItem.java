@@ -16,6 +16,7 @@ package org.eclipse.swt.custom;
 
 import org.eclipse.swt.*;
 import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.internal.*;
 import org.eclipse.swt.widgets.*;
 
 /**
@@ -401,8 +402,10 @@ public void setFont (Font font){
 		SWT.error(SWT.ERROR_INVALID_ARGUMENT);
 	}
 	if (font == null && this.font == null) return;
-	if (font != null && font.equals(this.font)) return;
-	this.font = font;
+
+	Font adjustedFont = font == null ? null : SWTFontProvider.getFont(getDisplay(), font.getFontData()[0], zoom);;
+	if (adjustedFont != null && adjustedFont.equals(this.font)) return;
+	this.font = adjustedFont;
 	parent.updateFolder(CTabFolder.UPDATE_TAB_HEIGHT | CTabFolder.REDRAW_TABS);
 }
 
