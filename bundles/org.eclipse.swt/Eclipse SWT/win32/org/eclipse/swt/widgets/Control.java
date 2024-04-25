@@ -3414,17 +3414,17 @@ public boolean setFocus () {
  */
 public void setFont (Font font) {
 	checkWidget ();
+	long hFont = 0;
 	Font newFont = font;
 	if (newFont != null) {
 		if (newFont.isDisposed()) error(SWT.ERROR_INVALID_ARGUMENT);
 		newFont = Font.win32_new(newFont, getShell().getNativeZoom());
 	}
-	long hFont = 0;
-	if (font != null) {
-		if (font.isDisposed()) error(SWT.ERROR_INVALID_ARGUMENT);
-		hFont = font.handle;
+	if (newFont != null) {
+		if (newFont.isDisposed()) error(SWT.ERROR_INVALID_ARGUMENT);
+		hFont = newFont.handle;
 	}
-	this.font = font;
+	this.font = newFont;
 	if (hFont == 0) hFont = defaultFont ();
 	OS.SendMessage (handle, OS.WM_SETFONT, hFont, 1);
 }
