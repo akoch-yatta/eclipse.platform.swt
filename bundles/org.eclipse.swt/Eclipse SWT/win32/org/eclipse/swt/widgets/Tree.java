@@ -4567,7 +4567,7 @@ Event sendMeasureItemEvent (TreeItem item, int index, long hDC, int detail) {
 			}
 		}
 	}
-	if (rect.height > getItemHeightInPixels ()) setItemHeight (rect.height);
+	//if (rect.height > getItemHeightInPixels ()) //setItemHeight (rect.height);
 	return event;
 }
 
@@ -8285,7 +8285,7 @@ private static void handleDPIChange(Widget widget, int newZoom, float scalingFac
 	if (tree.hooks(SWT.MeasureItem)) {
 		// with the measure item hook, the height must be programmatically recalculated
 		var itemHeight = tree.getItemHeightInPixels();
-		tree.setItemHeight(Math.round(itemHeight * scalingFactor));
+		// tree.setItemHeight(Math.round(itemHeight * scalingFactor));
 	}
 	for (TreeColumn treeColumn : tree.getColumns()) {
 		DPIZoomChangeRegistry.applyChange(treeColumn, newZoom, scalingFactor);
