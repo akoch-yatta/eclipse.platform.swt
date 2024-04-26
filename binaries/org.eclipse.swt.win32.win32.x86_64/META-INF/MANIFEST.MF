@@ -1,5 +1,13 @@
 Manifest-Version: 1.0
 Fragment-Host: org.eclipse.swt;bundle-version="[3.125.100,4.0.0)"
+Import-Package: net.bytebuddy;version="[1.14.0,2.0.0]",
+ net.bytebuddy.agent;version="[1.14.0,2.0.0]",
+ org.junit;version="[4.13.0,5.0.0]",
+ org.mockito;version="5.11.0"
+Require-Bundle: net.bytebuddy.byte-buddy;bundle-version="1.14.12",
+ net.bytebuddy.byte-buddy-agent;bundle-version="1.14.12",
+ org.mockito.mockito-core;bundle-version="5.11.0",
+ org.junit;bundle-version="4.13.2"
 Bundle-Name: %fragmentName
 Bundle-Vendor: %providerName
 Bundle-SymbolicName: org.eclipse.swt.win32.win32.x86_64; singleton:=true

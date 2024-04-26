@@ -52,7 +52,10 @@ import org.eclipse.swt.internal.win32.*;
  */
 public abstract class Widget {
 
-	private int zoom;
+	/**
+	 * @since 3.126
+	 */
+	public int zoom;
 	int style, state;
 	Display display;
 	EventTable eventTable;
