@@ -1957,7 +1957,8 @@ public boolean getJustify () {
 long getItemFont (StyleItem item) {
 	if (item.fallbackFont != 0) return item.fallbackFont;
 	if (item.style != null && item.style.font != null) {
-		return item.style.font.handle;
+		Integer zoom = this.font != null ? font.zoom : DPIUtil.getNativeDeviceZoom();
+		return Font.win32_new(item.style.font, zoom).handle;
 	}
 	if (this.font != null) {
 		return this.font.handle;
