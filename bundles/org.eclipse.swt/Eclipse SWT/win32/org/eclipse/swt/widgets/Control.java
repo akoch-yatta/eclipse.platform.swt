@@ -941,7 +941,7 @@ void fillImageBackground (long hDC, Control control, RECT rect, int tx, int ty) 
 	if (control != null) {
 		Image image = control.backgroundImage;
 		if (image != null) {
-			control.drawImageBackground (hDC, handle, image.handle, rect, tx, ty);
+			control.drawImageBackground (hDC, handle, Image.win32_getHandle(image, getZoom()), rect, tx, ty);
 		}
 	}
 }
@@ -3036,7 +3036,7 @@ void setBackground () {
 	if (control.backgroundImage != null) {
 		Shell shell = getShell ();
 		shell.releaseBrushes ();
-		setBackgroundImage (control.backgroundImage.handle);
+		setBackgroundImage (Image.win32_getHandle(control.backgroundImage, getZoom()));
 	} else {
 		setBackgroundPixel (control.background == -1 ? control.defaultBackground() : control.background);
 	}
@@ -3655,6 +3655,19 @@ public void setRedraw (boolean redraw) {
 			if (handle != topHandle) OS.SendMessage (handle, OS.WM_SETREDRAW, 0, 0);
 		}
 	}
+}
+
+/**
+ * @since 3.125
+ */
+@Override
+void sendEvent(int eventType, Event event, boolean send) {
+	if(event != null && event.gc != null && event.gc.getGCData() != null) {
+		event.gc.getGCData().deviceZoom = getZoom();
+		event.gc.getGCData().nativeDeviceZoom = getShell().getNativeZoom();
+		DPIUtil.setDeviceZoom(getShell().getNativeZoom());
+	}
+	super.sendEvent(eventType, event, send);
 }
 
 /**
@@ -4558,7 +4571,7 @@ void updateBackgroundColor () {
 void updateBackgroundImage () {
 	Control control = findBackgroundControl ();
 	Image image = control != null ? control.backgroundImage : backgroundImage;
-	setBackgroundImage (image != null ? image.handle : 0);
+	setBackgroundImage (image != null ? Image.win32_getHandle(image, getZoom()) : 0);
 }
 
 void updateBackgroundMode () {
@@ -5734,7 +5747,7 @@ LRESULT wmColorChild (long wParam, long lParam) {
 		RECT rect = new RECT ();
 		OS.GetClientRect (handle, rect);
 		long hwnd = control.handle;
-		long hBitmap = control.backgroundImage.handle;
+		long hBitmap = Image.win32_getHandle(control.backgroundImage, getZoom());
 		OS.MapWindowPoints (handle, hwnd, rect, 2);
 		POINT lpPoint = new POINT ();
 		OS.GetWindowOrgEx (wParam, lpPoint);
