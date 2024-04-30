@@ -831,6 +831,7 @@ LRESULT CDDS_ITEMPOSTPAINT (NMTVCUSTOMDRAW nmcd, long wParam, long lParam) {
 				int nSavedDC = OS.SaveDC (hDC);
 				GCData data = new GCData ();
 				data.device = display;
+				data.deviceZoom = getZoom();
 				data.font = item.getFont (index);
 				data.foreground = OS.GetTextColor (hDC);
 				data.background = OS.GetBkColor (hDC);
@@ -1050,6 +1051,7 @@ LRESULT CDDS_ITEMPREPAINT (NMTVCUSTOMDRAW nmcd, long wParam, long lParam) {
 			}
 			int nSavedDC = OS.SaveDC (hDC);
 			GCData data = new GCData ();
+			data.deviceZoom = getZoom();
 			data.device = display;
 			if (selected && explorerTheme) {
 				data.foreground = OS.GetSysColor (OS.COLOR_WINDOWTEXT);

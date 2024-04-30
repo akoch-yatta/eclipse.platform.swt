@@ -43,6 +43,8 @@ public final class FontMetrics {
 	 */
 	public TEXTMETRIC handle;
 
+	private int deviceZoom;
+
 /**
  * Prevents instances from being created outside the package.
  */
@@ -95,7 +97,7 @@ public boolean equals (Object object) {
  * @return the ascent of the font
  */
 public int getAscent() {
-	return DPIUtil.autoScaleDown(handle.tmAscent - handle.tmInternalLeading);
+	return DPIUtil.autoScaleDown(handle.tmAscent - handle.tmInternalLeading, deviceZoom);
 }
 
 /**
@@ -118,7 +120,7 @@ public double getAverageCharacterWidth() {
  */
 @Deprecated
 public int getAverageCharWidth() {
-	return DPIUtil.autoScaleDown(handle.tmAveCharWidth);
+	return DPIUtil.autoScaleDown(handle.tmAveCharWidth, deviceZoom);
 }
 
 /**
@@ -130,7 +132,7 @@ public int getAverageCharWidth() {
  * @return the descent of the font
  */
 public int getDescent() {
-	return DPIUtil.autoScaleDown(handle.tmDescent);
+	return DPIUtil.autoScaleDown(handle.tmDescent, deviceZoom);
 }
 
 /**
@@ -145,7 +147,7 @@ public int getDescent() {
  * @see #getLeading
  */
 public int getHeight() {
-	return DPIUtil.autoScaleDown(handle.tmHeight);
+	return DPIUtil.autoScaleDown(handle.tmHeight, deviceZoom);
 }
 
 /**
@@ -208,9 +210,10 @@ public int hashCode() {
  *
  * @noreference This method is not intended to be referenced by clients.
  */
-public static FontMetrics win32_new(TEXTMETRIC handle) {
+public static FontMetrics win32_new(TEXTMETRIC handle, int deviceZoom) {
 	FontMetrics fontMetrics = new FontMetrics();
 	fontMetrics.handle = handle;
+	fontMetrics.deviceZoom = deviceZoom;
 	return fontMetrics;
 }
 
