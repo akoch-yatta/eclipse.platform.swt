@@ -1519,6 +1519,7 @@ LRESULT WM_PAINT (long wParam, long lParam) {
 				long hBufferedPaint = OS.BeginBufferedPaint (hDC, prcTarget, flags, null, phdc);
 				GCData data = new GCData ();
 				data.device = display;
+				data.deviceZoom = getZoom();
 				data.foreground = getForegroundPixel ();
 				Control control = findBackgroundControl ();
 				if (control == null) control = this;
@@ -1536,6 +1537,7 @@ LRESULT WM_PAINT (long wParam, long lParam) {
 				GC gc = GC.win32_new (phdc [0], data);
 				Event event = new Event ();
 				event.gc = gc;
+				event.widget = this;
 				event.setBoundsInPixels(new Rectangle(ps.left, ps.top, width, height));
 				sendEvent (SWT.Paint, event);
 				if (data.focusDrawn && !isDisposed ()) updateUIState ();
@@ -1547,6 +1549,7 @@ LRESULT WM_PAINT (long wParam, long lParam) {
 
 			/* Create the paint GC */
 			GCData data = new GCData ();
+			data.deviceZoom = getZoom();
 			data.ps = ps;
 			data.hwnd = handle;
 			GC gc = GC.win32_new (this, data);
@@ -1581,6 +1584,7 @@ LRESULT WM_PAINT (long wParam, long lParam) {
 					paintGC = gc;
 					gc = new GC (image, paintGC.getStyle() & SWT.RIGHT_TO_LEFT);
 					GCData gcData = gc.getGCData ();
+					gcData.deviceZoom = getZoom();
 					gcData.uiState = data.uiState;
 					gc.setForeground (getForeground ());
 					gc.setBackground (getBackground ());

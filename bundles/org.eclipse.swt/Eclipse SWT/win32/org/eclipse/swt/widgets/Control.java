@@ -118,6 +118,7 @@ Control () {
 public Control (Composite parent, int style) {
 	super (parent, style);
 	this.parent = parent;
+	this.setZoom(getZoom());
 	createWidget ();
 }
 
@@ -3655,6 +3656,19 @@ public void setRedraw (boolean redraw) {
 			if (handle != topHandle) OS.SendMessage (handle, OS.WM_SETREDRAW, 0, 0);
 		}
 	}
+}
+
+/**
+ * @since 3.125
+ */
+@Override
+void sendEvent(int eventType, Event event, boolean send) {
+	if(event != null && event.gc != null && event.gc.getGCData() != null) {
+		event.gc.getGCData().deviceZoom = getZoom();
+		event.gc.getGCData().nativeDeviceZoom = getShell().getNativeZoom();
+		DPIUtil.setDeviceZoom(getShell().getNativeZoom());
+	}
+	super.sendEvent(eventType, event, send);
 }
 
 /**

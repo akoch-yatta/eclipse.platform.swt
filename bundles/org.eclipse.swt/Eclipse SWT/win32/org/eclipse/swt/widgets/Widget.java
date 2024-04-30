@@ -52,7 +52,10 @@ import org.eclipse.swt.internal.win32.*;
  */
 public abstract class Widget {
 
-	private int zoom;
+	/**
+	 * @since 3.126
+	 */
+	public int zoom;
 	int style, state;
 	Display display;
 	EventTable eventTable;
@@ -1220,6 +1223,7 @@ boolean sendMouseEvent (int type, int button, long hwnd, long lParam) {
 boolean sendMouseEvent (int type, int button, int count, int detail, boolean send, long hwnd, long lParam) {
 	if (!hooks (type) && !filters (type)) return true;
 	Event event = new Event ();
+	event.widget = this;
 	event.button = button;
 	event.detail = detail;
 	event.count = count;
