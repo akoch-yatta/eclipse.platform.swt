@@ -14,6 +14,8 @@
 package org.eclipse.swt.graphics;
 
 
+import java.util.*;
+
 import org.eclipse.swt.*;
 import org.eclipse.swt.internal.*;
 import org.eclipse.swt.internal.win32.*;
@@ -46,6 +48,8 @@ public final class Region extends Resource {
 	 * @noreference This field is not intended to be referenced by clients.
 	 */
 	public long handle;
+
+	private int initalZoom;
 
 /**
  * Constructs a new empty region.
@@ -84,7 +88,9 @@ public Region () {
  */
 public Region (Device device) {
 	super(device);
+	initalZoom = DPIUtil.getDeviceZoom();
 	handle = OS.CreateRectRgn (0, 0, 0, 0);
+	handleMap.put(initalZoom, handle);
 	if (handle == 0) SWT.error(SWT.ERROR_NO_HANDLES);
 	init();
 }
@@ -118,7 +124,7 @@ Region(Device device, int handle) {
 public void add (int[] pointArray) {
 	if (isDisposed()) SWT.error(SWT.ERROR_GRAPHIC_DISPOSED);
 	if (pointArray == null) SWT.error(SWT.ERROR_NULL_ARGUMENT);
-	addInPixels(DPIUtil.autoScaleUp(pointArray));
+	addInPixels(DPIUtil.autoScaleUp(pointArray, initalZoom));
 }
 
 void addInPixels (int[] pointArray) {
@@ -144,8 +150,8 @@ void addInPixels (int[] pointArray) {
 public void add (Rectangle rect) {
 	if (isDisposed()) SWT.error(SWT.ERROR_GRAPHIC_DISPOSED);
 	if (rect == null) SWT.error(SWT.ERROR_NULL_ARGUMENT);
-	rect = DPIUtil.autoScaleUp(rect);
-	addInPixels(rect.x, rect.y, rect.width, rect.height);
+	Rectangle r = DPIUtil.autoScaleUp(rect, initalZoom);
+	addInPixels(r.x, r.y, r.width, r.height);
 }
 
 /**
@@ -168,7 +174,7 @@ public void add (Rectangle rect) {
  */
 public void add (int x, int y, int width, int height) {
 	if (isDisposed()) SWT.error(SWT.ERROR_GRAPHIC_DISPOSED);
-	addInPixels(DPIUtil.autoScaleUp(x), DPIUtil.autoScaleUp(y), DPIUtil.autoScaleUp(width), DPIUtil.autoScaleUp(height));
+	addInPixels(DPIUtil.autoScaleUp(x, initalZoom), DPIUtil.autoScaleUp(y, initalZoom), DPIUtil.autoScaleUp(width, initalZoom), DPIUtil.autoScaleUp(height, initalZoom));
 }
 
 void addInPixels (int x, int y, int width, int height) {
@@ -215,7 +221,7 @@ public void add (Region region) {
  */
 public boolean contains (int x, int y) {
 	if (isDisposed()) SWT.error(SWT.ERROR_GRAPHIC_DISPOSED);
-	return containsInPixels(DPIUtil.autoScaleUp(x), DPIUtil.autoScaleUp(y));
+	return containsInPixels(DPIUtil.autoScaleUp(x, initalZoom), DPIUtil.autoScaleUp(y, initalZoom));
 }
 
 boolean containsInPixels (int x, int y) {
@@ -240,12 +246,13 @@ boolean containsInPixels (int x, int y) {
 public boolean contains (Point pt) {
 	if (isDisposed()) SWT.error(SWT.ERROR_GRAPHIC_DISPOSED);
 	if (pt == null) SWT.error(SWT.ERROR_NULL_ARGUMENT);
-	pt = DPIUtil.autoScaleUp(pt);
-	return containsInPixels(pt.x, pt.y);
+	Point p = DPIUtil.autoScaleUp(pt, initalZoom);
+	return containsInPixels(p.x, p.y);
 }
 
 @Override
 void destroy () {
+	handleMap.values().forEach(handle -> OS.DeleteObject(handle));
 	OS.DeleteObject(handle);
 	handle = 0;
 }
@@ -283,7 +290,7 @@ public boolean equals (Object object) {
  */
 public Rectangle getBounds () {
 	if (isDisposed()) SWT.error(SWT.ERROR_GRAPHIC_DISPOSED);
-	return DPIUtil.autoScaleDown(getBoundsInPixels());
+	return DPIUtil.autoScaleDown(getBoundsInPixels(), initalZoom);
 }
 
 Rectangle getBoundsInPixels() {
@@ -326,8 +333,8 @@ public int hashCode () {
 public void intersect (Rectangle rect) {
 	if (isDisposed()) SWT.error(SWT.ERROR_GRAPHIC_DISPOSED);
 	if (rect == null) SWT.error(SWT.ERROR_NULL_ARGUMENT);
-	rect = DPIUtil.autoScaleUp(rect);
-	intersectInPixels(rect.x, rect.y, rect.width, rect.height);
+	Rectangle r = DPIUtil.autoScaleUp(rect, initalZoom);
+	intersectInPixels(r.x, r.y, r.width, r.height);
 }
 
 /**
@@ -350,7 +357,7 @@ public void intersect (Rectangle rect) {
  */
 public void intersect (int x, int y, int width, int height) {
 	if (isDisposed()) SWT.error(SWT.ERROR_GRAPHIC_DISPOSED);
-	intersectInPixels(DPIUtil.autoScaleUp(x), DPIUtil.autoScaleUp(y), DPIUtil.autoScaleUp(width), DPIUtil.autoScaleUp(height));
+	intersectInPixels(DPIUtil.autoScaleUp(x, initalZoom), DPIUtil.autoScaleUp(y, initalZoom), DPIUtil.autoScaleUp(width, initalZoom), DPIUtil.autoScaleUp(height, initalZoom));
 }
 
 void intersectInPixels (int x, int y, int width, int height) {
@@ -403,7 +410,7 @@ public void intersect (Region region) {
  */
 public boolean intersects (int x, int y, int width, int height) {
 	if (isDisposed()) SWT.error(SWT.ERROR_GRAPHIC_DISPOSED);
-	return 	intersectsInPixels(DPIUtil.autoScaleUp(x), DPIUtil.autoScaleUp(y), DPIUtil.autoScaleUp(width), DPIUtil.autoScaleUp(height));
+	return 	intersectsInPixels(DPIUtil.autoScaleUp(x, initalZoom), DPIUtil.autoScaleUp(y, initalZoom), DPIUtil.autoScaleUp(width, initalZoom), DPIUtil.autoScaleUp(height, initalZoom));
 }
 
 boolean intersectsInPixels (int x, int y, int width, int height) {
@@ -432,8 +439,8 @@ boolean intersectsInPixels (int x, int y, int width, int height) {
 public boolean intersects (Rectangle rect) {
 	if (isDisposed()) SWT.error(SWT.ERROR_GRAPHIC_DISPOSED);
 	if (rect == null) SWT.error(SWT.ERROR_NULL_ARGUMENT);
-	rect = DPIUtil.autoScaleUp(rect);
-	return intersectsInPixels(rect.x, rect.y, rect.width, rect.height);
+	Rectangle r = DPIUtil.autoScaleUp(rect, initalZoom);
+	return intersectsInPixels(r.x, r.y, r.width, r.height);
 }
 
 /**
@@ -488,7 +495,7 @@ public boolean isEmpty () {
 public void subtract (int[] pointArray) {
 	if (isDisposed()) SWT.error(SWT.ERROR_GRAPHIC_DISPOSED);
 	if (pointArray == null) SWT.error(SWT.ERROR_NULL_ARGUMENT);
-	subtractInPixels(DPIUtil.autoScaleUp(pointArray));
+	subtractInPixels(DPIUtil.autoScaleUp(pointArray, initalZoom));
 }
 
 void subtractInPixels (int[] pointArray) {
@@ -516,8 +523,8 @@ void subtractInPixels (int[] pointArray) {
 public void subtract (Rectangle rect) {
 	if (isDisposed()) SWT.error(SWT.ERROR_GRAPHIC_DISPOSED);
 	if (rect == null) SWT.error(SWT.ERROR_NULL_ARGUMENT);
-	rect = DPIUtil.autoScaleUp(rect);
-	subtractInPixels(rect.x, rect.y, rect.width, rect.height);
+	Rectangle r = DPIUtil.autoScaleUp(rect, initalZoom);
+	subtractInPixels(r.x, r.y, r.width, r.height);
 }
 
 /**
@@ -540,7 +547,7 @@ public void subtract (Rectangle rect) {
  */
 public void subtract (int x, int y, int width, int height) {
 	if (isDisposed()) SWT.error(SWT.ERROR_GRAPHIC_DISPOSED);
-	subtractInPixels(DPIUtil.autoScaleUp(x), DPIUtil.autoScaleUp(y), DPIUtil.autoScaleUp(width), DPIUtil.autoScaleUp(height));
+	subtractInPixels(DPIUtil.autoScaleUp(x, initalZoom), DPIUtil.autoScaleUp(y, initalZoom), DPIUtil.autoScaleUp(width, initalZoom), DPIUtil.autoScaleUp(height, initalZoom));
 }
 
 void subtractInPixels (int x, int y, int width, int height) {
@@ -589,7 +596,7 @@ public void subtract (Region region) {
  */
 public void translate (int x, int y) {
 	if (isDisposed()) SWT.error(SWT.ERROR_GRAPHIC_DISPOSED);
-	translateInPixels(DPIUtil.autoScaleUp(x), DPIUtil.autoScaleUp(y));
+	translateInPixels(DPIUtil.autoScaleUp(x, initalZoom), DPIUtil.autoScaleUp(y, initalZoom));
 }
 
 void translateInPixels (int x, int y) {
@@ -614,8 +621,29 @@ void translateInPixels (int x, int y) {
 public void translate (Point pt) {
 	if (isDisposed()) SWT.error(SWT.ERROR_GRAPHIC_DISPOSED);
 	if (pt == null) SWT.error(SWT.ERROR_NULL_ARGUMENT);
-	pt = DPIUtil.autoScaleUp(pt);
-	translateInPixels(pt.x, pt.y);
+	Point p = DPIUtil.autoScaleUp(pt, initalZoom);
+	translateInPixels(p.x, p.y);
+}
+
+private HashMap<Integer, Long> handleMap = new HashMap<>();
+
+/**
+ * Gets the handle for the region scaled at required zoom level
+ *
+ * @param region the region to be scaled
+ *
+ * @param zoomLevel the zoom level for which the region is needed
+ *
+ * @return the handle of the region scaled for the zoom level
+ *
+ * @since 3.126
+ */
+public static long win32_getHandle(Region region, int zoomLevel) {
+	if(region.handleMap.get(zoomLevel) == null) {
+		Rectangle rect = DPIUtil.autoScaleBounds(region.getBounds(), zoomLevel, region.initalZoom);
+		region.handleMap.put(zoomLevel, OS.CreateRectRgn(rect.x, rect.y, rect.x + rect.width, rect.y + rect.height));
+	}
+	return region.handleMap.get(zoomLevel);
 }
 
 /**

@@ -3658,6 +3658,19 @@ public void setRedraw (boolean redraw) {
 }
 
 /**
+ * @since 3.125
+ */
+@Override
+void sendEvent(int eventType, Event event, boolean send) {
+	if(event != null && event.gc != null && event.gc.getGCData() != null) {
+		event.gc.getGCData().deviceZoom = getZoom();
+		event.gc.getGCData().nativeDeviceZoom = getShell().getNativeZoom();
+		DPIUtil.setDeviceZoom(getShell().getNativeZoom());
+	}
+	super.sendEvent(eventType, event, send);
+}
+
+/**
  * Sets the shape of the control to the region specified
  * by the argument.  When the argument is null, the
  * default shape of the control is restored.
@@ -3680,7 +3693,7 @@ public void setRegion (Region region) {
 	long hRegion = 0;
 	if (region != null) {
 		hRegion = OS.CreateRectRgn (0, 0, 0, 0);
-		OS.CombineRgn (hRegion, region.handle, hRegion, OS.RGN_OR);
+		OS.CombineRgn (hRegion, Region.win32_getHandle(region, getZoom()), hRegion, OS.RGN_OR);
 	}
 	OS.SetWindowRgn (handle, hRegion, true);
 	this.region = region;
