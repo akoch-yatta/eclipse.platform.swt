@@ -3657,6 +3657,14 @@ public void setRedraw (boolean redraw) {
 	}
 }
 
+@Override
+void sendEvent(int eventType, Event event, boolean send) {
+	if(event != null && event.gc != null && event.gc.getGCData() != null) {
+		event.gc.getGCData().setNativeDeviceZoom(getShell().getNativeZoom());
+	}
+	super.sendEvent(eventType, event, send);
+}
+
 /**
  * Sets the shape of the control to the region specified
  * by the argument.  When the argument is null, the

@@ -15,6 +15,7 @@ package org.eclipse.swt.graphics;
 
 
 import org.eclipse.swt.*;
+import org.eclipse.swt.internal.*;
 import org.eclipse.swt.internal.win32.*;
 
 /**
@@ -47,6 +48,8 @@ public final class GCData {
 	public float[] lineDashes;
 	public float lineMiterLimit = 10;
 	public int alpha = 0xFF;
+	public int deviceZoom;
+	public int nativeDeviceZoom;
 
 	public Image image;
 	public PAINTSTRUCT ps;
@@ -57,4 +60,9 @@ public final class GCData {
 	public float gdipXOffset, gdipYOffset;
 	public int uiState = 0;
 	public boolean focusDrawn;
+
+	public void setNativeDeviceZoom(int nativeDeviceZoom) {
+		this.nativeDeviceZoom = nativeDeviceZoom;
+		this.deviceZoom = DPIUtil.getZoomForAutoscaleProperty(nativeDeviceZoom);
+	}
 }

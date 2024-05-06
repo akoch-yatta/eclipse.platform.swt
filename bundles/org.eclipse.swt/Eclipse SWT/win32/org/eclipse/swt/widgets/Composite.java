@@ -1519,6 +1519,7 @@ LRESULT WM_PAINT (long wParam, long lParam) {
 				long hBufferedPaint = OS.BeginBufferedPaint (hDC, prcTarget, flags, null, phdc);
 				GCData data = new GCData ();
 				data.device = display;
+				data.setNativeDeviceZoom(getShell().getNativeZoom());
 				data.foreground = getForegroundPixel ();
 				Control control = findBackgroundControl ();
 				if (control == null) control = this;
@@ -1547,6 +1548,7 @@ LRESULT WM_PAINT (long wParam, long lParam) {
 
 			/* Create the paint GC */
 			GCData data = new GCData ();
+			data.setNativeDeviceZoom(getShell().getNativeZoom());
 			data.ps = ps;
 			data.hwnd = handle;
 			GC gc = GC.win32_new (this, data);
@@ -1581,6 +1583,7 @@ LRESULT WM_PAINT (long wParam, long lParam) {
 					paintGC = gc;
 					gc = new GC (image, paintGC.getStyle() & SWT.RIGHT_TO_LEFT);
 					GCData gcData = gc.getGCData ();
+					gcData.setNativeDeviceZoom(getShell().getNativeZoom());
 					gcData.uiState = data.uiState;
 					gc.setForeground (getForeground ());
 					gc.setBackground (getBackground ());
