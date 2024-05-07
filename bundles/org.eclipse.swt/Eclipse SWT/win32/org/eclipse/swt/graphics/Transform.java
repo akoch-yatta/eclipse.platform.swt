@@ -53,6 +53,8 @@ public class Transform extends Resource {
 	 */
 	public long handle;
 
+	private int initalZoom;
+
 
 	private HashMap<Integer, Long> handleMap = new HashMap<>();
 
@@ -151,9 +153,12 @@ public Transform(Device device, float[] elements) {
  */
 public Transform (Device device, float m11, float m12, float m21, float m22, float dx, float dy) {
 	super(device);
+	initalZoom = DPIUtil.getDeviceZoom();
 	this.device.checkGDIP();
-	handle = Gdip.Matrix_new(m11, m12, m21, m22, dx, dy);
+	handle = Gdip.Matrix_new(m11, m12, m21, m22,
+			DPIUtil.autoScaleUp(this.device, dx, initalZoom), DPIUtil.autoScaleUp(this.device, dy, initalZoom));
 	if (handle == 0) SWT.error(SWT.ERROR_NO_HANDLES);
+	handleMap.put(initalZoom, handle);
 	init();
 }
 
@@ -188,6 +193,9 @@ public void getElements(float[] elements) {
 	if (elements == null) SWT.error(SWT.ERROR_NULL_ARGUMENT);
 	if (elements.length < 6) SWT.error(SWT.ERROR_INVALID_ARGUMENT);
 	Gdip.Matrix_GetElements(handle, elements);
+	Drawable drawable = getDevice();
+	elements[4] = DPIUtil.autoScaleDown(drawable, elements[4], initalZoom);
+	elements[4] = DPIUtil.autoScaleDown(drawable, elements[5], initalZoom);
 }
 
 /**
@@ -298,7 +306,7 @@ public void rotate(float angle) {
  */
 public void scale(float scaleX, float scaleY) {
 	if (isDisposed()) SWT.error(SWT.ERROR_GRAPHIC_DISPOSED);
-	Gdip.Matrix_Scale(handle, scaleX, scaleY, Gdip.MatrixOrderPrepend);
+	Gdip.Matrix_Scale(handle, DPIUtil.autoScaleUp(scaleX, initalZoom), DPIUtil.autoScaleUp(scaleY, initalZoom), Gdip.MatrixOrderPrepend);
 }
 
 /**
@@ -318,33 +326,8 @@ public void scale(float scaleX, float scaleY) {
  */
 public void setElements(float m11, float m12, float m21, float m22, float dx, float dy) {
 	if (isDisposed()) SWT.error(SWT.ERROR_GRAPHIC_DISPOSED);
-	Gdip.Matrix_SetElements(handle, m11, m12, m21, m22, dx, dy);
-}
-
-/**
- * the handle to the OS resource for the right zoom level
- * <p>
- * <b>IMPORTANT:</b> This field is <em>not</em> part of the SWT
- * public API. It is marked public only so that it can be shared
- * within the packages provided by SWT. It is not available on all
- * platforms and should never be accessed from application code.
- * </p>
- *
- * @noreference This field is not intended to be referenced by clients.
- */
-public static long win32_getHandle(Transform transform, int zoomLevel) {
-	if(zoomLevel == transform.device.getDeviceZoom()) {
-		return transform.handle;
-	}
-	if(transform.handleMap.get(zoomLevel) == null) {
-		float[] elements = new float[6];
-		transform.getElements(elements);
-		elements[4] = DPIUtil.autoScaleUp(transform.device, elements[4], zoomLevel);
-		elements[5] = DPIUtil.autoScaleUp(transform.device, elements[5], zoomLevel);
-
-		transform.handleMap.put(zoomLevel, Gdip.Matrix_new(elements[0], elements[1], elements[2], elements[3], elements[4], elements[5]));
-	}
-	return transform.handleMap.get(zoomLevel);
+	Drawable drawable = getDevice();
+	Gdip.Matrix_SetElements(handle, m11, m12, m21, m22, DPIUtil.autoScaleUp(drawable, dx, initalZoom), DPIUtil.autoScaleUp(drawable, dy, initalZoom));
 }
 
 /**
@@ -383,7 +366,14 @@ public void transform(float[] pointArray) {
 	if (isDisposed()) SWT.error(SWT.ERROR_GRAPHIC_DISPOSED);
 	if (pointArray == null) SWT.error(SWT.ERROR_NULL_ARGUMENT);
 	int length = pointArray.length;
+	Drawable drawable = getDevice();
+	for (int i = 0; i < length; i++) {
+		pointArray[i] = DPIUtil.autoScaleUp(drawable, pointArray[i], initalZoom);
+	}
 	Gdip.Matrix_TransformPoints(handle, pointArray, length / 2);
+	for (int i = 0; i < length; i++) {
+		pointArray[i] = DPIUtil.autoScaleDown(drawable, pointArray[i], initalZoom);
+	}
 }
 
 /**
@@ -399,7 +389,8 @@ public void transform(float[] pointArray) {
  */
 public void translate(float offsetX, float offsetY) {
 	if (isDisposed()) SWT.error(SWT.ERROR_GRAPHIC_DISPOSED);
-	Gdip.Matrix_Translate(handle, offsetX, offsetY, Gdip.MatrixOrderPrepend);
+	Drawable drawable = getDevice();
+	Gdip.Matrix_Translate(handle, DPIUtil.autoScaleUp(drawable, offsetX, initalZoom), DPIUtil.autoScaleUp(drawable, offsetY, initalZoom), Gdip.MatrixOrderPrepend);
 }
 
 /**
@@ -414,6 +405,29 @@ public String toString() {
 	float[] elements = new float[6];
 	getElements(elements);
 	return "Transform {" + elements [0] + "," + elements [1] + "," +elements [2] + "," +elements [3] + "," +elements [4] + "," +elements [5] + "}";
+}
+
+/**
+ * the handle to the OS resource for the right zoom level
+ * <p>
+ * <b>IMPORTANT:</b> This field is <em>not</em> part of the SWT
+ * public API. It is marked public only so that it can be shared
+ * within the packages provided by SWT. It is not available on all
+ * platforms and should never be accessed from application code.
+ * </p>
+ *
+ * @noreference This field is not intended to be referenced by clients.
+ */
+public static long win32_getHandle(Transform transform, int zoomLevel) {
+	if(transform.handleMap.get(zoomLevel) == null) {
+		float[] elements = new float[6];
+		transform.getElements(elements);
+		elements[4] = DPIUtil.autoScaleUp(transform.device, DPIUtil.autoScaleDown(transform.device, elements[4], transform.initalZoom), zoomLevel);
+		elements[5] = DPIUtil.autoScaleUp(transform.device, DPIUtil.autoScaleDown(transform.device, elements[5], transform.initalZoom), zoomLevel);
+
+		transform.handleMap.put(zoomLevel, Gdip.Matrix_new(elements[0], elements[1], elements[2], elements[3], elements[4], elements[5]));
+	}
+	return transform.handleMap.get(zoomLevel);
 }
 
 }
