@@ -125,7 +125,10 @@ public class Shell extends Decorations {
 	ToolTip [] toolTips;
 	long hwndMDIClient, lpstrTip, toolTipHandle, balloonTipHandle, menuItemToolTipHandle;
 	int minWidth = SWT.DEFAULT, minHeight = SWT.DEFAULT, maxWidth = SWT.DEFAULT, maxHeight = SWT.DEFAULT;
-	private int nativeZoom;
+	/**
+	 * @since 3.126
+	 */
+	public int nativeZoom;
 	long [] brushes;
 	boolean showWithParent, fullScreen, wasMaximized, modified, center;
 	String toolTitle, balloonTitle;

@@ -563,6 +563,7 @@ void wmDrawChildImage(DRAWITEMSTRUCT struct) {
 	}
 
 	GCData data = new GCData();
+	data.deviceZoom = getZoom();
 	data.device = display;
 	GC gc = GC.win32_new (struct.hDC, data);
 	Image image = getEnabled () ? this.image : new Image (display, this.image, SWT.IMAGE_DISABLE);
