@@ -57,6 +57,10 @@ public class Path extends Resource {
 	 */
 	public long handle;
 
+	private int initialZoom;
+
+	private HashMap<Integer, Long> handleMap = new HashMap<>();
+
 	PointF currentPoint = new PointF(), startPoint = new PointF();
 
 /**
@@ -87,8 +91,10 @@ public class Path extends Resource {
 public Path (Device device) {
 	super(device);
 	this.device.checkGDIP();
+	initialZoom = DPIUtil.getDeviceZoom();
 	handle = Gdip.GraphicsPath_new(Gdip.FillModeAlternate);
 	if (handle == 0) SWT.error(SWT.ERROR_NO_HANDLES);
+	handleMap.put(initialZoom, handle);
 	init();
 }
 
@@ -134,6 +140,8 @@ public Path (Device device, Path path, float flatness) {
 	handle = Gdip.GraphicsPath_Clone(path.handle);
 	if (flatness != 0) Gdip.GraphicsPath_Flatten(handle, 0, flatness);
 	if (handle == 0) SWT.error(SWT.ERROR_NO_HANDLES);
+	initialZoom = path.initialZoom;
+	handleMap.put(initialZoom, handle);
 	init();
 }
 
@@ -202,6 +210,11 @@ public Path (Device device, PathData data) {
  */
 public void addArc (float x, float y, float width, float height, float startAngle, float arcAngle) {
 	if (width == 0 || height == 0 || arcAngle == 0) return;
+	Drawable drawable = getDevice();
+	x = DPIUtil.autoScaleUp(drawable, x, initialZoom);
+	y = DPIUtil.autoScaleUp(drawable, y, initialZoom);
+	width = DPIUtil.autoScaleUp(drawable, width, initialZoom);
+	height = DPIUtil.autoScaleUp(drawable, height, initialZoom);
 	addArcInPixels(x, y, width, height, startAngle, arcAngle);
 }
 
@@ -300,9 +313,11 @@ void addRectangleInPixels(float x, float y, float width, float height) {
  * </ul>
  */
 public void addString (String string, float x, float y, Font font) {
+	Drawable drawable = getDevice();
+	x = DPIUtil.autoScaleUp(drawable, x, initialZoom);
+	y = DPIUtil.autoScaleUp(drawable, y, initialZoom);
 	addStringInPixels(string, x, y, font);
 }
-
 void addStringInPixels(String string, float x, float y, Font font) {
 	if (isDisposed()) SWT.error(SWT.ERROR_GRAPHIC_DISPOSED);
 	if (font == null) SWT.error(SWT.ERROR_NULL_ARGUMENT);
@@ -370,9 +385,11 @@ public void close() {
  * </ul>
  */
 public boolean contains (float x, float y, GC gc, boolean outline) {
+	Drawable drawable = getDevice();
+	x = DPIUtil.autoScaleUp(drawable, x, initialZoom);
+	y = DPIUtil.autoScaleUp(drawable, y, initialZoom);
 	return containsInPixels(x, y, gc, outline);
 }
-
 boolean containsInPixels(float x, float y, GC gc, boolean outline) {
 	if (isDisposed()) SWT.error(SWT.ERROR_GRAPHIC_DISPOSED);
 	if (gc == null) SWT.error(SWT.ERROR_NULL_ARGUMENT);
@@ -404,6 +421,13 @@ boolean containsInPixels(float x, float y, GC gc, boolean outline) {
  * </ul>
  */
 public void cubicTo (float cx1, float cy1, float cx2, float cy2, float x, float y) {
+	Drawable drawable = getDevice();
+	cx1 = DPIUtil.autoScaleUp(drawable, cx1, initialZoom);
+	cy1 = DPIUtil.autoScaleUp(drawable, cy1, initialZoom);
+	cx2 = DPIUtil.autoScaleUp(drawable, cx2, initialZoom);
+	cy2 = DPIUtil.autoScaleUp(drawable, cy2, initialZoom);
+	x = DPIUtil.autoScaleUp(drawable, x, initialZoom);
+	y = DPIUtil.autoScaleUp(drawable, y, initialZoom);
 	cubicToInPixels(cx1, cy1, cx2, cy2, x, y);
 }
 
@@ -438,6 +462,8 @@ void destroy() {
 public void getBounds (float[] bounds) {
 	if (bounds == null) SWT.error(SWT.ERROR_NULL_ARGUMENT);
 	getBoundsInPixels(bounds);
+	float[] scaledbounds= DPIUtil.autoScaleDown(getDevice(), bounds, initialZoom);
+	System.arraycopy(scaledbounds, 0, bounds, 0, 4);
 }
 
 void getBoundsInPixels(float[] bounds) {
@@ -468,6 +494,8 @@ void getBoundsInPixels(float[] bounds) {
 public void getCurrentPoint (float[] point) {
 	if (point == null) SWT.error(SWT.ERROR_NULL_ARGUMENT);
 	getCurrentPointInPixels(point);
+	float[] scaledpoint= DPIUtil.autoScaleDown(getDevice(), point, initialZoom);
+	System.arraycopy(scaledpoint, 0, point, 0, 2);
 }
 
 void getCurrentPointInPixels(float[] point) {
@@ -491,6 +519,7 @@ void getCurrentPointInPixels(float[] point) {
 public PathData getPathData() {
 	if (isDisposed()) SWT.error(SWT.ERROR_GRAPHIC_DISPOSED);
 	PathData result = getPathDataInPixels();
+	result.points = DPIUtil.autoScaleDown(getDevice(), result.points, initialZoom);
 	return result;
 }
 
@@ -551,7 +580,8 @@ PathData getPathDataInPixels() {
  * </ul>
  */
 public void lineTo (float x, float y) {
-	lineToInPixels(x, y);
+	Drawable drawable = getDevice();
+	lineToInPixels(DPIUtil.autoScaleUp(drawable, x, initialZoom), DPIUtil.autoScaleUp(drawable, y, initialZoom));
 }
 
 void lineToInPixels(float x, float y) {
@@ -616,7 +646,7 @@ public boolean isDisposed() {
  */
 public void moveTo (float x, float y) {
 	Drawable drawable = getDevice();
-	moveToInPixels(x, y);
+	moveToInPixels(DPIUtil.autoScaleUp(drawable, x, initialZoom), DPIUtil.autoScaleUp(drawable, y, initialZoom));
 }
 
 void moveToInPixels(float x, float y) {
@@ -639,6 +669,11 @@ void moveToInPixels(float x, float y) {
  * </ul>
  */
 public void quadTo (float cx, float cy, float x, float y) {
+	Drawable drawable = getDevice();
+	cx = DPIUtil.autoScaleUp(drawable, cx, initialZoom);
+	cy = DPIUtil.autoScaleUp(drawable, cy, initialZoom);
+	x = DPIUtil.autoScaleUp(drawable, x, initialZoom);
+	y = DPIUtil.autoScaleUp(drawable, y, initialZoom);
 	quadToInPixels(cx, cy, x, y);
 }
 
@@ -652,25 +687,6 @@ void quadToInPixels(float cx, float cy, float x, float y) {
 	Gdip.GraphicsPath_GetLastPoint(handle, currentPoint);
 }
 
-private HashMap<Integer, Long> handleMap = new HashMap<>();
-
-/**
- * @since 3.126
- */
-public static long win32_getHandle(Path path, int zoomLevel) {
-	if(zoomLevel == path.device.getDeviceZoom()) {
-		return path.handle;
-	}
-	if(path.handleMap.get(zoomLevel) == null) {
-		PathData pathData = path.getPathDataInPixels();
-		for (int index = 0; index < pathData.points.length; index++) {
-			pathData.points[index] = DPIUtil.autoScaleUp(path.getDevice(), pathData.points[index], zoomLevel);
-		}
-		path.handleMap.put(zoomLevel, new Path(path.getDevice(), pathData).handle);
-	}
-	return path.handleMap.get(zoomLevel);
-}
-
 /**
  * Returns a string containing a concise, human-readable
  * description of the receiver.
@@ -681,6 +697,22 @@ public static long win32_getHandle(Path path, int zoomLevel) {
 public String toString() {
 	if (isDisposed()) return "Path {*DISPOSED*}";
 	return "Path {" + handle + "}";
+}
+
+/**
+ * Gets the handle for the path at the specified zoom level
+ *
+ * @since 3.126
+ */
+public static long win32_getHandle(Path path, int zoomLevel) {
+	if(path.handleMap.get(zoomLevel) == null) {
+		PathData pathData = path.getPathData();
+		for (int index = 0; index < pathData.points.length; index++) {
+			pathData.points[index] = DPIUtil.autoScaleUp(path.getDevice(), pathData.points[index], zoomLevel);
+		}
+		path.handleMap.put(zoomLevel, new Path(path.getDevice(), pathData).handle);
+	}
+	return path.handleMap.get(zoomLevel);
 }
 
 }
