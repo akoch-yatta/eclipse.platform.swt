@@ -32,7 +32,7 @@ public class PatternWin32Tests {
 
 		final Pattern pat = new Pattern(display, 0, 0, width, height, new Color(null, 200, 200, 200), 0, new Color(null, 255, 0, 0), 255);
 		try {
-			Field field = Pattern.class.getDeclaredField("scaledpattern");
+			Field field = Pattern.class.getDeclaredField("scaledPattern");
 			field.setAccessible(true);
 			scaledPatterns = (HashMap<Integer, Pattern>) field.get(pat);
 		} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
@@ -70,10 +70,6 @@ public class PatternWin32Tests {
 		shell2.open();
 		assertTrue("Pattern with currentZoomLevel (scaled) should exist in the hashMap", scaledPatterns.containsKey(zoom * 3));
 
-		while (!shell.isDisposed() || !shell2.isDisposed()) {
-			if (!display.readAndDispatch())
-				display.sleep();
-		}
 		pat.dispose();
 		shell.dispose();
 		shell2.dispose();

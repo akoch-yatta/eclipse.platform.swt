@@ -55,6 +55,8 @@ public class Pattern extends Resource {
 	 */
 	public long handle;
 
+	private int initialZoom;
+
 	private Runnable bitmapDestructor;
 
 	private Image image;
@@ -101,11 +103,13 @@ public Pattern(Device device, Image image) {
 	if (image.isDisposed()) SWT.error(SWT.ERROR_INVALID_ARGUMENT);
 	this.device.checkGDIP();
 	this.image = image;
-	setImageHandle(image, null);
+	initialZoom = DPIUtil.getDeviceZoom();
+	scaledPattern.put(initialZoom, this);
+	setImageHandle(image, initialZoom);
 	init();
 }
 
-void setImageHandle(Image image, Integer zoomLevel) {
+void setImageHandle(Image image, int zoomLevel) {
 	long[] gdipImage = image.createGdipImage(zoomLevel);
 	long img = gdipImage[0];
 	int width = Gdip.Image_GetWidth(img);
@@ -213,7 +217,9 @@ public Pattern(Device device, float x1, float y1, float x2, float y2, Color colo
 	this.alpha1 = alpha1;
 	this.alpha2 = alpha2;
 	this.isImagePattern = false;
-	initializeSize(0);
+	initialZoom = DPIUtil.getDeviceZoom();
+	scaledPattern.put(initialZoom, this);
+	initializeSize(initialZoom);
 }
 
 private Pattern(Device device, int zoomLevel, float x1, float y1, float x2, float y2, Color color1, int alpha1, Color color2, int alpha2) {
@@ -227,11 +233,13 @@ private Pattern(Device device, int zoomLevel, float x1, float y1, float x2, floa
 	this.alpha1 = alpha1;
 	this.alpha2 = alpha2;
 	this.isImagePattern = false;
-	initializeSize(zoomLevel);
+	initialZoom = zoomLevel;
+	scaledPattern.put(initialZoom, this);
+	initializeSize(initialZoom);
 }
 
 Pattern getScaledPattern(int zoomLevel) {
-	if(zoomLevel == this.device.getDeviceZoom()) {
+	if(zoomLevel == initialZoom) {
 		return this;
 	}
 	if (this.isImagePattern) {
@@ -247,17 +255,10 @@ Pattern getScaledPattern(int zoomLevel) {
 
 private void initializeSize(int zoomLevel) {
 	float x1, y1, x2, y2;
-	if(zoomLevel != 0) {
-		x1 = DPIUtil.autoScaleUp(this.x1, zoomLevel);
-		y1 = DPIUtil.autoScaleUp(this.y1, zoomLevel);
-		x2 = DPIUtil.autoScaleUp(this.x2, zoomLevel);
-		y2 = DPIUtil.autoScaleUp(this.y2, zoomLevel);
-	} else {
-		x1 = DPIUtil.autoScaleUp(this.x1);
-		y1 = DPIUtil.autoScaleUp(this.y1);
-		x2 = DPIUtil.autoScaleUp(this.x2);
-		y2 = DPIUtil.autoScaleUp(this.y2);
-	}
+	x1 = DPIUtil.autoScaleUp(this.x1, zoomLevel);
+	y1 = DPIUtil.autoScaleUp(this.y1, zoomLevel);
+	x2 = DPIUtil.autoScaleUp(this.x2, zoomLevel);
+	y2 = DPIUtil.autoScaleUp(this.y2, zoomLevel);
 	if (color1 == null) SWT.error(SWT.ERROR_NULL_ARGUMENT);
 	if (color1.isDisposed()) SWT.error(SWT.ERROR_INVALID_ARGUMENT);
 	if (color2 == null) SWT.error(SWT.ERROR_NULL_ARGUMENT);
@@ -295,6 +296,7 @@ private void initializeSize(int zoomLevel) {
 
 @Override
 void destroy() {
+	this.scaledPattern.remove(initialZoom);
 	this.scaledPattern.values().forEach(Pattern::destroy);
 	int type = Gdip.Brush_GetType(handle);
 	switch (type) {
