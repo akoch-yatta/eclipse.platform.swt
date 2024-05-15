@@ -1188,7 +1188,7 @@ public void setEnabled (boolean enabled) {
  */
 public void setLocation (int x, int y) {
 	checkWidget ();
-	setLocationInPixels(DPIUtil.autoScaleUp(x), DPIUtil.autoScaleUp(y));
+	setLocationInPixels(DPIUtil.autoScaleUp(x, getZoom()), DPIUtil.autoScaleUp(y, getZoom()));
 }
 
 void setLocationInPixels (int x, int y) {
@@ -1225,7 +1225,7 @@ void setLocationInPixels (int x, int y) {
 public void setLocation (Point location) {
 	checkWidget ();
 	if (location == null) error (SWT.ERROR_NULL_ARGUMENT);
-	location = DPIUtil.autoScaleUp(location);
+	location = DPIUtil.autoScaleUp(location, getZoom());
 	setLocationInPixels(location.x, location.y);
 }
 
@@ -1319,7 +1319,7 @@ void updateBackground () {
 	hBrush = 0;
 
 	if (backgroundImage != null)
-		hBrush = OS.CreatePatternBrush (backgroundImage.handle);
+		hBrush = OS.CreatePatternBrush (Image.win32_getHandle(backgroundImage, getZoom()));
 	else if (background != -1)
 		hBrush = OS.CreateSolidBrush (background);
 

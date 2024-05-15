@@ -54,7 +54,7 @@ public final class Font extends Resource {
 	 * The zoom in % of the standard resolution used for conversion of point height to pixel height
 	 * (Warning: This field is platform dependent)
 	 */
-	private int zoom;
+	int zoom;
 /**
  * Prevents uninitialized instances from being created outside the package.
  */
@@ -238,7 +238,7 @@ void init (FontData fd) {
 	int lfHeight = logFont.lfHeight;
 	logFont.lfHeight = device.computePixels(fd.height);
 
-	int primaryZoom = extractZoom(device);
+	int primaryZoom = DPIUtil.mapDPIToZoom (device._getDPIx());
 	if (zoom != primaryZoom) {
 		float scaleFactor = 1f * zoom / primaryZoom;
 		logFont.lfHeight *= scaleFactor;
@@ -278,9 +278,9 @@ public String toString () {
 
 private static int extractZoom(Device device) {
 	if (device == null) {
-		return DPIUtil.getNativeDeviceZoom();
+		DPIUtil.getNativeDeviceZoom();
 	}
-	return DPIUtil.mapDPIToZoom(device._getDPIx());
+	return device.getDeviceZoom();
 }
 
 /**
@@ -349,8 +349,7 @@ public static Font win32_new(Device device, long handle, int zoom) {
  * @param device the device on which to allocate the font
  * @param fontData font data to create the font for
  * @param zoom zoom in % of the standard resolution
- * @return a new font object using the specified font data with the
- * specified zoom as factor for the font data
+ * @return a new font object containing the specified device and handle
  *
  * @noreference This method is not intended to be referenced by clients.
  * @since 3.126
@@ -372,7 +371,7 @@ public static Font win32_new(Device device, FontData fontData, int zoom) {
  *
  * @param font font to create a font for the given target zoom
  * @param targetZoom zoom in % of the standard resolution
- * @return a font matching the specified font and zoom in %
+ * @return a new font object containing the specified device and handle
  *
  * @noreference This method is not intended to be referenced by clients.
  * @since 3.126

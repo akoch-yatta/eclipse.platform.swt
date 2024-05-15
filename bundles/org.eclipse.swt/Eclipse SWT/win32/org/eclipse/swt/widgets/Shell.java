@@ -125,7 +125,10 @@ public class Shell extends Decorations {
 	ToolTip [] toolTips;
 	long hwndMDIClient, lpstrTip, toolTipHandle, balloonTipHandle, menuItemToolTipHandle;
 	int minWidth = SWT.DEFAULT, minHeight = SWT.DEFAULT, maxWidth = SWT.DEFAULT, maxHeight = SWT.DEFAULT;
-	private int nativeZoom;
+	/**
+	 * @since 3.126
+	 */
+	public int nativeZoom;
 	long [] brushes;
 	boolean showWithParent, fullScreen, wasMaximized, modified, center;
 	String toolTitle, balloonTitle;
@@ -317,10 +320,7 @@ Shell (Display display, Shell parent, int style, long handle, boolean embedded) 
 	reskinWidget();
 	createWidget ();
 
-
-	if (DPIUtil.isAutoScaleOnRuntimeActive()) {
-		addListener(SWT.ZoomChanged, this::handleZoomEvent);
-	}
+	addListener(SWT.ZoomChanged, this::handleZoomEvent);
 }
 
 /**
@@ -1061,19 +1061,19 @@ public boolean getMaximized () {
  */
 public Point getMaximumSize () {
 	checkWidget ();
-	return DPIUtil.autoScaleDown(getMaximumSizeInPixels());
+	return DPIUtil.autoScaleDown(getMaximumSizeInPixels(), getZoom());
 }
 
 Point getMaximumSizeInPixels () {
 	int width = Math.min (Integer.MAX_VALUE, maxWidth);
 	int trim = SWT.TITLE | SWT.CLOSE | SWT.MIN | SWT.MAX;
 	if ((style & SWT.NO_TRIM) == 0 && (style & trim) != 0) {
-		width = Math.min (width, getSystemMetrics (OS.SM_CXMAXTRACK));
+		width = Math.min (width, OS.GetSystemMetrics (OS.SM_CXMAXTRACK));
 	}
 	int height = Math.min (Integer.MAX_VALUE, maxHeight);
 	if ((style & SWT.NO_TRIM) == 0 && (style & trim) != 0) {
 		if ((style & SWT.RESIZE) != 0) {
-			height = Math.min (height, getSystemMetrics (OS.SM_CYMAXTRACK));
+			height = Math.min (height, OS.GetSystemMetrics (OS.SM_CYMAXTRACK));
 		} else {
 			RECT rect = new RECT ();
 			int bits1 = OS.GetWindowLong (handle, OS.GWL_STYLE);
@@ -1102,19 +1102,19 @@ Point getMaximumSizeInPixels () {
  */
 public Point getMinimumSize () {
 	checkWidget ();
-	return DPIUtil.autoScaleDown(getMinimumSizeInPixels());
+	return DPIUtil.autoScaleDown(getMinimumSizeInPixels(), getZoom());
 }
 
 Point getMinimumSizeInPixels () {
 	int width = Math.max (0, minWidth);
 	int trim = SWT.TITLE | SWT.CLOSE | SWT.MIN | SWT.MAX;
 	if ((style & SWT.NO_TRIM) == 0 && (style & trim) != 0) {
-		width = Math.max (width, getSystemMetrics (OS.SM_CXMINTRACK));
+		width = Math.max (width, OS.GetSystemMetrics (OS.SM_CXMINTRACK));
 	}
 	int height = Math.max (0, minHeight);
 	if ((style & SWT.NO_TRIM) == 0 && (style & trim) != 0) {
 		if ((style & SWT.RESIZE) != 0) {
-			height = Math.max (height, getSystemMetrics (OS.SM_CYMINTRACK));
+			height = Math.max (height, OS.GetSystemMetrics (OS.SM_CYMINTRACK));
 		} else {
 			RECT rect = new RECT ();
 			int bits1 = OS.GetWindowLong (handle, OS.GWL_STYLE);
@@ -1743,7 +1743,7 @@ public void setImeInputMode (int mode) {
  */
 public void setMaximumSize (int width, int height) {
 	checkWidget ();
-	setMaximumSizeInPixels(DPIUtil.autoScaleUp(width), DPIUtil.autoScaleUp(height));
+	setMaximumSizeInPixels(DPIUtil.autoScaleUp(width, getZoom()), DPIUtil.autoScaleUp(height, getZoom()));
 }
 
 /**
@@ -1771,7 +1771,7 @@ public void setMaximumSize (int width, int height) {
 public void setMaximumSize (Point size) {
 	checkWidget ();
 	if (size == null) error (SWT.ERROR_NULL_ARGUMENT);
-	size = DPIUtil.autoScaleUp(size);
+	size = DPIUtil.autoScaleUp(size, getZoom());
 	setMaximumSizeInPixels(size.x, size.y);
 }
 
@@ -1779,9 +1779,9 @@ void setMaximumSizeInPixels (int width, int height) {
 	int widthLimit = 0, heightLimit = 0;
 	int trim = SWT.TITLE | SWT.CLOSE | SWT.MIN | SWT.MAX;
 	if ((style & SWT.NO_TRIM) == 0 && (style & trim) != 0) {
-		widthLimit = getSystemMetrics (OS.SM_CXMAXTRACK);
+		widthLimit = OS.GetSystemMetrics (OS.SM_CXMAXTRACK);
 		if ((style & SWT.RESIZE) != 0) {
-			heightLimit = getSystemMetrics (OS.SM_CYMAXTRACK);
+			heightLimit = OS.GetSystemMetrics (OS.SM_CYMAXTRACK);
 		} else {
 			RECT rect = new RECT ();
 			int bits1 = OS.GetWindowLong (handle, OS.GWL_STYLE);
@@ -1817,16 +1817,16 @@ void setMaximumSizeInPixels (int width, int height) {
  */
 public void setMinimumSize (int width, int height) {
 	checkWidget ();
-	setMinimumSizeInPixels(DPIUtil.autoScaleUp(width), DPIUtil.autoScaleUp(height));
+	setMinimumSizeInPixels(DPIUtil.autoScaleUp(width, getZoom()), DPIUtil.autoScaleUp(height, getZoom()));
 }
 
 void setMinimumSizeInPixels (int width, int height) {
 	int widthLimit = 0, heightLimit = 0;
 	int trim = SWT.TITLE | SWT.CLOSE | SWT.MIN | SWT.MAX;
 	if ((style & SWT.NO_TRIM) == 0 && (style & trim) != 0) {
-		widthLimit = getSystemMetrics (OS.SM_CXMINTRACK);
+		widthLimit = OS.GetSystemMetrics (OS.SM_CXMINTRACK);
 		if ((style & SWT.RESIZE) != 0) {
-			heightLimit = getSystemMetrics (OS.SM_CYMINTRACK);
+			heightLimit = OS.GetSystemMetrics (OS.SM_CYMINTRACK);
 		} else {
 			RECT rect = new RECT ();
 			int bits1 = OS.GetWindowLong (handle, OS.GWL_STYLE);
@@ -1865,7 +1865,7 @@ void setMinimumSizeInPixels (int width, int height) {
 public void setMinimumSize (Point size) {
 	checkWidget ();
 	if (size == null) error (SWT.ERROR_NULL_ARGUMENT);
-	size = DPIUtil.autoScaleUp(size);
+	size = DPIUtil.autoScaleUp(size, getZoom());
 	setMinimumSizeInPixels(size.x, size.y);
 }
 
@@ -2631,12 +2631,12 @@ LRESULT WM_WINDOWPOSCHANGING (long wParam, long lParam) {
 		lpwp.cx = Math.max (lpwp.cx, minWidth);
 		int trim = SWT.TITLE | SWT.CLOSE | SWT.MIN | SWT.MAX;
 		if ((style & SWT.NO_TRIM) == 0 && (style & trim) != 0) {
-			lpwp.cx = Math.max (lpwp.cx, getSystemMetrics (OS.SM_CXMINTRACK));
+			lpwp.cx = Math.max (lpwp.cx, OS.GetSystemMetrics (OS.SM_CXMINTRACK));
 		}
 		lpwp.cy = Math.max (lpwp.cy, minHeight);
 		if ((style & SWT.NO_TRIM) == 0 && (style & trim) != 0) {
 			if ((style & SWT.RESIZE) != 0) {
-				lpwp.cy = Math.max (lpwp.cy, getSystemMetrics (OS.SM_CYMINTRACK));
+				lpwp.cy = Math.max (lpwp.cy, OS.GetSystemMetrics (OS.SM_CYMINTRACK));
 			} else {
 				RECT rect = new RECT ();
 				int bits1 = OS.GetWindowLong (handle, OS.GWL_STYLE);
@@ -2662,8 +2662,10 @@ void setNativeZoom(int nativeZoom) {
 }
 
 private void handleZoomEvent(Event event) {
-	float scalingFactor = 1f * event.detail / getZoom();
-	DPIZoomChangeRegistry.applyChange(this, event.detail, scalingFactor);
+	if (DPIUtil.autoScaleOnRuntime) {
+		float scalingFactor = 1f * event.detail / getZoom();
+		DPIZoomChangeRegistry.applyChange(this, event.detail, scalingFactor);
+	}
 }
 
 private static void handleDPIChange(Widget widget, int newZoom, float scalingFactor) {

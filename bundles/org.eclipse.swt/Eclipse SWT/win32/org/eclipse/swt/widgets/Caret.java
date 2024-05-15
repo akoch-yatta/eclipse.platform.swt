@@ -121,7 +121,7 @@ long defaultFont () {
  */
 public Rectangle getBounds () {
 	checkWidget();
-	return DPIUtil.autoScaleDown(getBoundsInPixels());
+	return DPIUtil.autoScaleDown(getBoundsInPixels(), getZoom());
 }
 
 Rectangle getBoundsInPixels () {
@@ -152,7 +152,8 @@ public Font getFont () {
 	checkWidget();
 	if (font == null) {
 		long hFont = defaultFont ();
-		return Font.win32_new (display, hFont, getZoom());
+		final Font newFont = Font.win32_new (display, hFont, getZoom());
+		return newFont;
 	}
 	return font;
 }
@@ -185,7 +186,7 @@ public Image getImage () {
  */
 public Point getLocation () {
 	checkWidget();
-	return DPIUtil.autoScaleDown(getLocationInPixels());
+	return DPIUtil.autoScaleDown(getLocationInPixels(), getZoom());
 }
 
 Point getLocationInPixels () {
@@ -219,7 +220,7 @@ public Canvas getParent () {
  */
 public Point getSize () {
 	checkWidget();
-	return DPIUtil.autoScaleDown(getSizeInPixels());
+	return DPIUtil.autoScaleDown(getSizeInPixels(), getZoom());
 }
 
 Point getSizeInPixels () {
@@ -353,7 +354,7 @@ void resize () {
 	resized = false;
 	long hwnd = parent.handle;
 	OS.DestroyCaret ();
-	long hBitmap = image != null ? image.handle : 0;
+	long hBitmap = image != null ? Image.win32_getHandle(image, getZoom()) : 0;
 	int width = this.width;
 	if (image == null && width == 0) {
 		int [] buffer = new int [1];
@@ -395,7 +396,7 @@ void restoreIMEFont () {
  */
 public void setBounds (int x, int y, int width, int height) {
 	checkWidget();
-	setBoundsInPixels(DPIUtil.autoScaleUp(x), DPIUtil.autoScaleUp(y), DPIUtil.autoScaleUp(width), DPIUtil.autoScaleUp(height));
+	setBoundsInPixels(DPIUtil.autoScaleUp(x, getZoom()), DPIUtil.autoScaleUp(y, getZoom()), DPIUtil.autoScaleUp(width, getZoom()), DPIUtil.autoScaleUp(height, getZoom()));
 }
 
 void setBoundsInPixels (int x, int y, int width, int height) {
@@ -430,7 +431,7 @@ void setBoundsInPixels (int x, int y, int width, int height) {
  */
 public void setBounds (Rectangle rect) {
 	if (rect == null) error (SWT.ERROR_NULL_ARGUMENT);
-	setBoundsInPixels(DPIUtil.autoScaleUp(rect));
+	setBoundsInPixels(DPIUtil.autoScaleUp(rect, getZoom()));
 }
 
 void setBoundsInPixels (Rectangle rect) {
@@ -440,7 +441,7 @@ void setBoundsInPixels (Rectangle rect) {
 void setFocus () {
 	long hwnd = parent.handle;
 	long hBitmap = 0;
-	if (image != null) hBitmap = image.handle;
+	if (image != null) hBitmap = Image.win32_getHandle(image, getZoom());
 	int width = this.width;
 	if (image == null && width == 0) {
 		int [] buffer = new int [1];
@@ -538,7 +539,7 @@ void setIMEFont () {
  */
 public void setLocation (int x, int y) {
 	checkWidget();
-	setLocationInPixels(DPIUtil.autoScaleUp(x), DPIUtil.autoScaleUp(y));
+	setLocationInPixels(DPIUtil.autoScaleUp(x, getZoom()), DPIUtil.autoScaleUp(y, getZoom()));
 }
 
 void setLocationInPixels (int x, int y) {
@@ -571,7 +572,7 @@ private void setCurrentCaret(Caret caret) {
 public void setLocation (Point location) {
 	checkWidget();
 	if (location == null) error (SWT.ERROR_NULL_ARGUMENT);
-	location = DPIUtil.autoScaleUp(location);
+	location = DPIUtil.autoScaleUp(location, getZoom());
 	setLocationInPixels(location.x, location.y);
 }
 
@@ -588,7 +589,7 @@ public void setLocation (Point location) {
  */
 public void setSize (int width, int height) {
 	checkWidget();
-	setSizeInPixels(DPIUtil.autoScaleUp(width), DPIUtil.autoScaleUp(height));
+	setSizeInPixels(DPIUtil.autoScaleUp(width, getZoom()), DPIUtil.autoScaleUp(height, getZoom()));
 }
 
 void setSizeInPixels (int width, int height) {
@@ -614,7 +615,7 @@ void setSizeInPixels (int width, int height) {
 public void setSize (Point size) {
 	checkWidget();
 	if (size == null) error (SWT.ERROR_NULL_ARGUMENT);
-	size = DPIUtil.autoScaleUp(size);
+	size = DPIUtil.autoScaleUp(size, getZoom());
 	setSizeInPixels(size.x, size.y);
 }
 

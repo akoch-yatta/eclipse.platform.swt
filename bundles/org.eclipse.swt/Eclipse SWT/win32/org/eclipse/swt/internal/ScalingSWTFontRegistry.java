@@ -21,14 +21,7 @@ import org.eclipse.swt.internal.win32.*;
 
 /**
  * This class is used in the win32 implementation only to support
- * scaling of fonts in multiple DPI zoom levels.
- *
- * As this class is only intended to be used internally via {@code SWTFontProvider},
- * it should neither be instantiated nor referenced in a client application.
- * The behavior can change any time in a future release.
- *
- * @noreference This class is not intended to be referenced by clients.
- * @noinstantiate This class is not intended to be instantiated by clients.
+ * scaling of fonts in multiple DPI zoom level.
  */
 public final class ScalingSWTFontRegistry implements SWTFontRegistry {
 	private class ScaledFontContainer {

@@ -24,6 +24,7 @@ import org.eclipse.swt.graphics.*;
  * within the packages provided by SWT. It is not available on all
  * platforms, and should never be called from application code.
  * </p>
+ * @see <a href="http://www.eclipse.org/swt/">Sample code and further information</a>
  * @noreference This class is not intended to be referenced by clients
  */
 public interface SWTFontRegistry {
@@ -47,7 +48,7 @@ public interface SWTFontRegistry {
 	Font getFont(FontData fontData, int zoom);
 
 	/**
-	 * Disposes all fonts managed by the font registry.
+	 * Disposes of all fonts managed by the font registry.
 	 */
 	void dispose();
 }

@@ -54,13 +54,24 @@ public class Button extends Control {
 	ImageList imageList;
 	boolean ignoreMouse, grayed, useDarkModeExplorerTheme;
 	static final int MARGIN = 4;
-	private final int checkWidth, checkHeight;
+	static final int CHECK_WIDTH, CHECK_HEIGHT;
 	static final int ICON_WIDTH = 128, ICON_HEIGHT = 128;
 	static /*final*/ boolean COMMAND_LINK = false;
 	static final char[] STRING_WITH_ZERO_CHAR = new char[] {'0'};
 	static final long ButtonProc;
 	static final TCHAR ButtonClass = new TCHAR (0, "BUTTON", true);
 	static {
+		long hBitmap = OS.LoadBitmap (0, OS.OBM_CHECKBOXES);
+		if (hBitmap == 0) {
+			CHECK_WIDTH = OS.GetSystemMetrics (OS.SM_CXVSCROLL);
+			CHECK_HEIGHT = OS.GetSystemMetrics (OS.SM_CYVSCROLL);
+		} else {
+			BITMAP bitmap = new BITMAP ();
+			OS.GetObject (hBitmap, BITMAP.sizeof, bitmap);
+			OS.DeleteObject (hBitmap);
+			CHECK_WIDTH = bitmap.bmWidth / 4;
+			CHECK_HEIGHT =  bitmap.bmHeight / 3;
+		}
 		WNDCLASS lpWndClass = new WNDCLASS ();
 		OS.GetClassInfo (0, ButtonClass, lpWndClass);
 		ButtonProc = lpWndClass.lpfnWndProc;
@@ -108,17 +119,6 @@ public class Button extends Control {
  */
 public Button (Composite parent, int style) {
 	super (parent, checkStyle (style));
-	long hBitmap = OS.LoadBitmap (0, OS.OBM_CHECKBOXES);
-	if (hBitmap == 0) {
-		checkWidth = getSystemMetrics(OS.SM_CXVSCROLL);
-		checkHeight = getSystemMetrics (OS.SM_CYVSCROLL);
-	} else {
-		BITMAP bitmap = new BITMAP ();
-		OS.GetObject (hBitmap, BITMAP.sizeof, bitmap);
-		OS.DeleteObject (hBitmap);
-		checkWidth = bitmap.bmWidth / 4;
-		checkHeight =  bitmap.bmHeight / 3;
-	}
 }
 
 void _setImage (Image image) {
@@ -126,7 +126,7 @@ void _setImage (Image image) {
 	if (imageList != null) imageList.dispose ();
 	imageList = null;
 	if (image != null) {
-		imageList = new ImageList (style & SWT.RIGHT_TO_LEFT);
+		imageList = new ImageList (style & SWT.RIGHT_TO_LEFT, getZoom());
 		if (OS.IsWindowEnabled (handle)) {
 			imageList.add (image);
 		} else {
@@ -315,11 +315,11 @@ int computeLeftMargin () {
 	int width = 0, height = 0, border = getBorderWidthInPixels ();
 	if ((style & SWT.ARROW) != 0) {
 		if ((style & (SWT.UP | SWT.DOWN)) != 0) {
-			width += getSystemMetrics (OS.SM_CXVSCROLL);
-			height += getSystemMetrics (OS.SM_CYVSCROLL);
+			width += OS.GetSystemMetrics (OS.SM_CXVSCROLL);
+			height += OS.GetSystemMetrics (OS.SM_CYVSCROLL);
 		} else {
-			width += getSystemMetrics (OS.SM_CXHSCROLL);
-			height += getSystemMetrics (OS.SM_CYHSCROLL);
+			width += OS.GetSystemMetrics (OS.SM_CXHSCROLL);
+			height += OS.GetSystemMetrics (OS.SM_CYHSCROLL);
 		}
 	} else {
 		if ((style & SWT.COMMAND) != 0) {
@@ -373,7 +373,7 @@ int computeLeftMargin () {
 						flags = OS.DT_CALCRECT | OS.DT_WORDBREAK;
 						rect.right = wHint - width - 2 * border;
 						if (isRadioOrCheck()) {
-							rect.right -= checkWidth + 3;
+							rect.right -= CHECK_WIDTH + 3;
 						} else {
 							rect.right -= 6;
 						}
@@ -392,8 +392,8 @@ int computeLeftMargin () {
 				OS.ReleaseDC (handle, hDC);
 			}
 			if (isRadioOrCheck()) {
-				width += checkWidth + extra;
-				height = Math.max (height, checkHeight + 3);
+				width += CHECK_WIDTH + extra;
+				height = Math.max (height, CHECK_HEIGHT + 3);
 			}
 			if ((style & (SWT.PUSH | SWT.TOGGLE)) != 0) {
 				width += 12;  height += 10;
@@ -1021,7 +1021,7 @@ void updateImageList () {
 		BUTTON_IMAGELIST buttonImageList = new BUTTON_IMAGELIST ();
 		OS.SendMessage (handle, OS.BCM_GETIMAGELIST, 0, buttonImageList);
 		if (imageList != null) imageList.dispose ();
-		imageList = new ImageList (style & SWT.RIGHT_TO_LEFT);
+		imageList = new ImageList (style & SWT.RIGHT_TO_LEFT, getZoom());
 		if (OS.IsWindowEnabled (handle)) {
 			imageList.add (image);
 		} else {
@@ -1384,7 +1384,7 @@ LRESULT wmNotifyChild (NMHDR hdr, long wParam, long lParam) {
 
 							int x = margin + (isRadioOrCheck() ? radioOrCheckTextPadding : 3);
 							int y = Math.max (0, (nmcd.bottom - imageBounds.height) / 2);
-							gc.drawImage (image, DPIUtil.autoScaleDown(x), DPIUtil.autoScaleDown(y));
+							gc.drawImage (image, DPIUtil.autoScaleDown(x, getZoom()), DPIUtil.autoScaleDown(y, getZoom()));
 							gc.dispose ();
 						}
 

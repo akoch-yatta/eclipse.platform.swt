@@ -375,7 +375,7 @@ public Color getBackground (int index) {
  */
 public Rectangle getBounds () {
 	checkWidget ();
-	return DPIUtil.autoScaleDown(getBoundsInPixels());
+	return DPIUtil.autoScaleDown(getBoundsInPixels(), parent.getZoom());
 }
 
 Rectangle getBoundsInPixels () {
@@ -401,7 +401,7 @@ Rectangle getBoundsInPixels () {
  */
 public Rectangle getBounds (int index) {
 	checkWidget();
-	return DPIUtil.autoScaleDown(getBoundsInPixels(index));
+	return DPIUtil.autoScaleDown(getBoundsInPixels(index), parent.getZoom());
 }
 
 Rectangle getBoundsInPixels (int index) {
@@ -817,7 +817,7 @@ public Image getImage (int index) {
  */
 public Rectangle getImageBounds (int index) {
 	checkWidget();
-	return DPIUtil.autoScaleDown(getImageBoundsInPixels(index));
+	return DPIUtil.autoScaleDown(getImageBoundsInPixels(index), parent.getZoom());
 }
 
 Rectangle getImageBoundsInPixels (int index) {
@@ -912,7 +912,7 @@ public String getText (int index) {
  */
 public Rectangle getTextBounds (int index) {
 	checkWidget();
-	return DPIUtil.autoScaleDown(getTextBoundsInPixels(index));
+	return DPIUtil.autoScaleDown(getTextBoundsInPixels(index), parent.getZoom());
 }
 
 Rectangle getTextBoundsInPixels (int index) {
@@ -1820,6 +1820,12 @@ String getNameText () {
 private static void handleDPIChange(Widget widget, int newZoom, float scalingFactor) {
 	if (!(widget instanceof TreeItem treeItem)) {
 		return;
+	}
+	treeItem = (TreeItem) widget;
+	Image image = treeItem.image;
+	if (image != null) {
+		Image.win32_getHandle(image, newZoom);
+		treeItem.setImage(image);
 	}
 	Image[] images = treeItem.images;
 	if (images != null) {

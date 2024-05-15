@@ -14,9 +14,9 @@
  */
 package org.eclipse.swt.tests.win32;
 
-import org.eclipse.swt.graphics.ImageWin32Tests;
-import org.eclipse.swt.internal.DefaultSWTFontRegistryTests;
-import org.eclipse.swt.internal.ScalingSWTFontRegistryTests;
+import org.eclipse.swt.graphics.DefaultSWTFontRegistryTests;
+import org.eclipse.swt.graphics.ScalingSWTFontRegistryTests;
+import org.eclipse.swt.tests.win32.graphics.ImageWin32Tests;
 import org.eclipse.swt.tests.win32.widgets.TestTreeColumn;
 import org.eclipse.swt.tests.win32.widgets.Test_org_eclipse_swt_widgets_Display;
 import org.junit.runner.JUnitCore;

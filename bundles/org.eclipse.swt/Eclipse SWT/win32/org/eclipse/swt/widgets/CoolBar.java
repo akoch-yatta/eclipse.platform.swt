@@ -412,7 +412,7 @@ int getMargin (int index) {
 	}
 	if ((style & SWT.FLAT) == 0) {
 		if (!isLastItemOfRow (index)) {
-			margin += CoolBar.SEPARATOR_WIDTH;
+			margin += DPIUtil.autoScaleUp(SEPARATOR_WIDTH, getZoom());
 		}
 	}
 	return margin;
@@ -549,7 +549,7 @@ public Point [] getItemSizes () {
 	Point [] sizes = getItemSizesInPixels();
 	if (sizes != null) {
 		for (int i = 0; i < sizes.length; i++) {
-			sizes[i] = DPIUtil.autoScaleDown(sizes[i]);
+			sizes[i] = DPIUtil.autoScaleDown(sizes[i], getZoom());
 		}
 	}
 	return sizes;
@@ -561,7 +561,7 @@ Point [] getItemSizesInPixels () {
 	REBARBANDINFO rbBand = new REBARBANDINFO ();
 	rbBand.cbSize = REBARBANDINFO.sizeof;
 	rbBand.fMask = OS.RBBIM_CHILDSIZE;
-	int separator = (style & SWT.FLAT) == 0 ? SEPARATOR_WIDTH : 0;
+	int separator = (style & SWT.FLAT) == 0 ? DPIUtil.autoScaleUp(SEPARATOR_WIDTH, getZoom()) : 0;
 	MARGINS margins = new MARGINS ();
 	for (int i=0; i<count; i++) {
 		RECT rect = new RECT ();
@@ -809,7 +809,7 @@ public void setItemLayout (int [] itemOrder, int [] wrapIndices, Point [] sizes)
 	if (sizes == null) error (SWT.ERROR_NULL_ARGUMENT);
 	Point [] sizesInPoints = new Point [sizes.length];
 	for (int i = 0; i < sizes.length; i++) {
-		sizesInPoints[i] = DPIUtil.autoScaleUp(sizes[i]);
+		sizesInPoints[i] = DPIUtil.autoScaleUp(sizes[i], getZoom());
 	}
 	setItemLayoutInPixels (itemOrder, wrapIndices, sizesInPoints);
 }
@@ -1204,21 +1204,21 @@ private static void handleDPIChange(Widget widget, int newZoom, float scalingFac
 	if (!(widget instanceof CoolBar coolBar)) {
 		return;
 	}
-	Point[] sizes = coolBar.getItemSizesInPixels();
-	Point[] scaledSizes = new Point[sizes.length];
-	Point[] prefSizes = new Point[sizes.length];
-	Point[] minSizes = new Point[sizes.length];
-	int[] indices = coolBar.getWrapIndices();
-	int[] itemOrder = coolBar.getItemOrder();
+	var sizes = coolBar.getItemSizesInPixels();
+	var scaledSizes = new Point[sizes.length];
+	var prefSizes = new Point[sizes.length];
+	var minSizes = new Point[sizes.length];
+	var indices = coolBar.getWrapIndices();
+	var itemOrder = coolBar.getItemOrder();
 
-	CoolItem[] items = coolBar.getItems();
+	var items = coolBar.getItems();
 	for (int index = 0; index < sizes.length; index++) {
 		minSizes[index] = items[index].getMinimumSizeInPixels();
 		prefSizes[index] = items[index].getPreferredSizeInPixels();
 	}
 
 	for (int index = 0; index < sizes.length; index++) {
-		CoolItem item = items[index];
+		var item = items[index];
 
 		Control control = item.control;
 		if (control != null) {
@@ -1226,9 +1226,9 @@ private static void handleDPIChange(Widget widget, int newZoom, float scalingFac
 			item.setControl(control);
 		}
 
-		Point preferredControlSize =  item.getControl().computeSizeInPixels(SWT.DEFAULT, SWT.DEFAULT, true);
-		int controlWidth = preferredControlSize.x;
-		int controlHeight = preferredControlSize.y;
+		var preferredControlSize =  item.getControl().computeSizeInPixels(SWT.DEFAULT, SWT.DEFAULT, true);
+		var controlWidth = preferredControlSize.x;
+		var controlHeight = preferredControlSize.y;
 		if (((coolBar.style & SWT.VERTICAL) != 0)) {
 			scaledSizes[index] = new Point(Math.round((sizes[index].x)*scalingFactor), Math.max(Math.round((sizes[index].y)*scalingFactor),0));
 			item.setMinimumSizeInPixels(Math.round(minSizes[index].x*scalingFactor), Math.max(Math.round((minSizes[index].y)*scalingFactor),controlWidth));

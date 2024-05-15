@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.*;
 import java.util.function.*;
 
 import org.eclipse.swt.*;
+import org.eclipse.swt.custom.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.internal.*;
 import org.eclipse.swt.internal.ole.win32.*;
@@ -942,19 +943,24 @@ void createDisplay (DeviceData data) {
 }
 
 static long create32bitDIB (Image image) {
+	return create32bitDIB (image, DPIUtil.getDeviceZoom());
+}
+
+static long create32bitDIB (Image image, int zoomLevel) {
+	long handle = Image.win32_getHandle(image, zoomLevel);
 	int transparentPixel = -1, alpha = -1;
 	long hMask = 0, hBitmap = 0;
 	byte[] alphaData = null;
 	switch (image.type) {
 		case SWT.ICON:
 			ICONINFO info = new ICONINFO ();
-			OS.GetIconInfo (image.handle, info);
+			OS.GetIconInfo (handle, info);
 			hBitmap = info.hbmColor;
 			hMask = info.hbmMask;
 			break;
 		case SWT.BITMAP:
-			ImageData data = image.getImageData (DPIUtil.getDeviceZoom ());
-			hBitmap = image.handle;
+			ImageData data = image.getImageData (zoomLevel);
+			hBitmap = handle;
 			alpha = data.alpha;
 			alphaData = data.alphaData;
 			transparentPixel = data.transparentPixel;
@@ -1052,7 +1058,7 @@ static long create32bitDIB (Image image) {
 	OS.DeleteObject (srcHdc);
 	OS.DeleteObject (memHdc);
 	OS.ReleaseDC (0, hDC);
-	if (hBitmap != image.handle && hBitmap != 0) OS.DeleteObject (hBitmap);
+	if (hBitmap != handle && hBitmap != 0) OS.DeleteObject (hBitmap);
 	if (hMask != 0) OS.DeleteObject (hMask);
 	return memDib;
 }
@@ -1960,7 +1966,7 @@ public Point [] getIconSizes () {
 	};
 }
 
-ImageList getImageList (int style, int width, int height) {
+ImageList getImageList (int style, int width, int height, int currentZoomLevel) {
 	if (imageList == null) imageList = new ImageList [4];
 
 	int i = 0;
@@ -1984,13 +1990,13 @@ ImageList getImageList (int style, int width, int height) {
 		imageList = newList;
 	}
 
-	ImageList list = new ImageList (style, width, height);
+	ImageList list = new ImageList (style, width, height, currentZoomLevel);
 	imageList [i] = list;
 	list.addRef();
 	return list;
 }
 
-ImageList getImageListToolBar (int style, int width, int height) {
+ImageList getImageListToolBar (int style, int width, int height, int currentZoomLevel) {
 	if (toolImageList == null) toolImageList = new ImageList [4];
 
 	int i = 0;
@@ -2014,13 +2020,13 @@ ImageList getImageListToolBar (int style, int width, int height) {
 		toolImageList = newList;
 	}
 
-	ImageList list = new ImageList (style, width, height);
+	ImageList list = new ImageList (style, width, height, currentZoomLevel);
 	toolImageList [i] = list;
 	list.addRef();
 	return list;
 }
 
-ImageList getImageListToolBarDisabled (int style, int width, int height) {
+ImageList getImageListToolBarDisabled (int style, int width, int height, int currentZoomLevel) {
 	if (toolDisabledImageList == null) toolDisabledImageList = new ImageList [4];
 
 	int i = 0;
@@ -2044,13 +2050,13 @@ ImageList getImageListToolBarDisabled (int style, int width, int height) {
 		toolDisabledImageList = newList;
 	}
 
-	ImageList list = new ImageList (style, width, height);
+	ImageList list = new ImageList (style, width, height, currentZoomLevel);
 	toolDisabledImageList [i] = list;
 	list.addRef();
 	return list;
 }
 
-ImageList getImageListToolBarHot (int style, int width, int height) {
+ImageList getImageListToolBarHot (int style, int width, int height, int currentZoomLevel) {
 	if (toolHotImageList == null) toolHotImageList = new ImageList [4];
 
 	int i = 0;
@@ -2074,7 +2080,7 @@ ImageList getImageListToolBarHot (int style, int width, int height) {
 		toolHotImageList = newList;
 	}
 
-	ImageList list = new ImageList (style, width, height);
+	ImageList list = new ImageList (style, width, height, currentZoomLevel);
 	toolHotImageList [i] = list;
 	list.addRef();
 	return list;

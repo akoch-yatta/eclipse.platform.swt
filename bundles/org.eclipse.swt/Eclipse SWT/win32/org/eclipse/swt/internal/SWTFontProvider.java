@@ -47,9 +47,10 @@ public class SWTFontProvider {
 	}
 
 	private static SWTFontRegistry newFontRegistry(Device device) {
-		if (DPIUtil.isAutoScaleOnRuntimeActive()) {
+		if (DPIUtil.autoScaleOnRuntime) {
 			return new ScalingSWTFontRegistry(device);
+		} else {
+			return new DefaultSWTFontRegistry(device);
 		}
-		return new DefaultSWTFontRegistry(device);
 	}
 }

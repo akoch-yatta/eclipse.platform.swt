@@ -1479,10 +1479,10 @@ public void clearAll () {
 	int border = getBorderWidthInPixels ();
 	width += border * 2;  height += border * 2;
 	if ((style & SWT.V_SCROLL) != 0) {
-		width += getSystemMetrics (OS.SM_CXVSCROLL);
+		width += OS.GetSystemMetrics (OS.SM_CXVSCROLL);
 	}
 	if ((style & SWT.H_SCROLL) != 0) {
-		height += getSystemMetrics (OS.SM_CYHSCROLL);
+		height += OS.GetSystemMetrics (OS.SM_CYHSCROLL);
 	}
 	return new Point (width, height);
 }
@@ -2334,7 +2334,7 @@ int getFocusIndex () {
  */
 public int getGridLineWidth () {
 	checkWidget ();
-	return DPIUtil.autoScaleDown(getGridLineWidthInPixels());
+	return DPIUtil.autoScaleDown(getGridLineWidthInPixels(), getZoom());
 }
 
 int getGridLineWidthInPixels () {
@@ -2395,7 +2395,7 @@ private int getHeaderForegroundPixel() {
  */
 public int getHeaderHeight () {
 	checkWidget ();
-	return DPIUtil.autoScaleDown(getHeaderHeightInPixels ());
+	return DPIUtil.autoScaleDown(getHeaderHeightInPixels (), getZoom());
 }
 
 int getHeaderHeightInPixels () {
@@ -2476,7 +2476,7 @@ public TableItem getItem (int index) {
 public TableItem getItem (Point point) {
 	checkWidget ();
 	if (point == null) error (SWT.ERROR_NULL_ARGUMENT);
-	return getItemInPixels (DPIUtil.autoScaleUp(point));
+	return getItemInPixels (DPIUtil.autoScaleUp(point, getZoom()));
 }
 
 TableItem getItemInPixels (Point point) {
@@ -2576,7 +2576,7 @@ public int getItemCount () {
  */
 public int getItemHeight () {
 	checkWidget ();
-	return DPIUtil.autoScaleDown(getItemHeightInPixels());
+	return DPIUtil.autoScaleDown(getItemHeightInPixels(), getZoom());
 }
 
 int getItemHeightInPixels () {
@@ -2849,8 +2849,8 @@ int imageIndex (Image image, int column) {
 		setSubImagesVisible (true);
 	}
 	if (imageList == null) {
-		Rectangle bounds = image.getBoundsInPixels ();
-		imageList = display.getImageList (style & SWT.RIGHT_TO_LEFT, bounds.width, bounds.height);
+		Rectangle bounds = DPIUtil.autoScaleBounds(image.getBounds(), this.getZoom(), 100);
+		imageList = display.getImageList (style & SWT.RIGHT_TO_LEFT, bounds.width, bounds.height, getZoom());
 		int index = imageList.indexOf (image);
 		if (index == -1) index = imageList.add (image);
 		long hImageList = imageList.getHandle ();
@@ -2889,8 +2889,8 @@ int imageIndex (Image image, int column) {
 int imageIndexHeader (Image image) {
 	if (image == null) return OS.I_IMAGENONE;
 	if (headerImageList == null) {
-		Rectangle bounds = image.getBoundsInPixels ();
-		headerImageList = display.getImageList (style & SWT.RIGHT_TO_LEFT, bounds.width, bounds.height);
+		Rectangle bounds = DPIUtil.autoScaleBounds(image.getBounds(), this.getZoom(), 100);
+		headerImageList = display.getImageList (style & SWT.RIGHT_TO_LEFT, bounds.width, bounds.height, getZoom());
 		int index = headerImageList.indexOf (image);
 		if (index == -1) index = headerImageList.add (image);
 		long hImageList = headerImageList.getHandle ();
@@ -3486,7 +3486,7 @@ void sendEraseItemEvent (TableItem item, NMLVCUSTOMDRAW nmcd, long lParam, Event
 	if (drawBackground) event.detail |= SWT.BACKGROUND;
 	Rectangle boundsInPixels = new Rectangle (cellRect.left, cellRect.top, cellRect.right - cellRect.left, cellRect.bottom - cellRect.top);
 	event.setBoundsInPixels (boundsInPixels);
-	gc.setClipping (DPIUtil.autoScaleDown(boundsInPixels));
+	gc.setClipping (DPIUtil.autoScaleDown(boundsInPixels, getZoom()));
 	sendEvent (SWT.EraseItem, event);
 	event.gc = null;
 	int clrSelectionText = data.foreground;
@@ -3930,7 +3930,7 @@ void sendPaintItemEvent (TableItem item, NMLVCUSTOMDRAW nmcd) {
 	RECT cellRect = item.getBounds ((int)nmcd.dwItemSpec, nmcd.iSubItem, true, true, true, true, hDC);
 	int cellWidth = cellRect.right - cellRect.left;
 	int cellHeight = cellRect.bottom - cellRect.top;
-	gc.setClipping (DPIUtil.autoScaleDown(new Rectangle (cellRect.left, cellRect.top, cellWidth, cellHeight)));
+	gc.setClipping (DPIUtil.autoScaleDown(new Rectangle (cellRect.left, cellRect.top, cellWidth, cellHeight), getZoom()));
 	sendEvent (SWT.PaintItem, event);
 	if (data.focusDrawn) focusRect = null;
 	event.gc = null;
@@ -5577,7 +5577,7 @@ void updateOrientation () {
 	if (imageList != null) {
 		Point size = imageList.getImageSize ();
 		display.releaseImageList (imageList);
-		imageList = display.getImageList (style & SWT.RIGHT_TO_LEFT, size.x, size.y);
+		imageList = display.getImageList (style & SWT.RIGHT_TO_LEFT, size.x, size.y, getZoom());
 		int count = (int)OS.SendMessage (handle, OS.LVM_GETITEMCOUNT, 0, 0);
 		for (int i = 0; i < count; i++) {
 			TableItem item = _getItem (i, false);
@@ -5596,7 +5596,7 @@ void updateOrientation () {
 		if (headerImageList != null) {
 			Point size = headerImageList.getImageSize ();
 			display.releaseImageList (headerImageList);
-			headerImageList = display.getImageList (style & SWT.RIGHT_TO_LEFT, size.x, size.y);
+			headerImageList = display.getImageList (style & SWT.RIGHT_TO_LEFT, size.x, size.y, getZoom());
 			if (columns != null) {
 				for (int i = 0; i < columns.length; i++) {
 					TableColumn column = columns [i];
@@ -6966,7 +6966,7 @@ LRESULT wmNotifyHeader (NMHDR hdr, long wParam, long lParam) {
 							data.device = display;
 							GC gc = GC.win32_new (nmcd.hdc, data);
 							int y = Math.max (0, (nmcd.bottom - columns[i].image.getBoundsInPixels().height) / 2);
-							gc.drawImage (columns[i].image, DPIUtil.autoScaleDown(x), DPIUtil.autoScaleDown(y));
+							gc.drawImage (columns[i].image, DPIUtil.autoScaleDown(x, getZoom()), DPIUtil.autoScaleDown(y, getZoom()));
 							x += columns[i].image.getBoundsInPixels().width + 12;
 							gc.dispose ();
 						}
@@ -7295,8 +7295,8 @@ LRESULT wmNotifyToolTip (NMTTCUSTOMDRAW nmcd, long lParam) {
 						RECT imageRect = item.getBounds (pinfo.iItem, pinfo.iSubItem, false, true, false, false, hDC);
 						Point size = imageList == null ? new Point (rect.width, rect.height) : imageList.getImageSize ();
 						int y = imageRect.top + Math.max (0, (imageRect.bottom - imageRect.top - size.y) / 2);
-						rect = DPIUtil.autoScaleDown(rect);
-						gc.drawImage (image, rect.x, rect.y, rect.width, rect.height, DPIUtil.autoScaleDown(x), DPIUtil.autoScaleDown(y), DPIUtil.autoScaleDown(size.x), DPIUtil.autoScaleDown(size.y));
+						rect = DPIUtil.autoScaleDown(rect, getZoom());
+						gc.drawImage (image, rect.x, rect.y, rect.width, rect.height, DPIUtil.autoScaleDown(x, getZoom()), DPIUtil.autoScaleDown(y, getZoom()), DPIUtil.autoScaleDown(size.x, getZoom()), DPIUtil.autoScaleDown(size.y, getZoom()));
 						x += size.x + INSET + (pinfo.iSubItem == 0 ? -2 : 4);
 					} else {
 						x += INSET + 2;
