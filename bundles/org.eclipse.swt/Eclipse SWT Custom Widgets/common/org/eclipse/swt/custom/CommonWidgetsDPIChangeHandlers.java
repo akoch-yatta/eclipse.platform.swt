@@ -11,9 +11,10 @@
  * Contributors:
  *     Yatta Solutions - initial API and implementation
  *******************************************************************************/
-package org.eclipse.swt.internal;
+package org.eclipse.swt.custom;
 
 import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.internal.*;
 import org.eclipse.swt.widgets.*;
 
 /**
@@ -31,6 +32,7 @@ public class CommonWidgetsDPIChangeHandlers {
 
 	public static void registerCommonHandlers() {
 		DPIZoomChangeRegistry.registerHandler(CommonWidgetsDPIChangeHandlers::handleItemDPIChange, Item.class);
+		DPIZoomChangeRegistry.registerHandler(CommonWidgetsDPIChangeHandlers::handleStyledTextDPIChange, StyledText.class);
 	}
 
 	private static void handleItemDPIChange(Widget widget, int newZoom, float scalingFactor) {
@@ -43,4 +45,26 @@ public class CommonWidgetsDPIChangeHandlers {
 			item.setImage(image);
 		}
 	}
+
+	private static void handleStyledTextDPIChange(Widget widget, int newZoom, float scalingFactor) {
+		if (!(widget instanceof StyledText)) {
+			return;
+		}
+		StyledText styledText = (StyledText) widget;
+
+		DPIZoomChangeRegistry.applyChange(styledText.getCaret(), newZoom, scalingFactor);
+		DPIZoomChangeRegistry.applyChange(styledText.defaultCaret, newZoom, scalingFactor);
+		DPIZoomChangeRegistry.applyChange(styledText.ime, newZoom, scalingFactor);
+
+		for (Caret caret : styledText.carets) {
+			DPIZoomChangeRegistry.applyChange(caret, newZoom, scalingFactor);
+		}
+
+		styledText.updateCaretVisibility();
+
+		styledText.renderer.setFont(styledText.getFont(), styledText.tabLength);
+		styledText.setCaretLocations();
+	}
+
+
 }
