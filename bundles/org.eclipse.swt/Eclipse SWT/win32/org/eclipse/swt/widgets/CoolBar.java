@@ -561,7 +561,7 @@ Point [] getItemSizesInPixels () {
 	REBARBANDINFO rbBand = new REBARBANDINFO ();
 	rbBand.cbSize = REBARBANDINFO.sizeof;
 	rbBand.fMask = OS.RBBIM_CHILDSIZE;
-	int separator = (style & SWT.FLAT) == 0 ? SEPARATOR_WIDTH : 0;
+	int separator = (style & SWT.FLAT) == 0 ? DPIUtil.autoScaleUp(SEPARATOR_WIDTH, getZoom()) : 0;
 	MARGINS margins = new MARGINS ();
 	for (int i=0; i<count; i++) {
 		RECT rect = new RECT ();

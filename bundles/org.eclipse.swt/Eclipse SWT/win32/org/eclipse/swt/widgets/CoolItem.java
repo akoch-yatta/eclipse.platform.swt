@@ -237,7 +237,7 @@ Rectangle getBoundsInPixels () {
 	rect.left -= margins.cxLeftWidth;
 	rect.right += margins.cxRightWidth;
 	if (!parent.isLastItemOfRow (index)) {
-		rect.right += (parent.style & SWT.FLAT) == 0 ? CoolBar.SEPARATOR_WIDTH : 0;
+		rect.right += (parent.style & SWT.FLAT) == 0 ? DPIUtil.autoScaleUp(CoolBar.SEPARATOR_WIDTH, getZoom()) : 0;
 	}
 	int width = rect.right - rect.left;
 	int height = rect.bottom - rect.top;
@@ -497,7 +497,7 @@ Point getSizeInPixels() {
 	rect.left -= margins.cxLeftWidth;
 	rect.right += margins.cxRightWidth;
 	if (!parent.isLastItemOfRow (index)) {
-		rect.right += (parent.style & SWT.FLAT) == 0 ? CoolBar.SEPARATOR_WIDTH : 0;
+		rect.right += (parent.style & SWT.FLAT) == 0 ? DPIUtil.autoScaleUp(CoolBar.SEPARATOR_WIDTH, getZoom())  : 0;
 	}
 	int width = rect.right - rect.left;
 	int height = rect.bottom - rect.top;

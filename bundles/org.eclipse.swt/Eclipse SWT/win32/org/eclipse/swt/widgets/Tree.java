@@ -749,7 +749,7 @@ LRESULT CDDS_ITEMPOSTPAINT (NMTVCUSTOMDRAW nmcd, long wParam, long lParam) {
 						}
 					}
 				}
-				rect.left += INSET - 1;
+				rect.left += DPIUtil.autoScaleUp(INSET - 1);
 				if (drawImage) {
 					Image image = null;
 					if (index == 0) {
@@ -758,8 +758,8 @@ LRESULT CDDS_ITEMPOSTPAINT (NMTVCUSTOMDRAW nmcd, long wParam, long lParam) {
 						Image [] images  = item.images;
 						if (images != null) image = images [index];
 					}
-					int inset = i != 0 ? INSET : 0;
-					int offset = i != 0 ? INSET : INSET + 2;
+					int inset = i != 0 ? DPIUtil.autoScaleUp(INSET) : 0;
+					int offset = i != 0 ? DPIUtil.autoScaleUp(INSET) : DPIUtil.autoScaleUp(INSET + 2);
 					if (image != null) {
 						Rectangle bounds = image.getBounds (); // Points
 						if (size == null) size = DPIUtil.scaleDown (getImageSize (), zoom); // To Points

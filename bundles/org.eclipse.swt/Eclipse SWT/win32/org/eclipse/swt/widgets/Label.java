@@ -137,9 +137,9 @@ static int checkStyle (int style) {
 	if ((style & SWT.SEPARATOR) != 0) {
 		int lineWidth = getSystemMetrics (OS.SM_CXBORDER);
 		if ((style & SWT.HORIZONTAL) != 0) {
-			width = DEFAULT_WIDTH;  height = lineWidth * 2;
+			width = DPIUtil.autoScaleUp(DEFAULT_WIDTH);  height = lineWidth * 2;
 		} else {
-			width = lineWidth * 2; height = DEFAULT_HEIGHT;
+			width = lineWidth * 2; height = DPIUtil.autoScaleUp(DEFAULT_HEIGHT);
 		}
 		if (wHint != SWT.DEFAULT) width = wHint;
 		if (hHint != SWT.DEFAULT) height = hHint;
