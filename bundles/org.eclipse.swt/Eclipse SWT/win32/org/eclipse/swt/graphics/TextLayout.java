@@ -3253,6 +3253,7 @@ public void setFont (Font font) {
 	Font oldFont = this.font;
 	if (oldFont == font) return;
 	this.font = font;
+	this.nativeZoom = this.font == null ? nativeZoom : this.font.zoom;
 	if (oldFont != null && oldFont.equals(font)) return;
 	freeRuns();
 }
