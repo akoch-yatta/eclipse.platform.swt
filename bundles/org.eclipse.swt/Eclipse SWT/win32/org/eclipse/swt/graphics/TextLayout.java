@@ -1972,7 +1972,7 @@ long getItemFont (StyleItem item, GC gc) {
 	if (this.font != null) {
 		return Font.win32_new(this.font, zoom).handle;
 	}
-	return Font.win32_new(device.systemFont, zoom).handle;
+	return SWTFontProvider.getSystemFont(device, zoom).handle;
 }
 
 /**
