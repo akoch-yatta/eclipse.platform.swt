@@ -789,7 +789,11 @@ public static Long win32_getHandle (Image image, int zoom) {
 			image.init();
 		}
 	}
-	return image.handleMap.get(zoom);
+
+	if (image.handleMap.containsKey(zoom)) {
+		return image.handleMap.get(zoom);
+	}
+	return image.handle;
 }
 
 long initNative(String filename, int zoom) {
