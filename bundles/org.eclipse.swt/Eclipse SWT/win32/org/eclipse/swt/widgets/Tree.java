@@ -4352,7 +4352,7 @@ void setItemCount (int count, long hParent) {
 	// if the item height was set at least once programmatically, it will never be
 	// done by the OS anymore. To handle resizing after DPI changes, this must be
 	// tracked with the manualItemHeight-flag
-	//manualItemHeight |= (newHeight > 0);
+	manualItemHeight |= (newHeight > 0);
 }
 
 /**
