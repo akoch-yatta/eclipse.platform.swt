@@ -549,8 +549,8 @@ void computeRuns (GC gc) {
 				TEXTMETRIC lptm = new TEXTMETRIC();
 				OS.SelectObject(srcHdc, getItemFont(run, gc));
 				metricsAdapter.GetTextMetrics(srcHdc, lptm);
-				run.ascentInPoints = DPIUtil.scaleDown(getDevice(), lptm.tmAscent, newNativeZoom);
-				run.descentInPoints = DPIUtil.scaleDown(getDevice(), lptm.tmDescent, newNativeZoom);
+				run.ascentInPoints = DPIUtil.scaleDown(getDevice(), lptm.tmAscent, getZoom(gc));
+				run.descentInPoints = DPIUtil.scaleDown(getDevice(), lptm.tmDescent, getZoom(gc));
 				ascentInPoints = Math.max(ascentInPoints, run.ascentInPoints);
 				descentInPoints = Math.max(descentInPoints, run.descentInPoints);
 			}
