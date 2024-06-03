@@ -874,6 +874,7 @@ long initNative(String filename, int zoom) {
 						OS.SelectObject(srcHDC, oldSrcBitmap);
 						OS.DeleteDC(srcHDC);
 						device.internal_dispose_GC(hDC, null);
+						handleMap.put(zoom, handle);
 					} else {
 						long lockedBitmapData = Gdip.BitmapData_new();
 						if (lockedBitmapData != 0) {
