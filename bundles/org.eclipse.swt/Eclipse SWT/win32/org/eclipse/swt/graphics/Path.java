@@ -440,7 +440,6 @@ void cubicToInPixels(float cx1, float cy1, float cx2, float cy2, float x, float 
 @Override
 void destroy() {
 	handleMap.values().forEach(handle -> Gdip.GraphicsPath_delete(handle));
-	Gdip.GraphicsPath_delete(handle);
 	handle = 0;
 }
 
