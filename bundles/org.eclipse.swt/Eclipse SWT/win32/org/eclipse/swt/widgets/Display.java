@@ -26,7 +26,6 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.internal.*;
 import org.eclipse.swt.internal.ole.win32.*;
 import org.eclipse.swt.internal.win32.*;
-
 /**
  * Instances of this class are responsible for managing the
  * connection between SWT and the underlying operating
@@ -346,6 +345,10 @@ public class Display extends Device implements Executor {
 	/* Settings */
 	static final long SETTINGS_ID = 100;
 	static final int SETTINGS_DELAY = 2000;
+
+	/* Default Image Height and Width on 100 zoom level */
+	static final int DEFAULT_ICON_HEIGHT = 32;
+	static final int DEFAULT_ICON_WIDTH = 32;
 
 	/* Keyboard and Mouse */
 	RECT clickRect;
@@ -2510,9 +2513,29 @@ public Image getSystemImage (int id) {
 	switch (id) {
 		case SWT.ICON_ERROR: {
 			if (errorImage != null) return errorImage;
-			long hIcon = OS.LoadImage (0, OS.OIC_HAND, OS.IMAGE_ICON, 0, 0, OS.LR_SHARED);
-			return errorImage = Image.win32_new (this, SWT.ICON, hIcon);
+
+			ImageDataProvider idp = zoom -> {
+				long hIcon = OS.LoadImage (0, OS.OIC_HAND, OS.IMAGE_ICON, DEFAULT_ICON_HEIGHT * zoom / 100 , DEFAULT_ICON_WIDTH * zoom / 100, OS.LR_SHARED);
+				//errorImage.handleMap.put(zoom, hIcon);
+				ImageData imgData = Image.win32_new (this, SWT.ICON, hIcon).getImageData(zoom);
+				//ImageData imageData = hIconToImageData(hIcon);
+				return imgData;
+			};
+		//	 ImageData imgData = idp.getImageData(200);
+		//	 System.out.println(imgData);
+
+			 //OLD
+ 			//long hIcon = OS.LoadImage (0, OS.OIC_HAND, OS.IMAGE_ICON, imgData.width, imgData.height, OS.LR_SHARED);
+		//	errorImage = Image.win32_new (this, SWT.ICON, hIcon);
+
+		//	long oldIcon = OS.LoadImage (0, OS.OIC_HAND, OS.IMAGE_ICON, 0, 0, OS.LR_SHARED);
+		//	Image oldImage = Image.win32_new (this, SWT.ICON, oldIcon);
+
+			errorImage = new Image(this, idp);
+
+			return errorImage;
 		}
+
 		case SWT.ICON_WORKING:
 		case SWT.ICON_INFORMATION: {
 			if (infoImage != null) return infoImage;
@@ -2521,8 +2544,9 @@ public Image getSystemImage (int id) {
 		}
 		case SWT.ICON_QUESTION: {
 			if (questionImage != null) return questionImage;
-			long hIcon = OS.LoadImage (0, OS.OIC_QUES, OS.IMAGE_ICON, 0, 0, OS.LR_SHARED);
-			return questionImage = Image.win32_new (this, SWT.ICON, hIcon);
+			long hIcon = OS.LoadImage(0, OS.OIC_QUES, OS.IMAGE_ICON, 0, 0, OS.LR_SHARED);
+			questionImage = Image.win32_new(this, SWT.ICON, hIcon);
+			return questionImage;
 		}
 		case SWT.ICON_WARNING: {
 			if (warningIcon != null) return warningIcon;
@@ -2531,6 +2555,51 @@ public Image getSystemImage (int id) {
 		}
 	}
 	return null;
+}
+
+/**
+ * @since 3.126
+ */
+public static ImageData hIconToImageData(long hIcon) {
+    ICONINFO iconInfo = new ICONINFO();
+    if (!OS.GetIconInfo(hIcon, iconInfo)) {
+        return null;
+    }
+
+    BITMAP bitmap = new BITMAP();
+    OS.GetObject(iconInfo.hbmColor, BITMAP.sizeof, bitmap);
+
+    int width = bitmap.bmWidth;
+    int height = bitmap.bmHeight;
+    byte[] pixels = new byte[width * height * 4];
+
+    // Prepare to retrieve the bitmap bits
+    org.eclipse.swt.internal.win32.BITMAPINFOHEADER bmiHeader = new org.eclipse.swt.internal.win32.BITMAPINFOHEADER();
+    bmiHeader.biSize = org.eclipse.swt.internal.win32.BITMAPINFOHEADER.sizeof;
+    bmiHeader.biWidth = width;
+    bmiHeader.biHeight = -height; // Negative to keep the top-down orientation
+    bmiHeader.biPlanes = 1;
+    bmiHeader.biBitCount = 32;
+    bmiHeader.biCompression = OS.BI_RGB;
+
+    // Create a buffer for the BITMAPINFO
+    byte[] bmi = new byte[org.eclipse.swt.internal.win32.BITMAPINFOHEADER.sizeof + 12];
+    OS.MoveMemory(bmi, bmiHeader, org.eclipse.swt.internal.win32.BITMAPINFOHEADER.sizeof);
+
+    // Get the device context
+    long hdc = OS.GetDC(0);
+    OS.GetDIBits(hdc, iconInfo.hbmColor, 0, height, pixels, bmi, OS.DIB_RGB_COLORS);
+    OS.ReleaseDC(0, hdc);
+
+    PaletteData palette = new PaletteData(0x00FF0000, 0x0000FF00, 0x000000FF);
+    ImageData imageData = new ImageData(width, height, 32, palette);
+    imageData.data = pixels;
+
+    // Free resources
+    OS.DeleteObject(iconInfo.hbmColor);
+    OS.DeleteObject(iconInfo.hbmMask);
+
+    return imageData;
 }
 
 /**
