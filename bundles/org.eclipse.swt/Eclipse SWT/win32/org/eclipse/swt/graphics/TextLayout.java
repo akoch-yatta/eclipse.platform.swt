@@ -1859,7 +1859,7 @@ Rectangle getBoundsInPixels (int start, int end) {
 			int cx = 0;
 			if (run.style != null && run.style.metrics != null) {
 				GlyphMetrics metrics = run.style.metrics;
-				cx = DPIUtil.autoScaleUp(getDevice(), metrics.width, nativeZoom) * (start - run.start);
+				cx = DPIUtil.autoScaleUp(getDevice(), metrics.width) * (start - run.start);
 			} else if (!run.tab) {
 				int iX = ScriptCPtoX(start - run.start, false, run);
 				cx = isRTL ? run.width - iX : iX;
@@ -1874,7 +1874,7 @@ Rectangle getBoundsInPixels (int start, int end) {
 			int cx = run.width;
 			if (run.style != null && run.style.metrics != null) {
 				GlyphMetrics metrics = run.style.metrics;
-				cx = DPIUtil.autoScaleUp(getDevice(), metrics.width, nativeZoom) * (end - run.start + 1);
+				cx = DPIUtil.autoScaleUp(getDevice(), metrics.width) * (end - run.start + 1);
 			} else if (!run.tab) {
 				int iX = ScriptCPtoX(end - run.start, true, run);
 				cx = isRTL ? run.width - iX : iX;
@@ -1965,14 +1965,13 @@ public boolean getJustify () {
 
 long getItemFont (StyleItem item, GC gc) {
 	if (item.fallbackFont != 0) return item.fallbackFont;
-	final int zoom = getNativeZoom(gc);
 	if (item.style != null && item.style.font != null) {
-		return Font.win32_new(item.style.font, zoom).handle;
+		return Font.win32_new(item.style.font, getNativeZoom(gc)).handle;
 	}
 	if (this.font != null) {
-		return Font.win32_new(this.font, zoom).handle;
+		return Font.win32_new(this.font, getNativeZoom(gc)).handle;
 	}
-	return SWTFontProvider.getSystemFont(device, zoom).handle;
+	return Font.win32_new(device.systemFont, getNativeZoom(gc)).handle;
 }
 
 /**
@@ -2018,16 +2017,12 @@ public int getLevel (int offset) {
  */
 public Rectangle getLineBounds (int lineIndex) {
 	checkLayout();
-	return DPIUtil.scaleDown(getDevice(), getLineBoundsInPixels(lineIndex), getZoom());
-}
-
-Rectangle getLineBoundsInPixels(int lineIndex) {
 	computeRuns(null);
 	if (!(0 <= lineIndex && lineIndex < runs.length)) SWT.error(SWT.ERROR_INVALID_RANGE);
-	int x = getLineIndentInPixel(lineIndex);
-	int y = DPIUtil.autoScaleUp(getDevice(), lineY[lineIndex], getZoom());
+	int x = getLineIndent(lineIndex);
+	int y = lineY[lineIndex];
 	int width = lineWidth[lineIndex];
-	int height = DPIUtil.autoScaleUp(getDevice(), lineY[lineIndex + 1] - lineY[lineIndex] - lineSpacingInPoints, getZoom());
+	int height = lineY[lineIndex + 1] - lineY[lineIndex] - lineSpacingInPoints;
 	return new Rectangle (x, y, width, height);
 }
 
@@ -2137,7 +2132,7 @@ public FontMetrics getLineMetrics (int lineIndex) {
 
 	int ascentInPoints = this.ascent;
 	int descentInPoints = this.descent;
-	int leadingInPoints = DPIUtil.scaleDown(getDevice(), lptm.tmInternalLeading, availableFont.zoom);
+	int leadingInPoints = DPIUtil.scaleDown(getDevice(), lptm.tmInternalLeading, getZoom());
 	if (text.length() != 0) {
 		for (StyleItem run : runs[lineIndex]) {
 			if (run.ascentInPoints > ascentInPoints) {
@@ -2152,7 +2147,7 @@ public FontMetrics getLineMetrics (int lineIndex) {
 	lptm.tmHeight = DPIUtil.autoScaleUp(getDevice(), ascentInPoints + descentInPoints, getZoom());
 	lptm.tmInternalLeading = DPIUtil.autoScaleUp(getDevice(), leadingInPoints, getZoom());
 	lptm.tmAveCharWidth = 0;
-	return FontMetrics.win32_new(lptm, nativeZoom);
+	return FontMetrics.win32_new(lptm, getZoom());
 }
 
 /**
@@ -2245,7 +2240,7 @@ Point getLocationInPixels (int offset, boolean trailing) {
 			int width;
 			if (run.style != null && run.style.metrics != null) {
 				GlyphMetrics metrics = run.style.metrics;
-				width = DPIUtil.autoScaleUp(getDevice(), metrics.width, nativeZoom) * (offset - run.start + (trailing ? 1 : 0));
+				width = DPIUtil.autoScaleUp(getDevice(), metrics.width) * (offset - run.start + (trailing ? 1 : 0));
 			} else if (run.tab) {
 				width = (trailing || (offset == length)) ? run.width : 0;
 			} else {
@@ -2467,7 +2462,7 @@ int getOffsetInPixels (int x, int y, int[] trailing) {
 			if (run.style != null && run.style.metrics != null) {
 				GlyphMetrics metrics = run.style.metrics;
 				if (metrics.width > 0) {
-					final int metricsWidthInPixels = DPIUtil.autoScaleUp(getDevice(), metrics.width, nativeZoom);
+					final int metricsWidthInPixels = DPIUtil.autoScaleUp(getDevice(), metrics.width);
 					if (trailing != null) {
 						trailing[0] = (xRun % metricsWidthInPixels < metricsWidthInPixels / 2) ? 0 : 1;
 					}
@@ -3253,8 +3248,8 @@ public void setFont (Font font) {
 	Font oldFont = this.font;
 	if (oldFont == font) return;
 	this.font = font;
-	this.nativeZoom = this.font == null ? nativeZoom : this.font.zoom;
 	if (oldFont != null && oldFont.equals(font)) return;
+	this.nativeZoom = font.zoom;
 	freeRuns();
 }
 
@@ -3913,7 +3908,7 @@ void shape (GC  gc, final long hdc, final StyleItem run) {
 			 *  equals zero for FFFC (possibly other unicode code points), the fix
 			 *  is to make sure the glyph is at least one pixel wide.
 			 */
-			run.width = DPIUtil.autoScaleUp(getDevice(), metrics.width, nativeZoom) * Math.max (1, run.glyphCount);
+			run.width = DPIUtil.autoScaleUp(getDevice(), metrics.width) * Math.max (1, run.glyphCount);
 			run.ascentInPoints = metrics.ascent;
 			run.descentInPoints = metrics.descent;
 			run.leadingInPoints = 0;
