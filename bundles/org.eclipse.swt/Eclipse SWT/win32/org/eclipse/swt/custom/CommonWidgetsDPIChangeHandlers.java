@@ -52,6 +52,7 @@ public class CommonWidgetsDPIChangeHandlers {
 		}
 		CCombo combo = (CCombo) widget;
 
+		DPIZoomChangeRegistry.applyChange(combo.popup, newZoom, scalingFactor);
 		DPIZoomChangeRegistry.applyChange(combo.text, newZoom, scalingFactor);
 		DPIZoomChangeRegistry.applyChange(combo.list, newZoom, scalingFactor);
 		DPIZoomChangeRegistry.applyChange(combo.arrow, newZoom, scalingFactor);
