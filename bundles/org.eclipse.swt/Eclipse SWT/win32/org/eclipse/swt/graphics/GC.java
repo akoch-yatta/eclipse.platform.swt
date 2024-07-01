@@ -198,9 +198,9 @@ void checkGC(int mask) {
 			Pattern pattern = data.foregroundPattern;
 			if (pattern != null) {
 				if(data.alpha == 0xFF) {
-					brush = pattern.handle;
+					brush = pattern.getHandle(getZoom());
 				} else {
-					brush = data.gdipFgPatternBrushAlpha != 0 ? Gdip.Brush_Clone(data.gdipFgPatternBrushAlpha) : createAlphaTextureBrush(pattern.handle, data.alpha);
+					brush = data.gdipFgPatternBrushAlpha != 0 ? Gdip.Brush_Clone(data.gdipFgPatternBrushAlpha) : createAlphaTextureBrush(pattern.getHandle(getZoom()), data.alpha);
 					data.gdipFgPatternBrushAlpha = brush;
 				}
 				if ((data.style & SWT.MIRRORED) != 0) {
@@ -289,9 +289,9 @@ void checkGC(int mask) {
 			Pattern pattern = data.backgroundPattern;
 			if (pattern != null) {
 				if(data.alpha == 0xFF) {
-					data.gdipBrush = pattern.handle;
+					data.gdipBrush = pattern.getHandle(getZoom());
 				} else {
-					long brush = data.gdipBgPatternBrushAlpha != 0 ? Gdip.Brush_Clone(data.gdipBgPatternBrushAlpha) : createAlphaTextureBrush(pattern.handle, data.alpha);
+					long brush = data.gdipBgPatternBrushAlpha != 0 ? Gdip.Brush_Clone(data.gdipBgPatternBrushAlpha) : createAlphaTextureBrush(pattern.getHandle(getZoom()), data.alpha);
 					data.gdipBrush = data.gdipBgBrush /*= data.gdipBgPatternBrushAlpha */ = brush;
 				}
 				if ((data.style & SWT.MIRRORED) != 0) {
@@ -1746,12 +1746,13 @@ void drawOvalInPixels (int x, int y, int width, int height) {
 public void drawPath (Path path) {
 	if (handle == 0) SWT.error(SWT.ERROR_GRAPHIC_DISPOSED);
 	if (path == null) SWT.error(SWT.ERROR_NULL_ARGUMENT);
-	if (path.handle == 0) SWT.error(SWT.ERROR_INVALID_ARGUMENT);
+	long pathHandle = path.getHandle(getZoom());
+	if (pathHandle == 0) SWT.error(SWT.ERROR_INVALID_ARGUMENT);
 	initGdip();
 	checkGC(DRAW);
 	long gdipGraphics = data.gdipGraphics;
 	Gdip.Graphics_TranslateTransform(gdipGraphics, data.gdipXOffset, data.gdipYOffset, Gdip.MatrixOrderPrepend);
-	Gdip.Graphics_DrawPath(gdipGraphics, data.gdipPen, path.handle);
+	Gdip.Graphics_DrawPath(gdipGraphics, data.gdipPen, pathHandle);
 	Gdip.Graphics_TranslateTransform(gdipGraphics, -data.gdipXOffset, -data.gdipYOffset, Gdip.MatrixOrderPrepend);
 }
 
@@ -2930,12 +2931,13 @@ void fillOvalInPixels (int x, int y, int width, int height) {
 public void fillPath (Path path) {
 	if (handle == 0) SWT.error(SWT.ERROR_GRAPHIC_DISPOSED);
 	if (path == null) SWT.error(SWT.ERROR_NULL_ARGUMENT);
-	if (path.handle == 0) SWT.error(SWT.ERROR_INVALID_ARGUMENT);
+	final long pathHandle = path.getHandle(getZoom());
+	if (pathHandle == 0) SWT.error(SWT.ERROR_INVALID_ARGUMENT);
 	initGdip();
 	checkGC(FILL);
 	int mode = OS.GetPolyFillMode(handle) == OS.WINDING ? Gdip.FillModeWinding : Gdip.FillModeAlternate;
-	Gdip.GraphicsPath_SetFillMode(path.handle, mode);
-	Gdip.Graphics_FillPath(data.gdipGraphics, data.gdipBrush, path.handle);
+	Gdip.GraphicsPath_SetFillMode(pathHandle, mode);
+	Gdip.Graphics_FillPath(data.gdipGraphics, data.gdipBrush, pathHandle);
 }
 
 /**
@@ -3440,7 +3442,7 @@ public void getClipping (Region region) {
 }
 
 long getFgBrush() {
-	return data.foregroundPattern != null ? data.foregroundPattern.handle : data.gdipFgBrush;
+	return data.foregroundPattern != null ? data.foregroundPattern.getHandle(getZoom()) : data.gdipFgBrush;
 }
 
 /**
@@ -3790,10 +3792,10 @@ public void getTransform(Transform transform) {
 	if (transform.isDisposed()) SWT.error(SWT.ERROR_INVALID_ARGUMENT);
 	long gdipGraphics = data.gdipGraphics;
 	if (gdipGraphics != 0) {
-		Gdip.Graphics_GetTransform(gdipGraphics, transform.handle);
+		Gdip.Graphics_GetTransform(gdipGraphics, transform.getHandle(getZoom()));
 		long identity = identity();
 		Gdip.Matrix_Invert(identity);
-		Gdip.Matrix_Multiply(transform.handle, identity, Gdip.MatrixOrderAppend);
+		Gdip.Matrix_Multiply(transform.getHandle(getZoom()), identity, Gdip.MatrixOrderAppend);
 		Gdip.Matrix_delete(identity);
 	} else {
 		transform.setElements(1, 0, 0, 1, 0, 0);
@@ -3930,7 +3932,7 @@ void init(Drawable drawable, GCData data, long hDC) {
 	}
 	Image image = data.image;
 	if (image != null) {
-		data.hNullBitmap = OS.SelectObject(hDC, Image.win32_getHandle(image, data.nativeZoom));
+		data.hNullBitmap = OS.SelectObject(hDC, Image.win32_getHandle(image, DPIUtil.getZoomForAutoscaleProperty(data.nativeZoom)));
 		image.memGC = this;
 	}
 	int layout = data.layout;
@@ -4323,8 +4325,9 @@ public void setClipping (Path path) {
 	if (path != null) {
 		initGdip();
 		int mode = OS.GetPolyFillMode(handle) == OS.WINDING ? Gdip.FillModeWinding : Gdip.FillModeAlternate;
-		Gdip.GraphicsPath_SetFillMode(path.handle, mode);
-		Gdip.Graphics_SetClipPath(data.gdipGraphics, path.handle);
+		final long pathHandle = path.getHandle(getZoom());
+		Gdip.GraphicsPath_SetFillMode(pathHandle, mode);
+		Gdip.Graphics_SetClipPath(data.gdipGraphics, pathHandle);
 	}
 }
 
@@ -4928,7 +4931,7 @@ public void setTransform(Transform transform) {
 	initGdip();
 	long identity = identity();
 	if (transform != null) {
-		Gdip.Matrix_Multiply(identity, transform.handle, Gdip.MatrixOrderPrepend);
+		Gdip.Matrix_Multiply(identity, transform.getHandle(getZoom()), Gdip.MatrixOrderPrepend);
 	}
 	Gdip.Graphics_SetTransform(data.gdipGraphics, identity);
 	Gdip.Matrix_delete(identity);
