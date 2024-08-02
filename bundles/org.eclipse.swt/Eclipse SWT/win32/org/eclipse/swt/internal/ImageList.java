@@ -335,12 +335,18 @@ public long getHandle(int targetZoom) {
 		int scaledWidth = DPIUtil.scaleUp(DPIUtil.scaleDown(width, this.zoom), targetZoom);
 		int scaledHeight = DPIUtil.scaleUp(DPIUtil.scaleDown(height, this.zoom), targetZoom);
 		long handle = OS.ImageList_Create(scaledWidth, scaledHeight, flags, 16, 16);
-		int count = OS.ImageList_GetImageCount(handle);
 		for (int i = 0; i < images.length; i++) {
 			Image image = images[i];
 			if (image != null) {
-				set(i, image, count, handle, targetZoom);
-				count++;
+				set(i, image, i, handle, targetZoom);
+			} else {
+				long hDC = OS.GetDC (0);
+				if (hDC == 0) SWT.error(SWT.ERROR_NO_HANDLES);
+				long placeholderBitmapHandle = OS.CreateCompatibleBitmap(hDC, scaledWidth, scaledHeight);
+				if (placeholderBitmapHandle == 0) SWT.error(SWT.ERROR_NO_HANDLES);
+				OS.ImageList_Add(handle, placeholderBitmapHandle, placeholderBitmapHandle);
+				OS.DeleteObject(placeholderBitmapHandle);
+				OS.ReleaseDC(0, hDC);
 			}
 		}
 		zoomToHandle.put(targetZoom, handle);
