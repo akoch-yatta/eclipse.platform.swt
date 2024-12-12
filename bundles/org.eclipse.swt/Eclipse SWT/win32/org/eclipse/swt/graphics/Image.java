@@ -111,6 +111,11 @@ public final class Image extends Resource implements Drawable {
 	private ImageDataProvider imageDataProvider;
 
 	/**
+	 * ImageDataProvider to provide ImageData at various Zoom levels
+	 */
+	private DynamicImageDrawer imageDrawingProvider;
+
+	/**
 	 * Style flag used to differentiate normal, gray-scale and disabled images based
 	 * on image data providers. Without this, a normal and a disabled image of the
 	 * same image data provider would be considered equal.
@@ -174,8 +179,13 @@ Image (Device device) {
  * @see #dispose()
  */
 public Image(Device device, int width, int height) {
+	this(device, width, height, DPIUtil.getNativeDeviceZoom());
+}
+
+
+public Image(Device device, int width, int height, int nativeZoom) {
 	super(device);
-	initialNativeZoom = DPIUtil.getNativeDeviceZoom();
+	initialNativeZoom = nativeZoom;
 	final int zoom = getZoom();
 	width = DPIUtil.scaleUp (width, zoom);
 	height = DPIUtil.scaleUp (height, zoom);
@@ -603,6 +613,52 @@ public Image(Device device, ImageDataProvider imageDataProvider) {
 	this.device.registerResourceWithZoomSupport(this);
 }
 
+
+public Image(Device device, ImageDrawingProvider imageDrawingProvider, int width, int height) {
+	super(device);
+	this.imageDrawingProvider = new DynamicImageDrawer(imageDrawingProvider, width, height);
+	initialNativeZoom = DPIUtil.getNativeDeviceZoom();
+	ImageData imageData = this.imageDrawingProvider.getImageData(getZoom());
+	init(imageData, getZoom());
+	init();
+}
+
+private class DynamicImageDrawer {
+	private ImageDrawingProvider imageDrawingProvider;
+	private int width;
+	private int height;
+
+	public DynamicImageDrawer(ImageDrawingProvider imageDrawingProvider, int width, int height) {
+		this.imageDrawingProvider = imageDrawingProvider;
+		this.width = width;
+		this.height = height;
+	}
+
+	private ImageData getImageData(int zoom) {
+		ImageData baseId = new ImageData(width, height, 32, new PaletteData(0xFF00, 0xFF0000, 0xFF000000));
+		int transparentPixel = 0x00FFFFFF; // Anything with alpha 0
+		for (int y = 0; y < baseId.height; y++) {
+		for (int x = 0; x < baseId.width; x++) {
+				baseId.setPixel(x, y, transparentPixel);
+				baseId.setAlpha(x, y, 0);
+			}
+		}
+
+		Image image = new Image(device, baseId);
+		GC gc = new GC(image);
+		gc.setAdvanced(true);
+		gc.data.nativeZoom = initialNativeZoom;
+
+		imageDrawingProvider.drawImage(gc, zoom);
+		ImageData id = image.new ImageHandle(Image.win32_getHandle(image, zoom), zoom).getImageData();
+
+		gc.dispose();
+		image.dispose();
+		return id;
+	}
+
+}
+
 private ImageData adaptImageDataIfDisabledOrGray(ImageData data) {
 	ImageData returnImageData = null;
 	switch (this.styleFlag) {
@@ -770,7 +826,12 @@ private ImageHandle getImageMetadata(int zoom) {
 		ImageData newData = adaptImageDataIfDisabledOrGray(resizedData);
 		init(newData, zoom);
 		init();
-	} else {
+	} else if (imageDrawingProvider != null) {
+		ImageData resizedData = imageDrawingProvider.getImageData(zoom);
+		ImageData newData = adaptImageDataIfDisabledOrGray(resizedData);
+		init(newData, zoom);
+		init();
+	}  else {
 		ImageData resizedData = getImageData(zoom);
 		ImageData newData = adaptImageDataIfDisabledOrGray(resizedData);
 		init(newData, zoom);
@@ -1396,6 +1457,8 @@ public ImageData getImageData (int zoom) {
 	} else if (imageFileNameProvider != null) {
 		ElementAtZoom<String> fileName = DPIUtil.validateAndGetImagePathAtZoom (imageFileNameProvider, zoom);
 		return DPIUtil.scaleImageData (device, new ImageData (fileName.element()), zoom, fileName.zoom());
+	} else if (imageDrawingProvider != null) {
+		return this.imageDrawingProvider.getImageData(getZoom());
 	}
 
 	// if a GC is initialized with an Image (memGC != null), the image data must not be resized, because it would
