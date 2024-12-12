@@ -717,26 +717,22 @@ public Rectangle computeTrim (int x, int y, int width, int height) {
 	}
 	return trim;
 }
+
 Image createButtonImage(Display display, int button) {
-	return new Image(display, (ImageDataProvider) zoom -> {
-		GC tempGC = new GC (CTabFolder.this);
-		Point size = renderer.computeSize(button, SWT.NONE, tempGC, SWT.DEFAULT, SWT.DEFAULT);
-		tempGC.dispose();
+	final GC tempGC = new GC (CTabFolder.this);
+	final Point size = renderer.computeSize(button, SWT.NONE, tempGC, SWT.DEFAULT, SWT.DEFAULT);
+	tempGC.dispose();
 
-		Rectangle trim = renderer.computeTrim(button, SWT.NONE, 0, 0, 0, 0);
-		Image image = new Image (display, size.x - trim.width, size.y - trim.height);
-		GC gc = new GC (image);
-		Color transColor = renderer.parent.getBackground();
-		gc.setBackground(transColor);
-		gc.fillRectangle(image.getBounds());
-		renderer.draw(button, SWT.NONE, new Rectangle(trim.x, trim.y, size.x, size.y), gc);
-		gc.dispose ();
+	final Rectangle trim = renderer.computeTrim(button, SWT.NONE, 0, 0, 0, 0);
+	final Rectangle imageBounds = new Rectangle(0, 0, size.x - trim.width, size.y - trim.height);
+	final ImageDrawingProvider imageDrawingProvider = new ImageDrawingProvider() {
+		@Override
+		public void drawImage(GC gc) {
+			renderer.draw(button, SWT.NONE, new Rectangle(trim.x, trim.y, size.x, size.y), gc);
+		}
+	};
 
-		final ImageData imageData = image.getImageData (zoom);
-		imageData.transparentPixel = imageData.palette.getPixel(transColor.getRGB());
-		image.dispose();
-		return imageData;
-	});
+	return new Image(display, imageDrawingProvider, imageBounds.width, imageBounds.height);
 }
 
 private void notifyItemCountChange() {
