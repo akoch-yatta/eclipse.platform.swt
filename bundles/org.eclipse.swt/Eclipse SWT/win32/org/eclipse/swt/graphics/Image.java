@@ -1457,31 +1457,34 @@ void init(int width, int height) {
 	}
 	type = SWT.BITMAP;
 	long hDC = device.internal_new_GC(null);
-	ImageHandle imageMetadata = new ImageHandle(OS.CreateCompatibleBitmap(hDC, width, height), getZoom());
+	long handle = OS.CreateCompatibleBitmap(hDC, width, height);
+
 	/*
 	* Feature in Windows.  CreateCompatibleBitmap() may fail
 	* for large images.  The fix is to create a DIB section
 	* in that case.
 	*/
-	if (imageMetadata.handle == 0) {
+	if (handle == 0) {
 		int bits = OS.GetDeviceCaps(hDC, OS.BITSPIXEL);
 		int planes = OS.GetDeviceCaps(hDC, OS.PLANES);
 		int depth = bits * planes;
 		if (depth < 16) depth = 16;
 		if (depth > 24) depth = 24;
-		imageMetadata = new ImageHandle(createDIB(width, height, depth), getZoom());
+		handle = createDIB(width, height, depth);
 	}
-	if (imageMetadata.handle != 0) {
+	if (handle != 0) {
 		long memDC = OS.CreateCompatibleDC(hDC);
-		long hOldBitmap = OS.SelectObject(memDC, imageMetadata.handle);
+		long hOldBitmap = OS.SelectObject(memDC, handle);
 		OS.PatBlt(memDC, 0, 0, width, height, OS.PATCOPY);
 		OS.SelectObject(memDC, hOldBitmap);
 		OS.DeleteDC(memDC);
 	}
 	device.internal_dispose_GC(hDC, null);
-	if (imageMetadata.handle == 0) {
+	if (handle == 0) {
 		SWT.error(SWT.ERROR_NO_HANDLES, null, device.getLastError());
 	}
+	int zoom =  getZoom();
+	setImageMetadataForHandle(new ImageHandle(handle, zoom), zoom);
 }
 
 static long createDIB(int width, int height, int depth) {
